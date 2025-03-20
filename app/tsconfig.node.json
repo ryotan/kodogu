@@ -12,11 +12,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": [
-    "vite.config.ts",
-    "vitest.workspace.ts",
-    ".storybook/main.ts",
-    ".storybook/preview.ts",
-    ".storybook/vitest.setup.ts"
-  ]
+  "include": ["vite.config.ts", "vitest.workspace.ts", ".storybook/main.ts", ".storybook/vitest.setup.ts"]
 }

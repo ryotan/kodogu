@@ -21,5 +21,5 @@
       "!#*": ["./gen/*"]
     }
   },
-  "include": ["src", "gen"]
+  "include": ["src", "gen", ".storybook/preview.tsx"]
 }

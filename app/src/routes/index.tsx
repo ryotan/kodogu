@@ -1,12 +1,15 @@
+import './index.css';
+
 import {useState} from 'react';
 
 import {createFileRoute} from '@tanstack/react-router';
+
+import {Button, Flex, TextField} from '@radix-ui/themes';
 
 import {invoke} from '@tauri-apps/api/core';
 
 import reactLogo from '#assets/react.svg';
 
-import './App.css';
 
 const App = () => {
   const [greetMsg, setGreetMsg] = useState('');
@@ -41,8 +44,14 @@ const App = () => {
           greet().catch((e: unknown) => console.error('Error: ', e));
         }}
       >
-        <input id='greet-input' onChange={e => setName(e.currentTarget.value)} placeholder='Enter a name...' />
-        <button type='submit'>Greet</button>
+        <Flex gap='3'>
+          <TextField.Root
+            id='greet-input'
+            onChange={e => setName(e.currentTarget.value)}
+            placeholder='Enter a name...'
+          />
+          <Button type='submit'>Greet</Button>
+        </Flex>
       </form>
       <p>{greetMsg}</p>
     </main>
