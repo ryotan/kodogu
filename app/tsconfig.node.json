@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "composite": true,
+    "lib": [
+      "es2020"
+    ],
     "skipLibCheck": true,
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -11,5 +14,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "vite.config.ts"
+  ]
 }
