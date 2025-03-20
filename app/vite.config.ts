@@ -2,6 +2,8 @@ import react from '@vitejs/plugin-react';
 import {defineConfig} from 'vite';
 import paths from 'vite-tsconfig-paths';
 
+import router from '@tanstack/router-plugin/vite';
+
 const VITE_DEFAULT_PORT = 5173;
 
 const {
@@ -18,7 +20,11 @@ const port =
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
-  plugins: [paths(), react()],
+  plugins: [
+    paths(),
+    router({target: 'react', autoCodeSplitting: true, generatedRouteTree: './gen/router/routes.ts'}),
+    react(),
+  ],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

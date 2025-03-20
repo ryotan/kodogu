@@ -1,8 +1,11 @@
 import {useState} from 'react';
 
+import {createFileRoute} from '@tanstack/react-router';
+
 import {invoke} from '@tauri-apps/api/core';
 
-import reactLogo from './assets/react.svg';
+import reactLogo from '#assets/react.svg';
+
 import './App.css';
 
 const App = () => {
@@ -46,4 +49,6 @@ const App = () => {
   );
 };
 
-export default App;
+export const Route = createFileRoute('/')({
+  component: App,
+});
