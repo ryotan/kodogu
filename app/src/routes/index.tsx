@@ -4,21 +4,34 @@ import {useState} from 'react';
 
 import {createFileRoute} from '@tanstack/react-router';
 
-import {Button, Flex, TextField} from '@radix-ui/themes';
+import {Flex} from '@radix-ui/themes';
 
 import {invoke} from '@tauri-apps/api/core';
+import {type} from 'arktype';
 
 import reactLogo from '#assets/react.svg';
+import {useAppForm} from '#components/form/Form';
 
+const formInput = type({
+  name: type.string.atLeastLength(2),
+});
+const initialValues = {name: ''} satisfies typeof formInput.infer;
 
 const App = () => {
   const [greetMsg, setGreetMsg] = useState('');
-  const [name, setName] = useState('');
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke('greet', {name}));
-  }
+  const form = useAppForm({
+    defaultValues: initialValues,
+    validators: {onChange: formInput},
+    onSubmit: async f => {
+      try {
+        // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+        setGreetMsg(await invoke('greet', {name: f.value.name}));
+      } catch (e) {
+        setGreetMsg(`Error: ${String(e)}`);
+      }
+    },
+  });
 
   return (
     <main className='container'>
@@ -37,21 +50,13 @@ const App = () => {
       </div>
       <p>Click on the Tauri, Vite, and React logos to learn more.</p>
 
-      <form
-        className='row'
-        onSubmit={e => {
-          e.preventDefault();
-          greet().catch((e: unknown) => console.error('Error: ', e));
-        }}
-      >
-        <Flex gap='3'>
-          <TextField.Root
-            id='greet-input'
-            onChange={e => setName(e.currentTarget.value)}
-            placeholder='Enter a name...'
-          />
-          <Button type='submit'>Greet</Button>
-        </Flex>
+      <form action={() => form.handleSubmit()} autoComplete='off' className='row'>
+        <form.AppForm>
+          <Flex direction='row' gap='2'>
+            <form.AppField name='name'>{field => <field.InputText autoComplete='off' label='Name' />}</form.AppField>
+            <form.SubmitButton>Greet</form.SubmitButton>
+          </Flex>
+        </form.AppForm>
       </form>
       <p>{greetMsg}</p>
     </main>
