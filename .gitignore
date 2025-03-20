@@ -49,4 +49,7 @@ dist/
 # Generated files for frontend
 gen/
 
+# Rust
+out/
+
 _[sS]cratch*.*
