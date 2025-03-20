@@ -16,5 +16,5 @@
   },
   "include": [
     "vite.config.ts"
-  ]
+  , "vitest.workspace.ts"]
 }
