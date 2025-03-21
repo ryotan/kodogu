@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/app/src-tauri/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/gen" />
       <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/target" />
+      <excludeFolder url="file://$MODULE_DIR$/app/gen" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
