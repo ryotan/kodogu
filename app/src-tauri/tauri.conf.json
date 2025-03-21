@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "kodogu",
+  "productName": "KoDoGu (Dev)",
   "version": "0.1.0",
-  "identifier": "pw.itr0.kodogu.app",
+  "identifier": "pw.itr0.kodogu.app.dev",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "kodogu",
+        "title": "KoDoGu (Dev)",
         "width": 800,
         "height": 600
       }
