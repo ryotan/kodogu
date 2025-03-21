@@ -54,6 +54,10 @@ jobs:
         # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
         run: bun install --frozen-lock-file # change this to npm or pnpm depending on which one you use.
 
+      - name: Generate route files
+        working-directory: app
+        run: bun run build
+
       - id: tsc
         name: TypeScript
         working-directory: app
