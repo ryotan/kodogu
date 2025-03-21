@@ -69,7 +69,7 @@ jobs:
       - id: eslint
         name: ESLint
         working-directory: app
-        run: bun run lint:next
+        run: bun run lint:es
         continue-on-error: true
 
       - id: rustfmt
