@@ -5,6 +5,11 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "opener:default"
+    "opener:default",
+    "deep-link:default",
+    "http:default",
+    "log:default",
+    "stronghold:default",
+    "window-state:default"
   ]
 }
