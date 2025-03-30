@@ -1,5 +1,4 @@
 use tauri::AppHandle;
-use tracing::{error, info};
 
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum DeepLinkSetupError {
@@ -14,6 +13,7 @@ pub(crate) fn setup(
     #[cfg(any(windows, target_os = "linux"))]
     {
         use crate::init::deep_link::DeepLinkSetupError::PluginInitializationError;
+        use tracing::info;
         info!("Registering deep link handler");
         use tauri_plugin_deep_link::DeepLinkExt;
         app.deep_link()
