@@ -1,0 +1,9 @@
+@supports (min-height: 100dvh) {
+  .radix-themes:where([data-is-root-theme='true']) {
+    min-height: auto;
+  }
+}
+
+.radix-themes:where([data-is-root-theme='true']) {
+  min-height: auto;
+}

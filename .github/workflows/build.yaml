@@ -1,0 +1,86 @@
+name: 'Build'
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tauri:
+    name: 'Tauri - ${{ matrix.platform }}'
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
+          - platform: 'ubuntu-22.04' # for Tauri v1 you could replace this with ubuntu-20.04.
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-workspaces: ./app/src-tauri -> target
+          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
+          target: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+
+      - name: Install additional problem matchers
+        run: echo "::add-matcher::.github/problem-matchers.json"
+
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+
+      - name: Cache Bun global cache
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: 0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-${{ hashFiles('app/**/bun.lock') }}
+          restore-keys: |
+            0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-
+
+      - name: Cache node_modules
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@v4
+        with:
+          path: app/node_modules
+          key: 0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-${{ hashFiles('app/**/bun.lock') }}
+          restore-keys: |
+            0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-
+
+      - name: Install frontend dependencies
+        working-directory: app
+        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
+        run: bun install --frozen-lock-file # change this to npm or pnpm depending on which one you use.
+
+      - name: Build app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ startsWith(github.ref, 'refs/tags/v') && 'v__VERSION__' || null }}  # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseName: ${{ startsWith(github.ref, 'refs/tags/v') && 'v__VERSION__' || null }}
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
+          projectPath: app
+          args: ${{ matrix.args }}

@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Vitest" pattern="file:app/src//*.test.ts||file:app/src//*.test.tsx" />
+</component>

@@ -1,0 +1,103 @@
+name: 'Code Quality'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: 'Lint'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu only)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-workspaces: ./app/src-tauri -> target
+
+      - name: Install additional problem matchers
+        run: echo "::add-matcher::.github/problem-matchers.json"
+
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+
+      - name: Cache Bun global cache
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: 0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-${{ hashFiles('app/**/bun.lock') }}
+          restore-keys: |
+            0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-
+
+      - name: Cache node_modules
+        if: github.event_name == 'pull_request'
+        uses: actions/cache@v4
+        with:
+          path: app/node_modules
+          key: 0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-${{ hashFiles('app/**/bun.lock') }}
+          restore-keys: |
+            0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-
+
+      - name: Install frontend dependencies
+        working-directory: app
+        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
+        run: bun install --frozen-lock-file # change this to npm or pnpm depending on which one you use.
+
+      - name: Generate route files
+        working-directory: app
+        run: bun run build
+
+      - id: tsc
+        name: TypeScript
+        working-directory: app
+        run: bun run lint:tsc
+        continue-on-error: true
+
+      - id: biome
+        name: Biome
+        working-directory: app
+        run: bun run lint:biome --reporter=github
+        continue-on-error: true
+
+      - id: eslint
+        name: ESLint
+        working-directory: app
+        run: bun run lint:es
+        continue-on-error: true
+
+      - id: rustfmt
+        name: Rust Format
+        working-directory: app
+        run: bun run lint:cargo:fmt
+        continue-on-error: true
+
+      - id: clippy
+        name: Clippy
+        working-directory: app
+        run: bun run lint:cargo:clippy
+        continue-on-error: true
+
+      - name: Check for lint results
+        run: |
+          echo "Checking outcomes of all steps..."
+          if [[ "${{ steps.tsc.outcome }}" == "failure" || \
+                "${{ steps.biome.outcome }}" == "failure" || \
+                "${{ steps.eslint.outcome }}" == "failure" || \
+                "${{ steps.rustfmt.outcome }}" == "failure" || \
+                "${{ steps.clippy.outcome }}" == "failure" ]]; then
+            echo "One or more lints failed."
+            exit 1
+          else
+            echo "All steps succeeded."
+          fi

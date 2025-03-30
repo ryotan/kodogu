@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["es2020"],
+    "skipLibCheck": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts", "vitest.workspace.ts", ".storybook/main.ts", ".storybook/vitest.setup.ts"]
+}

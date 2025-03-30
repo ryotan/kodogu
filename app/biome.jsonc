@@ -1,0 +1,105 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "organizeImports": {
+    "enabled": false
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        // react-hooks/rules-of-hooksの代替にはならないので、無効にしておく。
+        // （Reactコンポーネントもしくはカスタムフック以外でuseXXXを呼んでもエラーにならない）
+        "useHookAtTopLevel": "off",
+        // react-hooks/exhaustive-depsの代替にはならないので、無効にしておく。
+        // （依存変数配列を自動では修正してくれない）
+        "useExhaustiveDependencies": "off"
+      },
+      "complexity": {
+        // @typescript-eslint/dot-notation
+        "useLiteralKeys": "error",
+        // @typescript-eslint/prefer-optional-chain
+        "useOptionalChain": "error",
+        // react/jsx-no-useless-fragment
+        "noUselessFragments": "error",
+        "noVoid": "error"
+      },
+      "style": {
+        // Next.jsやExpo Routerの規約上、default exportが必要
+        "noDefaultExport": "off",
+        "noNamespace": "error",
+        "noNegationElse": "error",
+        "useBlockStatements": "error",
+        "useCollapsedElseIf": "error",
+        "useConsistentArrayType": "error",
+        "useForOf": "error",
+        "useFragmentSyntax": "error",
+        // Next.jsやExpo Routerのファイル命名規約に従えない（[fragment].tsxや+html.tsxなど）
+        "useFilenamingConvention": {
+          "level": "off",
+          "options": {
+            "filenameCases": ["kebab-case"],
+            "requireAscii": true,
+            "strictCase": true
+          }
+        },
+        // React Componentの命名規約（PascalCase）が守れなくなるので無効にしておく
+        "useNamingConvention": {
+          "level": "off",
+          "options": {
+            "enumMemberCase": "CONSTANT_CASE",
+            "strictCase": false,
+            "requireAscii": false
+          }
+        },
+        "useSelfClosingElements": "error",
+        "useShorthandAssign": "error"
+      },
+      "suspicious": {
+        "noEmptyBlockStatements": "error"
+      },
+      "nursery": {
+        "useConsistentCurlyBraces": "error"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "useEditorconfig": true
+  },
+  "javascript": {
+    "formatter": {
+      "enabled": true,
+      "arrowParentheses": "asNeeded",
+      "bracketSameLine": false,
+      "bracketSpacing": false,
+      "jsxQuoteStyle": "single",
+      "quoteProperties": "asNeeded",
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2
+    }
+  },
+  "css": {
+    "formatter": {
+      "enabled": true,
+      "quoteStyle": "single"
+    }
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignore": [".idea", ".github", "patches", "src-tauri", "gen", "src/stories"],
+    "ignoreUnknown": true
+  }
+}
