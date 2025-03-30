@@ -16,7 +16,7 @@
     "lint:tsc": "tsc --noEmit -p tsconfig.app.json",
     "lint:biome": "biome ci --error-on-warnings .",
     "lint:cargo:fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
-    "lint:cargo:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml --locked --no-deps --all-features --all-targets",
+    "lint:cargo:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml --locked --no-deps --all-features --all-targets --release",
     "fix": "concurrently 'concurrently -m 1 bun:fix:es bun:fix:biome' 'bun:fix:cargo:*'",
     "fix:es": "eslint --fix .",
     "fix:biome": "biome check --write --unsafe .",
