@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: 0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-${{ hashFiles('app/**/bun.lockb') }}
+          key: 0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-${{ hashFiles('app/**/bun.lock') }}
           restore-keys: |
             0-${{ runner.os }}-bun-${{ hashFiles('app/**/*.patch') }}-
 
