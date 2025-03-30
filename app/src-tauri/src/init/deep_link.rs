@@ -1,13 +1,23 @@
+use crate::init::deep_link::DeepLinkSetupError::PluginInitializationError;
 use tauri::AppHandle;
-use tauri_plugin_deep_link::Error;
+use tracing::{error, info};
+
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum DeepLinkSetupError {
+    #[error("Failed to initialize deep-link plugin")]
+    PluginInitializationError(tauri_plugin_deep_link::Error),
+}
 
 pub(crate) fn setup(
     #[cfg_attr(target_os = "macos", allow(unused_variables))] app: &AppHandle,
-) -> Result<(), Error> {
+) -> Result<(), DeepLinkSetupError> {
     #[cfg(any(windows, target_os = "linux"))]
     {
+        info!("Registering deep link handler");
         use tauri_plugin_deep_link::DeepLinkExt;
-        app.deep_link().register_all()?;
+        app.deep_link()
+            .register_all()
+            .map_err(PluginInitializationError)?;
     }
     Ok(())
 }

@@ -11,6 +11,7 @@ pub fn run() {
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .setup(|app| {
+            init::logger::setup(app.handle())?;
             init::stronghold::setup(app.handle())?;
             init::deep_link::setup(app.handle())?;
             Ok(())
@@ -25,7 +26,6 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
