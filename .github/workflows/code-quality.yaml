@@ -88,15 +88,41 @@ jobs:
         run: bun run lint:cargo:clippy
         continue-on-error: true
 
-      - name: Check for lint results
+      - id: frontend-test
+        name: Frontend Tests & Coverage
+        working-directory: app
+        run: bun run test:coverage
+        continue-on-error: true
+
+      - id: backend-test
+        name: Backend Tests & Coverage
+        working-directory: app/src-tauri
+        run: |
+          cargo test --all-features --workspace
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        continue-on-error: true
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: app/coverage/clover.xml,app/src-tauri/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          min_coverage: 80
+
+      - name: Check for lint and test results
         run: |
           echo "Checking outcomes of all steps..."
           if [[ "${{ steps.tsc.outcome }}" == "failure" || \
                 "${{ steps.biome.outcome }}" == "failure" || \
                 "${{ steps.eslint.outcome }}" == "failure" || \
                 "${{ steps.rustfmt.outcome }}" == "failure" || \
-                "${{ steps.clippy.outcome }}" == "failure" ]]; then
-            echo "One or more lints failed."
+                "${{ steps.clippy.outcome }}" == "failure" || \
+                "${{ steps.frontend-test.outcome }}" == "failure" || \
+                "${{ steps.backend-test.outcome }}" == "failure" ]]; then
+            echo "One or more lints or tests failed."
             exit 1
           else
             echo "All steps succeeded."

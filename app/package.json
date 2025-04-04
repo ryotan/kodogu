@@ -21,7 +21,11 @@
     "fix:es": "eslint --fix .",
     "fix:biome": "biome check --write --unsafe .",
     "fix:cargo:fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml",
-    "fix:cargo:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml --locked --fix --all-features --all-targets --allow-dirty --allow-staged"
+    "fix:cargo:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml --locked --fix --all-features --all-targets --allow-dirty --allow-staged",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@radix-ui/react-icons": "^1.3.2",

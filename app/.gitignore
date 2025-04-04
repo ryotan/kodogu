@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 *storybook.log
+
+# Test coverage
+coverage/
+src-tauri/lcov.info
+src-tauri/test-results.json
