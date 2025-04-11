@@ -91,22 +91,20 @@ jobs:
       - id: frontend-test
         name: Frontend Tests & Coverage
         working-directory: app
-        run: bun run test:coverage
+        run: bun run test:vitest:coverage
         continue-on-error: true
 
       - id: backend-test
         name: Backend Tests & Coverage
-        working-directory: app/src-tauri
-        run: |
-          cargo test --all-features --workspace
-          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        working-directory: app
+        run: bun run test:cargo:coverage
         continue-on-error: true
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: app/coverage/clover.xml,app/src-tauri/lcov.info
+          files: app/coverage/clover.xml,app/lcov.info
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true

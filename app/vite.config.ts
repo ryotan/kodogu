@@ -42,4 +42,10 @@ export default defineConfig(() => ({
       ignored: ['**/src-tauri/**'],
     },
   },
+  test: {
+    coverage: {
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['**/*.d.ts', '**/*.test.{ts,tsx}', '**/*.stories.{ts,tsx}', '**/*.mock.{ts,tsx}', '**/(dev)/**'],
+    },
+  },
 }));

@@ -27,5 +27,5 @@ dist-ssr
 
 # Test coverage
 coverage/
-src-tauri/lcov.info
-src-tauri/test-results.json
+lcov.info
+test-results.json
