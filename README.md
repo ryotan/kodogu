@@ -1,55 +1,50 @@
 # KoDoGu
 
-KoDoGu（コドグ）は、私が使いたいツールを集めておくためのアプリです。Tauri v2とRustで構築されており、軽量かつ高速な操作を実現します。
+KoDoGu ("props" in Japanese) is an app that collects tools I want to use. Built with Tauri (React, TypeScript + Rust),
+it provides lightweight and fast operation.
 
-## 主な機能
+## Main Features
 
-- Gitリポジトリ管理
-- 未コミットの変更の可視化
-- コードの差分表示
-- その他の開発者支援機能
+- Creation of key pairs, encryption with public keys, signing with private keys (planned)
+- Creation of CA certificates for localhost, server certificates (planned)
+- Creation of resume and work history documents (planned)
 
 ## インストール
 
+## Installation
+
 ```bash
-# リポジトリのクローン
+# Clone the repository
 git clone https://github.com/ryotan/kodogu.git
 cd kodogu/app
 
-# 依存関係のインストール
+# Install dependencies
 bun install
 
-# アプリケーションの実行
-bun run tauri dev
+# Run the application
+bun run tauri:dev
 ```
 
-## システム要件
+## System Requirements
 
-- [Tauriの要件](https://tauri.app/guides/prerequisites/)を満たすシステム
-- Windows 10/11、macOS 11以降、またはLinux
+- System that meets [Tauri requirements](https://tauri.app/start/prerequisites/)
+- Windows 10/11, macOS 11 or later, or Linux
 
-## 開発者向け情報
+## Information for Developers
 
-このプロジェクトに貢献する方法については、[CONTRIBUTING.md](./CONTRIBUTING.md)をご覧ください。
+For information on how to develop in this project, please see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-## ディレクトリ構造
+## Project Structure
 
 ```
 kodogu/
-├── app/                      # フロントエンドのソースコード
-│   ├── src/                  # Reactコンポーネント、スタイル、ルーティングなど
-│   ├── public/               # 静的アセット
-│   ├── index.html            # HTMLエントリポイント
-│   ├── package.json          # npm依存関係とスクリプト
-│   └── vite.config.ts      # Viteの設定
-├── app/src-tauri/            # Tauriバックエンドのソースコード
-│   ├── src/                  # Rustのソースコード
-│   ├── Cargo.toml            # Rustの依存関係
-│   └── tauri.conf.json       # Tauriの設定
-├── CONTRIBUTING.md         # 貢献ガイドライン
-└── README.md                 # プロジェクトの概要とセットアップ手順
+├── app/               # Tauri application
+│   ├── src/           # Frontend source code
+│   ├── src-tauri/     # Rust backend source code
+│   └── dist/          # Built frontend
+└── docs/              # Project documentation
 ```
 
-## ライセンス
+## License
 
-[MIT](./LICENSE)
+[Apache-2.0](./LICENSE)
