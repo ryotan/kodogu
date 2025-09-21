@@ -1,5 +1,5 @@
-use anflug::{Config, FileProcessor, ProcessFileOptions, MatchMode};
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use anflug::{Config, FileProcessor, MatchMode, ProcessFileOptions};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use std::fs;
 use tempfile::TempDir;
 
@@ -26,15 +26,19 @@ fn bench_regex_cache_performance(c: &mut Criterion) {
             .build();
 
         // First call to populate cache
-        processor.process_file(&file_path, "test", &options).unwrap();
+        processor
+            .process_file(&file_path, "test", &options)
+            .unwrap();
 
         b.iter(|| {
             // Subsequent calls should hit cache
-            processor.process_file(
-                black_box(&file_path),
-                black_box("New content"),
-                black_box(&options),
-            ).unwrap();
+            processor
+                .process_file(
+                    black_box(&file_path),
+                    black_box("New content"),
+                    black_box(&options),
+                )
+                .unwrap();
         });
     });
 
@@ -48,11 +52,13 @@ fn bench_regex_cache_performance(c: &mut Criterion) {
                 .match_mode(MatchMode::First)
                 .build();
 
-            processor.process_file(
-                black_box(&file_path),
-                black_box("New content"),
-                black_box(&options),
-            ).unwrap();
+            processor
+                .process_file(
+                    black_box(&file_path),
+                    black_box("New content"),
+                    black_box(&options),
+                )
+                .unwrap();
         });
     });
 
@@ -64,18 +70,22 @@ fn bench_regex_cache_performance(c: &mut Criterion) {
         let file_path_clone = file_path.clone();
 
         b.iter(|| {
-            let handles: Vec<_> = (0..4).map(|_| {
-                let processor = processor_clone.clone();
-                let file_path = file_path_clone.clone();
-                thread::spawn(move || {
-                    let options = ProcessFileOptions::builder()
-                        .pattern("## Section")
-                        .match_mode(MatchMode::First)
-                        .build();
+            let handles: Vec<_> = (0..4)
+                .map(|_| {
+                    let processor = processor_clone.clone();
+                    let file_path = file_path_clone.clone();
+                    thread::spawn(move || {
+                        let options = ProcessFileOptions::builder()
+                            .pattern("## Section")
+                            .match_mode(MatchMode::First)
+                            .build();
 
-                    processor.process_file(&file_path, "content", &options).unwrap();
+                        processor
+                            .process_file(&file_path, "content", &options)
+                            .unwrap();
+                    })
                 })
-            }).collect();
+                .collect();
 
             for handle in handles {
                 handle.join().unwrap();

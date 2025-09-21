@@ -87,13 +87,7 @@ pub mod config;
 pub mod file;
 pub mod template;
 
-#[cfg(feature = "async")]
-pub mod async_file;
-
 pub use cli::*;
 pub use config::*;
 pub use file::*;
 pub use template::*;
-
-#[cfg(feature = "async")]
-pub use async_file::*;

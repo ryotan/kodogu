@@ -10,7 +10,11 @@ use validator::{Validate, ValidationError};
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct Config {
     /// Default file pattern
-    #[validate(length(min = 1, max = 1000, message = "File path must be between 1 and 1000 characters"))]
+    #[validate(length(
+        min = 1,
+        max = 1000,
+        message = "File path must be between 1 and 1000 characters"
+    ))]
     pub file: Option<String>,
 
     /// Default pattern for insertion

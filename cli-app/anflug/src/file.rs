@@ -278,7 +278,9 @@ impl FileProcessor {
 
     /// Ensure the parent directory exists
     fn ensure_parent_directory(&self, file_path: &Path) -> Result<(), FileError> {
-        if let Some(parent) = file_path.parent() && !parent.exists() {
+        if let Some(parent) = file_path.parent()
+            && !parent.exists()
+        {
             let no_dir_action = self.get_no_directory_action();
             self.handle_missing_directory(parent, &no_dir_action)?;
         }
@@ -307,12 +309,14 @@ impl FileProcessor {
             "error" => {
                 return DirectoryNotExistsSnafu {
                     path: parent.to_path_buf(),
-                }.fail();
+                }
+                .fail();
             }
             _ => {
                 return InvalidNoDirectorySettingSnafu {
                     setting: action.to_string(),
-                }.fail();
+                }
+                .fail();
             }
         }
         Ok(())
@@ -388,21 +392,20 @@ impl FileProcessor {
     }
 
     /// Handle case when no pattern matches are found
-    fn handle_no_pattern_match(&self, existing_content: &str, new_content: &str) -> Result<String, FileError> {
+    fn handle_no_pattern_match(
+        &self,
+        existing_content: &str,
+        new_content: &str,
+    ) -> Result<String, FileError> {
         let no_match_action = self.get_no_match_action();
 
         match no_match_action.as_str() {
-            "append_end" => {
-                Ok(self.append_content(existing_content, new_content))
+            "append_end" => Ok(self.append_content(existing_content, new_content)),
+            "error" => PatternNotFoundSnafu.fail(),
+            _ => InvalidNoMatchSettingSnafu {
+                setting: no_match_action,
             }
-            "error" => {
-                PatternNotFoundSnafu.fail()
-            }
-            _ => {
-                InvalidNoMatchSettingSnafu {
-                    setting: no_match_action,
-                }.fail()
-            }
+            .fail(),
         }
     }
 
@@ -458,7 +461,14 @@ impl FileProcessor {
                 if insert_before {
                     self.insert_before_segment(&mut result, new_content, eol_seq, seg);
                 } else {
-                    self.insert_after_segment(&mut result, seg, new_content, eol_seq, i, segments.len());
+                    self.insert_after_segment(
+                        &mut result,
+                        seg,
+                        new_content,
+                        eol_seq,
+                        i,
+                        segments.len(),
+                    );
                 }
                 next_target = ti_iter.next().copied();
             } else {
@@ -470,7 +480,13 @@ impl FileProcessor {
     }
 
     /// Insert content before a segment
-    fn insert_before_segment(&self, result: &mut String, new_content: &str, eol_seq: &str, seg: &str) {
+    fn insert_before_segment(
+        &self,
+        result: &mut String,
+        new_content: &str,
+        eol_seq: &str,
+        seg: &str,
+    ) {
         result.push_str(new_content);
         result.push_str(eol_seq);
         result.push_str(seg);
@@ -590,9 +606,7 @@ mod tests {
         let mut temp_file = NamedTempFile::new().unwrap();
         writeln!(temp_file, "existing content").unwrap();
 
-        let options = ProcessFileOptionsBuilder::new()
-            .append_mode(true)
-            .build();
+        let options = ProcessFileOptionsBuilder::new().append_mode(true).build();
 
         processor
             .process_file(temp_file.path(), "new content", &options)
@@ -709,9 +723,7 @@ mod tests {
         let mut temp_file = NamedTempFile::new().unwrap();
         writeln!(temp_file, "original content").unwrap();
 
-        let options = ProcessFileOptionsBuilder::new()
-            .dry_run(true)
-            .build();
+        let options = ProcessFileOptionsBuilder::new().dry_run(true).build();
 
         processor
             .process_file(temp_file.path(), "new content", &options)
@@ -911,9 +923,7 @@ mod tests {
         let mut temp_file = NamedTempFile::new().unwrap();
         writeln!(temp_file, "original content").unwrap();
 
-        let options = ProcessFileOptionsBuilder::new()
-            .backup(true)
-            .build();
+        let options = ProcessFileOptionsBuilder::new().backup(true).build();
 
         processor
             .process_file(temp_file.path(), "new content", &options)

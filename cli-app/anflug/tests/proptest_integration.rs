@@ -1,4 +1,4 @@
-use anflug::{Config, FileProcessor, ProcessFileOptions, MatchMode, TemplateProcessor};
+use anflug::{Config, FileProcessor, MatchMode, ProcessFileOptions, TemplateProcessor};
 use proptest::prelude::*;
 use std::fs;
 use tempfile::TempDir;

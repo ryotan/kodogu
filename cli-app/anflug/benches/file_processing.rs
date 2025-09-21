@@ -1,5 +1,5 @@
-use anflug::{Config, FileProcessor, ProcessFileOptions, MatchMode};
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use anflug::{Config, FileProcessor, MatchMode, ProcessFileOptions};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use std::fs;
 use tempfile::TempDir;
 
@@ -9,7 +9,10 @@ fn generate_test_content(lines: usize) -> String {
         if i % 10 == 0 {
             content.push_str(&format!("## Section {}\n", i / 10));
         } else {
-            content.push_str(&format!("Line {} with some content that makes it realistic\n", i));
+            content.push_str(&format!(
+                "Line {} with some content that makes it realistic\n",
+                i
+            ));
         }
     }
     content
@@ -27,23 +30,19 @@ fn bench_file_processing_sizes(c: &mut Criterion) {
         let file_path = temp_dir.path().join("test.md");
         fs::write(&file_path, &content).unwrap();
 
-        group.bench_with_input(
-            BenchmarkId::new("append_mode", size),
-            size,
-            |b, &_size| {
-                let options = ProcessFileOptions::builder()
-                    .append_mode(true)
-                    .build();
+        group.bench_with_input(BenchmarkId::new("append_mode", size), size, |b, &_size| {
+            let options = ProcessFileOptions::builder().append_mode(true).build();
 
-                b.iter(|| {
-                    processor.process_file(
+            b.iter(|| {
+                processor
+                    .process_file(
                         black_box(&file_path),
                         black_box("New content line"),
                         black_box(&options),
-                    ).unwrap();
-                });
-            },
-        );
+                    )
+                    .unwrap();
+            });
+        });
 
         group.bench_with_input(
             BenchmarkId::new("pattern_match", size),
@@ -55,11 +54,13 @@ fn bench_file_processing_sizes(c: &mut Criterion) {
                     .build();
 
                 b.iter(|| {
-                    processor.process_file(
-                        black_box(&file_path),
-                        black_box("New content line"),
-                        black_box(&options),
-                    ).unwrap();
+                    processor
+                        .process_file(
+                            black_box(&file_path),
+                            black_box("New content line"),
+                            black_box(&options),
+                        )
+                        .unwrap();
                 });
             },
         );
@@ -92,11 +93,13 @@ fn bench_pattern_complexity(c: &mut Criterion) {
                 .build();
 
             b.iter(|| {
-                processor.process_file(
-                    black_box(&file_path),
-                    black_box("New content"),
-                    black_box(&options),
-                ).unwrap();
+                processor
+                    .process_file(
+                        black_box(&file_path),
+                        black_box("New content"),
+                        black_box(&options),
+                    )
+                    .unwrap();
             });
         });
     }
@@ -128,11 +131,13 @@ fn bench_match_modes(c: &mut Criterion) {
                 .build();
 
             b.iter(|| {
-                processor.process_file(
-                    black_box(&file_path),
-                    black_box("New content"),
-                    black_box(&options),
-                ).unwrap();
+                processor
+                    .process_file(
+                        black_box(&file_path),
+                        black_box("New content"),
+                        black_box(&options),
+                    )
+                    .unwrap();
             });
         });
     }
