@@ -91,3 +91,7 @@ pub use cli::*;
 pub use config::*;
 pub use file::*;
 pub use template::*;
+
+// Default constants used across the application
+pub const DEFAULT_FILE_PATTERN: &str = "notes-{date}.md";
+pub const DEFAULT_TEMPLATE: &str = "{message}";

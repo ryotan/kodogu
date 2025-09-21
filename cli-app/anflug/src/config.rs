@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use validator::{Validate, ValidationError};
 
+use crate::{DEFAULT_FILE_PATTERN, DEFAULT_TEMPLATE};
+
 /// Configuration for the anflug application with validation support.
 ///
 /// This structure holds all configuration options that can be set via
@@ -84,9 +86,9 @@ pub struct ExecutionSettings {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            file: Some("notes-{date}.md".to_string()),
+            file: Some(DEFAULT_FILE_PATTERN.to_string()),
             pattern: None,
-            template: Some("{message}".to_string()),
+            template: Some(DEFAULT_TEMPLATE.to_string()),
             date_formats: Some(DateFormats::default()),
             error_handling: Some(ErrorHandling::default()),
             execution: Some(ExecutionSettings::default()),
@@ -146,8 +148,8 @@ mod tests {
     #[test]
     fn test_config_default() {
         let config = Config::default();
-        assert_eq!(config.file, Some("notes-{date}.md".to_string()));
-        assert_eq!(config.template, Some("{message}".to_string()));
+        assert_eq!(config.file, Some(DEFAULT_FILE_PATTERN.to_string()));
+        assert_eq!(config.template, Some(DEFAULT_TEMPLATE.to_string()));
         assert!(config.date_formats.is_some());
         assert!(config.error_handling.is_some());
         assert!(config.execution.is_some());

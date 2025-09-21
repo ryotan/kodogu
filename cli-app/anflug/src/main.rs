@@ -13,6 +13,10 @@ use config::load_config;
 use file::{FileProcessor, ProcessFileOptions};
 use template::TemplateProcessor;
 
+// Default constants
+const DEFAULT_FILE_PATTERN: &str = "notes-{date}.md";
+const DEFAULT_TEMPLATE: &str = "{message}";
+
 #[suzunari_error]
 pub enum MainError {
     #[snafu(transparent)]
@@ -46,14 +50,15 @@ fn main() -> Result<(), MainError> {
             .read_input_file(input_file)
             .context(InputFileSnafu)?
     } else {
-        args.message.unwrap() // Safe because of validation
+        // Validation ensures message is Some when input_file is None
+        args.message.expect("Message should be present when input_file is None - validation failed")
     };
 
     // Determine template
     let template = args
         .template
         .or_else(|| config.template.clone())
-        .unwrap_or_else(|| "{message}".to_string());
+        .unwrap_or_else(|| DEFAULT_TEMPLATE.to_string());
 
     // Process template
     let processed_content = template_processor
@@ -64,7 +69,7 @@ fn main() -> Result<(), MainError> {
     let file_pattern = args
         .file
         .or_else(|| config.file.clone())
-        .unwrap_or_else(|| "notes-{date}.md".to_string());
+        .unwrap_or_else(|| DEFAULT_FILE_PATTERN.to_string());
 
     let output_file = template_processor
         .process_filename(&file_pattern)
@@ -174,14 +179,14 @@ template = "Config test: {{message}}"
         let template = cli
             .template
             .or_else(|| config.template.clone())
-            .unwrap_or_else(|| "{message}".to_string());
+            .unwrap_or_else(|| DEFAULT_TEMPLATE.to_string());
 
         let processed_content = template_processor.process(&template, &message).unwrap();
 
         let file_pattern = cli
             .file
             .or_else(|| config.file.clone())
-            .unwrap_or_else(|| "notes-{date}.md".to_string());
+            .unwrap_or_else(|| DEFAULT_FILE_PATTERN.to_string());
 
         let output_file_name = template_processor.process_filename(&file_pattern).unwrap();
         let output_path = PathBuf::from(output_file_name);
