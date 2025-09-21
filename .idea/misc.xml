@@ -31,9 +31,6 @@
     <option name="runOnTheFly" value="true" />
     <option name="tool" value="Clippy" />
   </component>
-  <component name="RustProjectSettings">
-    <option name="toolchainHomeDirectory" value="$USER_HOME$/scoop/persist/rustup/.cargo/bin" />
-  </component>
   <component name="RustfmtProjectSettings">
     <option name="useRustfmt" value="true" />
   </component>
