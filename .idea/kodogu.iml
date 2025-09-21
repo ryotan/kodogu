@@ -4,9 +4,13 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/app/src-tauri/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cli-app/anflug/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/cli-app/anflug/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cli-app/anflug/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/gen" />
       <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/target" />
       <excludeFolder url="file://$MODULE_DIR$/app/gen" />
+      <excludeFolder url="file://$MODULE_DIR$/cli-app/anflug/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
