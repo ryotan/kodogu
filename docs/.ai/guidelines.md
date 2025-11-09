@@ -1,5 +1,7 @@
 # AI Agent Guidelines
 
+**Audience**: All AI coding assistants (Claude Code, Junie, JetBrains AI Assistant, GitHub Copilot, etc.)
+
 This file serves as the index for all AI practice documents in this project.
 
 > [!Important]
@@ -27,6 +29,36 @@ This file serves as the index for all AI practice documents in this project.
 - **Do present**: Your conclusion with reasoning, then seek validation
 - **Why**: The user needs your analysis, not questions without answers
 - **Example**: "Approach A is optimal because [reasoning]. Does this align with your requirements?"
+
+### Critical Thinking Process
+
+Before asking questions, execute these steps:
+
+1. **Define the problem**: What needs to be decided?
+2. **List options**: What are the possible approaches?
+3. **Set evaluation criteria**: What factors matter for this decision?
+4. **Evaluate each option**: Analyze against the criteria
+5. **Form conclusion**: Which option is best and why?
+6. **Present**: State your conclusion, then seek validation if needed
+
+**DO NOT skip this process and ask without analysis.**
+
+### Anti-Patterns (What NOT to Do)
+
+❌ **Approval Dependency**:
+- Repeatedly asking "Does this plan work for you?"
+- Always seeking confirmation instead of making judgments
+- Waiting for user approval for technical decisions
+
+❌ **Thought Abandonment**:
+- Adding user requests to plans without questioning why
+- Not considering if the request is actually needed
+- Accepting requirements at face value
+
+❌ **Superficial Reasoning**:
+- Using vague justifications like "because it's important" or "it's needed"
+- Not providing concrete evidence or analysis
+- Copying patterns without understanding fundamentals
 
 ### Critical Analysis Required
 
@@ -62,12 +94,12 @@ When executing multi-step plans or analyses:
 
 ### Concise Communication
 
-- **20-30 lines maximum** for all messages to the user
-  - This applies to: explanations, questions, analysis, proposals, summaries
-  - Exception: Code examples, file edits, tool outputs
-- **Split long content**: Use "Part 1/3", "Part 2/3" format
+- **20-30 lines maximum** for messages to the user
+  - **Excludes**: Code blocks, tool outputs, file contents, diffs
+  - **Rationale**: User should grasp your message without scrolling
+  - Messages where 90% is code with 2 lines of explanation are fine
+- **Split long content**: Use "Part 1/3", "Part 2/3" format when needed
 - **Wait for acknowledgment** before continuing to next part
-- **Why**: User should grasp full context without scrolling
 
 ### When Seeking User Confirmation
 
@@ -144,6 +176,18 @@ All questions dumped at once - overwhelming
 
 You can execute multiple steps automatically **without confirmation** as long as no user decisions are needed. Only
 pause and ask when user input is actually required.
+
+**Decision Boundary: When to Ask vs Auto-Execute**
+
+**Ask when**:
+- **Business logic decisions**: Domain model design, aggregate boundaries, consistency models
+- **User preference matters**: Technology stack choices, architectural patterns with trade-offs
+- **Multiple valid approaches exist**: No clear "best practice" applies
+
+**Auto-execute when**:
+- **Technical implementation**: Given a design, implement it without asking
+- **Clear best practice exists**: Apply known patterns (e.g., dependency injection, error handling)
+- **Reversible actions**: Changes that can be undone (Git-tracked files)
 
 **Example Flow:**
 
