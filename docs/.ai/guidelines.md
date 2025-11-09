@@ -8,8 +8,8 @@ This file serves as the index for all AI practice documents in this project.
 > 
 > If a test fails two or more times in a row, we'll figure out the current situation and work together to find a solution.
 > 
-> You might get a ton of know-how from GitHub, and her use of individual algorithms and libraries is gonna be faster than my
-> implementation. you'll write the test code and check the operation, while explaining the code to the user.
+> You might get a ton of know-how from GitHub, and your use of individual algorithms and libraries is gonna be faster than my
+> implementation. You'll write the test code and check the operation, while explaining the code to the user.
 > 
 > On the other hand, you are not so great at processing according to the current context. When the context is unclear, I
 > check with the user.
@@ -52,6 +52,7 @@ When you need user input, decisions, or validation:
 - If you have multiple questions, show progress: "Question 1 of 3:", "Question 2 of 3:", etc.
 
 **Progressive Disclosure**
+
 If you have multiple questions:
 
 1. Ask the first question

@@ -307,10 +307,12 @@ TypeScript-specific practices for realizing universal principles in this languag
 
 ### Type React Components Properly
 
-- Use `React.FC<Props>` or function components
-- Type props interfaces
+- Use plain function components with explicit props types
+- Avoid `React.FC` (deprecated pattern in React 18+)
+- Type props interfaces explicitly
 - Type state with `useState<T>`
-- **Why**: Type-safe components
+- Explicitly type `children` when needed: `children: React.ReactNode`
+- **Why**: Type-safe components without implicit behavior
 
 ### Use Discriminated Unions for State
 
