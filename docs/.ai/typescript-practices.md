@@ -130,19 +130,33 @@ TypeScript-specific practices for realizing universal principles in this languag
 
 ## Error Handling
 
-### Use Custom Error Classes
+See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
 
-- Extend `Error` for domain errors
-- Include relevant context in errors
-- Use discriminated unions for expected errors
-- **Why**: Type-safe error handling
+### Implement Error Hierarchy with Custom Error Classes
+
+- Extend `Error` for Domain and Infrastructure errors
+- Programming errors use language assertions
+
+```typescript
+class ApplicationError extends Error {}
+class DomainError extends ApplicationError {}
+class InfrastructureError extends ApplicationError {}
+
+class OrderNotFound extends DomainError {
+  constructor(public readonly id: string) {
+    super(`Order not found: ${id}`)
+  }
+}
+```
+
+- Use centralized error handling (e.g., Express middleware)
+- **Why**: Type-safe error classification
 
 ### Prefer Result Types for Expected Errors
 
 - `type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }`
 - Explicit error handling in type system
-- No exceptions for control flow
-- **Why**: Forces error handling
+- **Why**: Forces error handling at call site
 
 ## Functions
 

@@ -27,12 +27,45 @@ Rust-specific practices for realizing universal principles in this language.
 
 ## Error Handling
 
-### Use Result for Recoverable Errors
+See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
 
+### Use suzunari-error for Error Hierarchy
+
+- Apply `#[suzunari_error]` macro to error enums
+- Combines snafu error handling with stack trace context
+- Implement the error hierarchy pattern:
+
+```rust
+#[suzunari_error]
+pub enum ApplicationError {
+    #[snafu(display("Domain error: {source}"))]
+    Domain { source: DomainError },
+    #[snafu(display("Infrastructure error: {source}"))]
+    Infrastructure { source: InfrastructureError },
+}
+
+#[suzunari_error]
+pub enum DomainError {
+    #[snafu(display("Order not found: {id}"))]
+    OrderNotFound { id: String },
+}
+```
+
+- **Why**: Type-safe error hierarchy with full context
+- **Example**: See [rust-examples/error-handling.md](./rust-examples/error-handling.md)
+
+### Use Result for Domain and Infrastructure Errors
+
+- Domain and Infrastructure errors are recoverable errors in Rust terms
 - `Result<T, E>` for operations that can fail
 - `?` operator for error propagation
-- Custom error types with `thiserror` or `anyhow`
 - **Why**: Explicit, type-safe error handling
+
+### Use panic! for Programming Errors
+
+- Programming errors indicate bugs
+- Use `panic!`, `assert!`, `unwrap()` in tests only
+- **Why**: Bugs should crash immediately, not be handled
 
 ### Use Option for Absence
 
@@ -40,22 +73,6 @@ Rust-specific practices for realizing universal principles in this language.
 - Avoid using `unwrap()` except in tests
 - Use `unwrap_or`, `unwrap_or_else`, `ok_or` instead
 - **Why**: Forces handling of None case
-
-### Create Meaningful Error Types
-
-- Use `thiserror` for library errors
-- Use `anyhow` for application errors
-- Provide context with error chains
-- **Why**: Better debugging and error messages
-
-### Use suzunari-error for Enhanced Error Context
-
-- Apply `#[suzunari_error]` macro to error enums
-- Combines `snafu` error handling with stack trace context
-- Provides detailed error propagation paths
-- Use for complex applications needing error tracing
-- **Why**: Better debugging with complete error context
-- **Example**: See [`docs/.ai/rust-examples/error-handling.md`](./rust-examples/error-handling.md)
 
 ## Type System
 

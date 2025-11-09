@@ -36,6 +36,38 @@ These practices apply across languages, though each language realizes them diffe
 
 ## Error Handling
 
+### Error Classification
+
+**Domain Errors**: Business rule violations
+- Represented as custom types
+- Examples: OrderNotFound, InsufficientStock
+
+**Infrastructure Errors**: External system failures
+- Represented as custom types
+- Examples: NetworkTimeout, DatabaseError
+
+**Programming Errors**: Bugs in code (null pointer, index out of bounds, etc.)
+- Not represented as custom types
+- Detected via language assertions
+
+### Design Principle
+
+Model Domain/Infrastructure errors as a hierarchy:
+
+```
+ApplicationError
+├─ DomainError
+│  ├─ OrderNotFound
+│  └─ InvalidInput
+└─ InfrastructureError
+   ├─ NetworkTimeout
+   └─ DatabaseError
+```
+
+Programming errors use language mechanisms (panic, check, etc.).
+
+See language-specific practices for implementation.
+
 ### Make Errors Explicit
 
 - Errors are part of your API contract

@@ -220,21 +220,33 @@ Kotlin-specific practices for realizing universal principles in this language.
 - Document non-standard operator meanings
 - **Why**: Readability over cleverness
 
-## Exceptions
+## Error Handling
 
-### Use Exceptions for Exceptional Cases
+See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
 
-- Don't use exceptions for control flow
-- Prefer `Result` types for expected failures
-- Catch specific exceptions, not `Throwable`
-- **Why**: Exceptions are expensive
+### Implement Error Hierarchy with Custom Exception Classes
 
-### Use `runCatching` for Kotlin Result
+- Model Domain and Infrastructure errors as exception hierarchy
+- Programming errors use `require()`, `check()`, `!!` only where appropriate
+
+```kotlin
+open class ApplicationError : Exception()
+open class DomainError : ApplicationError()
+open class InfrastructureError : ApplicationError()
+
+class OrderNotFound(val id: String) : DomainError()
+class NetworkTimeout(val url: String) : InfrastructureError()
+```
+
+- Use `@ControllerAdvice` or similar for centralized error handling
+- **Why**: Type-safe error classification, open for extension
+
+### Use runCatching for Functional Error Handling
 
 - `runCatching` converts exceptions to `Result`
 - Chain operations with `mapCatching`
 - Use `getOrElse` for fallback values
-- **Why**: Functional error handling
+- **Why**: Functional style with exception hierarchy
 
 ## String Templates
 
