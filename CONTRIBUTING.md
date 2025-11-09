@@ -17,6 +17,11 @@ kodogu/
 │   ├── src/                  # Rust source code
 │   ├── Cargo.toml            # Rust dependencies
 │   └── tauri.conf.json       # Tauri configuration
+├── cli-app/<app-name>/       # CLI app source code
+│   ├── src/                  # Rust source code
+│   ├── tests/                # Rust test code (mainly for integration tests)
+│   ├── Cargo.toml            # Rust dependencies
+│   └── README.md             # README for CLI app
 ├── CONTRIBUTING.md           # Contribution guidelines
 └── README.md                 # Project overview and setup instructions
 ```

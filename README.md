@@ -1,7 +1,7 @@
 # KoDoGu
 
-KoDoGu ("props" in Japanese) is an app that collects tools I want to use. Built with Tauri (React, TypeScript + Rust),
-it provides lightweight and fast operation.
+KoDoGu ("props" in Japanese) is an app that collects tools I want to use. Built with Tauri (React, TypeScript + Rust)
+for GUI apps and Rust for CLI apps, it provides lightweight and fast operation.
 
 ## Main Features
 
@@ -42,6 +42,7 @@ kodogu/
 │   ├── src/           # Frontend source code
 │   ├── src-tauri/     # Rust backend source code
 │   └── dist/          # Built frontend
+├── cli-app/           # Tauri application
 └── docs/              # Project documentation
 ```
 
