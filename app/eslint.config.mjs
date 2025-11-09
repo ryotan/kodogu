@@ -72,11 +72,17 @@ const eslintConfig = defineConfig([
   ts(tslint.configs.stylisticTypeChecked.findLast(e => e.name === 'typescript-eslint/stylistic-type-checked')),
   ...query.configs['flat/recommended'].map(ts),
   ...router.configs['flat/recommended'].map(ts).map(name('tanstack/router/flat/recommended')),
-  name('#setup/import/plugin-internal-regex')({
+  name('#setup/import')({
     plugins: {import: esimport},
-    settings: {'import/internal-regex': '^!?#'},
+    settings: {
+      'import/internal-regex': '^!?#',
+      'import/extensions': ['.ts', '.cts', '.mts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'],
+      'import/external-module-folders': ['node_modules', 'node_modules/@types'],
+      'import/parsers': {'@typescript-eslint/parser': ['.ts', '.cts', '.mts', '.tsx']},
+      'import/resolver': {node: {extensions: ['.ts', '.cts', '.mts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']}},
+    },
+    rules: {'import/named': 'off'},
   }),
-  name('import/typescript')(ts(esimport.flatConfigs.typescript)),
   ...storybook.configs['flat/recommended'],
   ...storybook.configs['flat/csf-strict'],
   name('#customise/typescript-eslint/stylistic-type-checked')(
