@@ -55,7 +55,7 @@ Rust-specific practices for realizing universal principles in this language.
 - Provides detailed error propagation paths
 - Use for complex applications needing error tracing
 - **Why**: Better debugging with complete error context
-- **Example**: See `docs/.ai/rust-examples/error-handling.md`
+- **Example**: See [`docs/.ai/rust-examples/error-handling.md`](./rust-examples/error-handling.md)
 
 ## Type System
 
