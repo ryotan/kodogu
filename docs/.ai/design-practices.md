@@ -97,32 +97,63 @@ This project follows Clean Architecture with DDD tactical patterns:
 
 ### Protect Invariants
 
-- Business rules that must always be true
+- Business rules that must be consistent at a given point in time
 - Enforce at creation and modification time
 - Don't allow invalid states to exist
 - **Why**: Eliminates whole classes of bugs
 
-### Creation vs Instantiation
+(Note: Invariants evolve over time—see "Temporal Validity" below)
 
-- **Creation**: Domain act of bringing an entity into existence (business operation)
-- **Instantiation**: Technical act of creating an object in memory (programming operation)
-- These are different concepts with different invariant requirements
-- **Why**: Understanding this distinction prevents incorrect invariant enforcement
+### Temporal Validity: Invariants Change Over Time
 
-### When Invariants Apply
+- Data created in 2023: valid under 2023 rules
+- Data created in 2024: valid under 2024 rules
+- System must track: "which invariants applied when"
+- **Why**: Business rules are not eternal; systems must support evolution
 
-- **New entities (Creation)**: Must satisfy ALL current invariants
-- **Existing entities (Instantiation)**: May not satisfy recently-added invariants
-- **Example**: New validation rule added → old data still needs to load
-- **Pattern**: Factory methods enforce creation rules, constructors allow flexible instantiation
-- **Why**: Enables system evolution while maintaining historical data
+### Entity Lifecycles: Creation vs Instantiation
 
-### Fail Fast
+**Two different lifecycles must be distinguished:**
 
+- **Creation (Business lifecycle)**: Bringing a business entity into existence for the first time
+  - Example: User places an order → NEW Order entity is born
+  - Represents a business event: "Order was created"
+
+- **Instantiation (In-memory lifecycle)**: Technical act of creating an object in memory
+  - Example: Loading an existing Order from database, reconstructing it in memory
+  - Also happens during Creation (Creation requires instantiation)
+  - Represents technical operation: "Object constructed in RAM"
+
+- **Why**: Understanding this distinction prevents incorrect invariant enforcement during data loading. All Creations involve Instantiation, but not all Instantiations are Creations.
+
+### When & How to Apply Invariants
+
+Apply invariants according to entity lifecycle:
+
+- **Creation, Modification**: ✅ Enforce ALL current invariants
+- **Instantiation**: ❌ Bypass invariants (temporal validity)
+
+**Fail Fast principle:**
 - Validate immediately, don't defer
 - Reject invalid data at system boundaries
 - Make invalid states unrepresentable
-- **Why**: Errors are caught early and close to their source
+
+**Why**:
+- Lifecycle rules enable system evolution
+- Fail Fast catches errors early and close to source
+
+### Evolution Strategy
+
+When adding new invariants to existing systems:
+
+- **Document temporal validity**: Mark when invariants were introduced
+- **Gradual enforcement**: Use feature flags or version markers for progressive rollout
+- **Provide migration paths**:
+  - Migrate on first modification (lazy migration)
+  - Batch migration jobs for bulk updates
+  - Accept old format with deprecation warnings
+- **Set deprecation timeline**: Communicate when old data formats will no longer be supported
+- **Why**: Balances system evolution with operational continuity
 
 ## Value Objects
 
@@ -190,9 +221,10 @@ This project follows Clean Architecture with DDD tactical patterns:
 - **Why**: Maintains clean separation between domain logic and application layer
 
 > [!Note]
-> Also known as "Domain Services" in DDD literature. We use "Domain Behaviors"
-> instead because the term "Service" can be confused with Application Services
+> In DDD literature, this is called **"Domain Services"**. This project uses
+> "Domain Behaviors" to emphasize the distinction from Application Services
 > (Use Cases), which handle orchestration rather than domain logic.
+> **Domain Services** and **Domain Behaviors** refer to the same concept.
 
 ## Repositories
 
