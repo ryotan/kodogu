@@ -1,4 +1,4 @@
-## Commit Message Conventions
+## Git Commit Message Conventions
 
 Commit messages comply with Conventional Commits, using [GitMoji](https://gitmoji.dev/) with Unicode Emoji input
 

@@ -55,7 +55,7 @@ guidelines will ensure code consistency, readability, and maintainability across
 ## React Components
 
 - Use functional components with hooks instead of class components
-  ```typescript
+  ```typescript jsx
   function UserProfile({ userId }: UserProfileProps) {
     const [user, setUser] = useState<User | null>(null);
     // ...

@@ -8,6 +8,16 @@ development approach and help maintain code quality and consistency.
 - Focus on types rather than code
 - Adjust approach according to complexity
 
+### Domain-driven design (DDD)
+
+We apply domain-driven design principles to model complex business domains effectively:
+
+- Distinguish between value objects (immutable, identified by attributes) and entities (mutable, identified by ID)
+- Aggregation guarantees consistency (treat related entities as a single unit)
+- Abstraction of data access in repositories
+- Bounded context awareness (recognize that the same term may have different meanings in different contexts)
+- Enumerated definitions of errors and use cases
+
 ### Functional approach (FP)
 
 We prefer a functional programming approach for its clarity, testability, and reduced side effects:
@@ -20,16 +30,6 @@ We prefer a functional programming approach for its clarity, testability, and re
 - Use of invariant update patterns
 - Isolate side-effects (keep I/O operations separate from business logic)
 - Flatten conditional branches with early returns
-
-### Domain-driven design (DDD)
-
-We apply domain-driven design principles to model complex business domains effectively:
-
-- Distinguish between value objects (immutable, identified by attributes) and entities (mutable, identified by ID)
-- Aggregation guarantees consistency (treat related entities as a single unit)
-- Abstraction of data access in repositories
-- Bounded context awareness (recognize that the same term may have different meanings in different contexts)
-- Enumerated definitions of errors and use cases
 
 ### Test Driven Development (TDD)
 
