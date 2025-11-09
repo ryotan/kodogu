@@ -107,8 +107,8 @@ jobs:
           files: app/coverage/clover.xml,app/lcov.info
           flags: unittests
           name: codecov-umbrella
-          fail_ci_if_error: true
-          min_coverage: 80
+          fail_ci_if_error: false  # Don't fail on Codecov service issues
+          # Note: Coverage requirements are configured in codecov.yml
 
       - name: Check for lint and test results
         run: |

@@ -89,7 +89,15 @@ These guidelines apply to all aspects of the project, regardless of the programm
 
 - Unit tests are mandatory
 - E2E tests are mandatory only for important features
-- Target test coverage of 80% or higher
+- Target test coverage of 80% or higher for meaningful coverage
+  - Focus coverage on:
+    - Domain logic (aim for 90%+)
+    - Critical business rules (100%)
+    - Public APIs
+  - Lower priority for:
+    - UI presentation logic
+    - Framework glue code
+  - Quality over quantity: covering edge cases matters more than raw percentage
 
 ### 5. Documentation Conventions)
 

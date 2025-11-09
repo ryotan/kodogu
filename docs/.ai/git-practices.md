@@ -1,9 +1,10 @@
 # Git Practices
 
 > [!Note]
-> Users are indifferent to Git status, so you can treat both staged and unstaged hunks in the same way.
-> When a user refers to "uncommitted changes", consider it to include all "uncommitted" changes in Git, including
-> staged/unstaged/untracked changes.
+> When users refer to "changes" or "uncommitted changes", they typically mean
+> ALL uncommitted work (staged, unstaged, and untracked). AI agents should
+> consider all these when working with changes unless the user specifically
+> mentions "staged changes only" or similar qualifications.
 
 ## Git Branching Conventions
 
@@ -24,10 +25,27 @@
 
 ## Git Commit Granularity Conventions
 
-Commits should be granular and focused. Make commits at logical task boundaries. Also, when an AI Agent
-attempts to commit automatically, it should inform the user about the intention to commit and its contents.
+Commits should be granular and focused. Make commits at logical task boundaries.
 
-DO NOT commit automatically if the branch is `main` or `develop`. If the worktree is for features, then commit automatically.
+### Automatic Commit Guidelines for AI Agents
+
+AI agents MAY commit automatically when ALL of the following conditions are met:
+- On `feature/*` or `hotfix/*` branches (NOT on `main` or `develop`)
+- User explicitly requested a commit or task completion
+- All automated checks passing (tests, linters, type checks, formatters)
+- Changes represent a single logical unit
+
+AI agents MUST NOT commit automatically when:
+- On `main` or `develop` branches
+- Automated checks are failing or not run yet
+- User hasn't reviewed the changes
+- Multiple unrelated changes are mixed together
+- User explicitly requested "do not commit"
+
+When committing automatically, AI agents MUST:
+- Inform the user about the intention to commit
+- Describe what will be committed
+- Wait for user confirmation if uncertain
 
 ## Git Commit Message Conventions
 
