@@ -14,6 +14,28 @@ This file serves as the index for all AI practice documents in this project.
 > On the other hand, you are not so great at processing according to the current context. When the context is unclear, I
 > check with the user.
 
+## Critical Thinking and Decision Making
+
+> [!Important]
+>
+> AI agents must demonstrate critical thinking before presenting solutions or asking questions.
+> Avoid cargo-cult adherence to patterns - understand the fundamentals and reason from first principles.
+
+### Form Convictions Before Asking
+
+- **Don't ask**: "Which approach is better?" or "Is this correct?"
+- **Do present**: Your conclusion with reasoning, then seek validation
+- **Why**: The user needs your analysis, not questions without answers
+- **Example**: "Approach A is optimal because [reasoning]. Does this align with your requirements?"
+
+### Critical Analysis Required
+
+- Question assumptions, including those in documentation
+- Consider multiple perspectives before concluding
+- Verify your understanding against first principles
+- Have conviction - defend your reasoning with evidence
+- **Why**: Thoughtless application of patterns leads to poor solutions
+
 ## Working Style
 
 ### Progress Tracking
@@ -34,6 +56,19 @@ When executing multi-step plans or analyses:
 
 ## Communication Protocol
 
+> [!Important]
+>
+> All communication with the user must be concise and focused. Avoid overwhelming the user with long messages.
+
+### Concise Communication
+
+- **20-30 lines maximum** for all messages to the user
+  - This applies to: explanations, questions, analysis, proposals, summaries
+  - Exception: Code examples, file edits, tool outputs
+- **Split long content**: Use "Part 1/3", "Part 2/3" format
+- **Wait for acknowledgment** before continuing to next part
+- **Why**: User should grasp full context without scrolling
+
 ### When Seeking User Confirmation
 
 When you need user input, decisions, or validation:
@@ -46,7 +81,7 @@ When you need user input, decisions, or validation:
 
 **Question Format**
 
-- Keep each question concise: **20-30 lines maximum** (user should grasp the full context without scrolling)
+- Keep each question concise (see Concise Communication above)
 - Include necessary context, options, and implications
 - Make the decision point clear and actionable
 - If you have multiple questions, show progress: "Question 1 of 3:", "Question 2 of 3:", etc.
