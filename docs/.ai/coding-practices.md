@@ -1,98 +1,323 @@
 # Coding Practices
 
-This document outlines the coding practices and principles followed in this project. These practices guide our
-development approach and help maintain code quality and consistency.
+These practices apply across languages, though each language realizes them differently.
 
-- Start small and extend incrementally
-- Avoid excessive abstraction
-- Focus on types rather than code
-- Adjust approach according to complexity
+## Immutability
 
-### Domain-driven design (DDD)
+### Prefer Immutable Data
 
-We apply domain-driven design principles to model complex business domains effectively:
+- Default to immutable data structures
+- Mutability should be explicit and intentional
+- Immutable data eliminates entire classes of bugs
+- **Why**: Easier to reason about, thread-safe, prevents unintended side effects
 
-- Distinguish between value objects (immutable, identified by attributes) and entities (mutable, identified by ID)
-- Aggregation guarantees consistency (treat related entities as a single unit)
-- Abstraction of data access in repositories
-- Bounded context awareness (recognize that the same term may have different meanings in different contexts)
-- Enumerated definitions of errors and use cases
+### Make Mutation Explicit
 
-### Functional approach (FP)
+- When mutation is necessary, make it visible
+- Use clear naming (e.g., `update`, `modify`, `set`)
+- Limit mutation scope (local variables, builder patterns)
+- **Why**: Readers immediately know where state changes
 
-We prefer a functional programming approach for its clarity, testability, and reduced side effects:
+## Null Safety
 
-- Function-first (classes only if necessary)
-- Ensure type safety
-- Preference for pure functions (functions that always return the same output for the same input and have no side
-  effects)
-- Use invariant data structures
-- Use of invariant update patterns
-- Isolate side-effects (keep I/O operations separate from business logic)
-- Flatten conditional branches with early returns
+### Avoid Null When Possible
 
-### Test Driven Development (TDD)
+- Use language-specific null safety features
+- Prefer Optional/Option/Maybe types over nullable references
+- Make nullability explicit in type signatures
+- **Why**: Eliminates null pointer exceptions at compile time
 
-We follow Test Driven Development to ensure code quality and maintainability:
+### Handle Absence Explicitly
 
-- Red-Green-Refactor cycle (write a failing test, make it pass, then refactor)
-- Treat tests as specifications (tests document what the code should do)
-- Iterate in small units (make incremental changes with frequent testing)
-- Continuous refactoring (improve code design without changing behavior)
+- Don't return null for "not found" - use Option types
+- Don't use null for "not initialized" - use lazy initialization or builders
+- Don't use null for "not applicable" - model with sum types
+- **Why**: Forces explicit handling, documents intent
 
-### Testing strategy
+## Error Handling
 
-Our testing approach focuses on efficiency and effectiveness:
+### Make Errors Explicit
 
-- Priority for unit testing of pure functions (they're easier to test and provide high value)
-- Repository testing with in-memory implementation (allows testing without external dependencies)
-- Build testability into design (consider how code will be tested during design phase)
-- Assert first: work backwards from expected results (start with the assertion and work backwards to setup)
+- Errors are part of your API contract
+- Use Result/Either types for recoverable errors
+- Use exceptions only for truly exceptional cases
+- **Why**: Caller knows what can go wrong, forced to handle errors
 
-## Notes about stereotypes
+### Fail Fast
 
-In software development, certain patterns and concepts are frequently used but can be interpreted differently by
-different developers. We clearly define commonly used stereotypes whose roles are often ambiguous to ensure consistent
-implementation across the codebase.
+- Validate inputs at boundaries immediately
+- Don't propagate invalid state
+- Throw/return errors as soon as detected
+- **Why**: Bugs are caught close to their source
 
-### Repository
+### Provide Context
 
-- Deals only with domain models
-- Hides persistence details
-- Provides in-memory implementation for testing
+- Error messages should explain what went wrong
+- Include relevant data in error types
+- Chain errors to preserve context
+- **Why**: Debugging is faster and easier
 
-### Adapter pattern
+## Function Design
 
-- Abstraction of external dependencies
-- Interfaces are defined by the caller
-- Easily replaceable for testing
+### Keep Functions Small
 
-## Implementation steps
+- One function, one responsibility
+- Aim for < 20 lines for most functions
+- Extract complex logic into well-named helpers
+- **Why**: Easier to understand, test, and reuse
 
-We follow a structured approach to implementation that prioritizes type safety, testability, and separation of concerns.
-The recommended sequence is:
+### Minimize Side Effects
 
-1.**Type design**.
+- Pure functions when possible
+- Side effects should be explicit (return types, naming)
+- Isolate I/O and mutation
+- **Why**: Easier to reason about and test
 
-- First, define the types
-- Represent the language of the domain with types.
+### Use Meaningful Names
 
-2.**Implementation from pure functions**
+- Function names describe what they do
+- Parameter names describe what they represent
+- Avoid abbreviations unless universally understood
+- **Why**: Self-documenting code
 
-- Functions without external dependencies first.
-- Write tests first.
+## Data Modeling
 
-3.**Separate side-effects**.
+### Make Illegal States Unrepresentable
 
-- Push IO operations to function boundaries
-- Wrap operations with side-effects in Promise.
+- Use types to encode business rules
+- Prefer enums/sum types over booleans
+- Don't allow impossible combinations
+- **Why**: Compiler enforces correctness
 
-4.**Adapter implementation**
+### Encapsulate Invariants
 
-- Abstraction of access to external services and DB
-- Prepare mock for testing.
+- Keep data private, expose operations
+- Validate in constructors/factory functions
+- Never expose setters that can break invariants
+- **Why**: Guarantees are maintained throughout object lifetime
 
-5.**Ensure code quality**
+### Use Meaningful Types
 
-- Run `bun lint` and fix lint errors
-- Run `bun test` and fix test failures
+- Don't use primitives for domain concepts
+- Create value objects (Email, UserId, Money)
+- Use type aliases/newtype for clarity
+- **Why**: Type system helps catch mistakes
+
+## Concurrency
+
+### Minimize Shared Mutable State
+
+- Prefer message passing over shared memory
+- Use immutable data structures
+- Isolate mutation to specific components
+- **Why**: Reduces race conditions and complexity
+
+### Use Language Idioms
+
+- Kotlin: coroutines and flows
+- Rust: ownership and async/await
+- TypeScript: Promises and async/await
+- **Why**: Language-specific tools are optimized and idiomatic
+
+## Resource Management
+
+### Clean Up Resources
+
+- Use language RAII/defer/try-with-resources patterns
+- Never rely on finalization/garbage collection for cleanup
+- Make resource lifecycles explicit
+- **Why**: Prevents leaks and ensures deterministic cleanup
+
+### Limit Resource Scope
+
+- Acquire late, release early
+- Use scoped resource patterns
+- Make ownership explicit
+- **Why**: Reduces resource contention and memory usage
+
+## Code Organization
+
+### Group Related Functionality
+
+- High cohesion within modules
+- Low coupling between modules
+- Related types and functions stay together
+- **Why**: Easier to find and modify related code
+
+### Minimize Dependencies
+
+- Depend on abstractions, not concretions
+- Keep dependency graphs acyclic
+- Make dependencies explicit
+- **Why**: Easier to test, modify, and understand
+
+## Performance Considerations
+
+### Optimize for Readability First
+
+- Clear code is fast enough most of the time
+- Measure before optimizing
+- Document why optimizations are needed
+- **Why**: Premature optimization is the root of all evil
+
+### Be Allocation-Aware
+
+- Avoid unnecessary allocations in hot paths
+- Reuse buffers when appropriate
+- Profile before optimizing
+- **Why**: Memory allocation can be expensive
+
+### Choose Appropriate Data Structures
+
+- Understand time/space complexity
+- Use the right tool for the job (List vs Set vs Map)
+- Consider access patterns
+- **Why**: Wrong data structure can kill performance
+
+## Testing Support
+
+### Design for Testability
+
+- Inject dependencies
+- Avoid static state
+- Keep functions pure when possible
+- **Why**: Testable code is good code
+
+### Make Test Doubles Easy
+
+- Use interfaces/traits for dependencies
+- Avoid final/sealed unless intentional
+- Support dependency injection
+- **Why**: Tests can replace production dependencies
+
+## Documentation
+
+### Document Why, Not What
+
+- Code shows what, comments explain why
+- Document non-obvious decisions
+- Explain trade-offs and constraints
+- **Why**: Future developers need context
+
+### Keep Documentation Close
+
+- Doc comments on public APIs
+- Inline comments for complex logic
+- Architecture decisions in ADRs
+- **Why**: Documentation that's far from code gets stale
+
+## Async/Await Patterns
+
+### Async All the Way
+
+- Don't block on async operations
+- Use async/await consistently
+- Avoid mixing sync and async
+- **Why**: Blocking defeats the purpose of async
+
+### Handle Cancellation
+
+- Support graceful cancellation
+- Clean up on cancellation
+- Propagate cancellation tokens
+- **Why**: Long-running operations need to be stoppable
+
+## API Design
+
+### Favor Narrow Interfaces
+
+- Expose only what's necessary
+- Many small interfaces over few large ones
+- Make it hard to misuse
+- **Why**: Smaller surface area, easier to maintain
+
+### Version Breaking Changes
+
+- Semantic versioning
+- Deprecate before removing
+- Provide migration paths
+- **Why**: Respects downstream consumers
+
+## Security
+
+### Validate All Inputs
+
+- Never trust external data
+- Sanitize at boundaries
+- Use allowlists over denylists
+- **Why**: Prevents injection attacks and crashes
+
+### Minimize Attack Surface
+
+- Principle of least privilege
+- Fail closed, not open
+- Don't expose internals
+- **Why**: Security by design
+
+## Logging and Observability
+
+### Log at Appropriate Levels
+
+- ERROR: something failed
+- WARN: something unexpected
+- INFO: important events
+- DEBUG: detailed diagnostics
+- **Why**: Logs are useful for debugging and monitoring
+
+### Include Context
+
+- Request IDs, user IDs, correlation data
+- Structured logging when possible
+- Don't log sensitive data
+- **Why**: Makes troubleshooting possible
+
+## Implementation Workflow
+
+### Recommended Development Sequence
+
+A structured approach to implementation that prioritizes type safety, testability, and separation of concerns.
+
+### 1. Type Design First
+
+- Define types before implementation
+- Represent domain concepts with types
+- Make illegal states unrepresentable
+- **Why**: Type-driven design catches errors early
+
+### 2. Start with Pure Functions
+
+- Implement functions without external dependencies first
+- Write tests before implementation (TDD)
+- Focus on business logic in isolation
+- **Why**: Pure functions are easiest to test and reason about
+
+### 3. Separate Side Effects
+
+- Push I/O operations to function boundaries
+- Keep side effects explicit in signatures
+- Isolate mutation from pure logic
+- **Why**: Makes code testable and maintainable
+
+### 4. Implement Adapters
+
+- Abstract external services and databases
+- Define interfaces in domain layer
+- Create test doubles for testing
+- **Why**: Enables testing without external dependencies
+
+### 5. Ensure Quality
+
+- Run linters and fix all warnings
+- Run tests and ensure they pass
+- Review test coverage
+- **Why**: Catches issues before they reach production
+
+## Language-Specific Realization
+
+Each language realizes these principles differently:
+
+**Kotlin**: Data classes, null safety, coroutines, sealed classes
+**Rust**: Ownership, Result<T,E>, traits, async/await
+**TypeScript**: Readonly, union types, Promises, strict null checks
+
+See language-specific practice files for details.

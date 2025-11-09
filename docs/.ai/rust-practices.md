@@ -1,98 +1,379 @@
-# Rust Style Guide
+# Rust Practices
 
-This style guide outlines the conventions and best practices for Rust code in the KoDoGu project. Following these
-guidelines will ensure code consistency, readability, and maintainability across the codebase.
+Rust-specific practices for realizing universal principles in this language.
 
-## Code Formatting
+## Ownership and Borrowing
 
-- Use `cargo fmt` before committing code to ensure consistent formatting
+### Understand Ownership Rules
 
-## Naming Conventions
+- Each value has exactly one owner
+- When owner goes out of scope, value is dropped
+- Ownership can be transferred (moved)
+- **Why**: Memory safety without garbage collection
 
-- Use **snake_case** for variables, functions, methods, and modules
-- Use **PascalCase** for types, traits, enums, and struct names
-- Use **SCREAMING_SNAKE_CASE** for constants and static variables
-- Use descriptive names that clearly convey purpose
-- Prefer complete words over abbreviations unless the abbreviation is more widely recognized
+### Use References Appropriately
 
-## Code Organization
+- `&T` for immutable borrows
+- `&mut T` for mutable borrows
+- Only one mutable reference OR many immutable references
+- **Why**: Prevents data races at compile time
 
-- Organize code into modules based on functionality
-- Keep files focused on a single responsibility
-- Follow the standard Tauri application structure:
-  - `main.rs`: Application entry point
-  - `lib.rs`: Core application logic
-  - Organize related functionality into separate modules
+### Prefer Borrowing Over Ownership Transfer
+
+- Pass `&T` or `&mut T` instead of `T` when possible
+- Transfer ownership only when necessary
+- Clone only when you must
+- **Why**: Avoids unnecessary moves and copies
 
 ## Error Handling
 
-- Use `Result<T, E>` for operations that can fail
-- Create custom error types using `snafu` for domain-specific errors with context
-- Use the StackError pattern for better error tracing and context (see `app/src-tauri/src/error.rs` for implementation)
-- Prefer using the `?` operator for error propagation over `match` or `unwrap()`
-- Avoid using `unwrap()` or `expect()` in production code
-- Use meaningful error messages that help with debugging
-- Add context to errors when propagating them up the call stack
-- Implement the StackError pattern for complex applications to improve error tracing
+### Use Result for Recoverable Errors
 
-## Documentation
+- `Result<T, E>` for operations that can fail
+- `?` operator for error propagation
+- Custom error types with `thiserror` or `anyhow`
+- **Why**: Explicit, type-safe error handling
 
-- Document all public APIs using rustdoc comments (`///`)
-- Include examples in documentation where appropriate
-- Document complex or non-obvious implementations with regular comments (`//`)
-- Use `//TODO:` or `//FIXME:` comments for temporary solutions or known issues
+### Use Option for Absence
 
-## Functional Programming Style
+- `Option<T>` when value may not exist
+- Avoid using `unwrap()` except in tests
+- Use `unwrap_or`, `unwrap_or_else`, `ok_or` instead
+- **Why**: Forces handling of None case
 
-- Prefer immutable variables (`let` without `mut`) when possible
-- Use iterator methods (`map`, `filter`, `fold`) instead of explicit loops when appropriate
-- Use closures for short, one-off functions
-- Leverage Rust's pattern matching capabilities for cleaner code
+### Create Meaningful Error Types
 
-## Performance Considerations
+- Use `thiserror` for library errors
+- Use `anyhow` for application errors
+- Provide context with error chains
+- **Why**: Better debugging and error messages
 
-- Be mindful of memory allocations, especially in performance-critical code
-- Use references (`&T`) instead of cloning when possible
-- Consider using `Cow<T>` for values that may or may not need to be owned
-- Profile before optimizing; avoid premature optimization
+### Use suzunari-error for Enhanced Error Context
 
-## Concurrency
+- Apply `#[suzunari_error]` macro to error enums
+- Combines `snafu` error handling with stack trace context
+- Provides detailed error propagation paths
+- Use for complex applications needing error tracing
+- **Why**: Better debugging with complete error context
+- **Example**: See `docs/.ai/rust-examples/error-handling.md`
 
-- Use `async`/`await` for asynchronous operations, especially when interacting with Tauri APIs
-- Be explicit about thread safety using appropriate types (`Arc`, `Mutex`, etc.)
-- Prefer message passing over shared state when possible
-- Document thread safety assumptions in multi-threaded code
+## Type System
+
+### Use Type-Driven Design
+
+- Make illegal states unrepresentable
+- Use enums for sum types
+- Use structs for product types
+- **Why**: Compiler enforces correctness
+
+### Prefer Newtype Pattern
+
+- `struct UserId(String)` for domain concepts
+- Zero-cost abstraction
+- Prevents mixing up similar types
+- **Why**: Type safety without runtime overhead
+
+### Use Enums for State Machines
+
+- Model states as enum variants
+- Attach data to variants
+- Match exhaustively
+- **Why**: Compiler ensures all states handled
+
+## Pattern Matching
+
+### Use Match Exhaustively
+
+- Handle all enum variants explicitly
+- Avoid `_` wildcard unless intentional
+- Compiler warns about non-exhaustive matches
+- **Why**: Catches bugs during refactoring
+
+### Leverage Pattern Matching Features
+
+- Destructuring in match arms
+- Guards with `if` conditions
+- `@` bindings for naming matched values
+- **Why**: Expressive and concise
+
+## Traits
+
+### Use Traits for Abstraction
+
+- Traits define shared behavior
+- Implement traits for your types
+- Use trait bounds in generic functions
+- **Why**: Polymorphism without inheritance
+
+### Prefer Trait Objects Sparingly
+
+- `dyn Trait` has runtime cost
+- Use generics with trait bounds when possible
+- Use trait objects for heterogeneous collections
+- **Why**: Performance vs flexibility trade-off
+
+### Implement Standard Traits
+
+- `Debug`, `Clone`, `PartialEq`, `Eq`, `Hash` as needed
+- Derive when possible
+- Manual implementation when derivation insufficient
+- **Why**: Integrates with Rust ecosystem
+
+## Lifetimes
+
+### Understand Lifetime Elision
+
+- Compiler infers lifetimes in common cases
+- Explicit lifetimes only when necessary
+- Named lifetimes for clarity in complex cases
+- **Why**: Less annotation clutter
+
+### Keep Lifetimes Simple
+
+- Avoid multiple lifetime parameters when possible
+- Use `'static` sparingly
+- Let compiler guide you
+- **Why**: Complex lifetimes are hard to maintain
+
+## Collections
+
+### Choose Right Collection
+
+- `Vec<T>` for dynamic arrays
+- `HashMap<K, V>` for key-value pairs
+- `BTreeMap<K, V>` for sorted maps
+- `HashSet<T>` for unique values
+- **Why**: Each has different performance characteristics
+
+### Understand Ownership in Collections
+
+- `Vec<T>` owns its elements
+- Iteration can borrow or consume
+- `into_iter()` takes ownership
+- `iter()` borrows
+- **Why**: Prevents use-after-move bugs
+
+## Iterators
+
+### Prefer Iterator Chains
+
+- `map`, `filter`, `fold` over manual loops
+- Lazy evaluation for efficiency
+- `collect()` to materialize results
+- **Why**: More expressive, often faster
+
+### Implement Iterator When Appropriate
+
+- Custom iterators for domain types
+- Stateful iteration
+- Use `IntoIterator` for natural conversion
+- **Why**: Integrates with ecosystem
+
+## Smart Pointers
+
+### Use Appropriate Smart Pointer
+
+- `Box<T>` for heap allocation
+- `Rc<T>` for shared ownership (single-threaded)
+- `Arc<T>` for shared ownership (multi-threaded)
+- `RefCell<T>` for interior mutability
+- **Why**: Each solves different problems
+
+### Avoid Smart Pointer Overuse
+
+- Prefer ownership and borrowing
+- Smart pointers add overhead
+- Use only when necessary
+- **Why**: Simplicity and performance
+
+## Modules and Visibility
+
+### Structure Code with Modules
+
+- Use modules for organization
+- `pub` for public API
+- Keep internals private by default
+- **Why**: Clear API boundaries
+
+### Use `pub(crate)` for Internal APIs
+
+- Visible within crate, hidden from consumers
+- Better than full `pub` for internal helpers
+- Enables refactoring without breaking changes
+- **Why**: Encapsulation within crate
+
+## Async/Await
+
+### Use Async for I/O-Bound Work
+
+- `async fn` for asynchronous functions
+- `.await` to wait for futures
+- Choose runtime (tokio, async-std, smol)
+- **Why**: Efficient concurrency
+
+### Understand Send and Sync
+
+- `Send` types can be moved between threads
+- `Sync` types can be shared between threads
+- Async functions require `Send` futures for tokio
+- **Why**: Thread safety guarantees
+
+### Handle Cancellation
+
+- Futures are lazy and cancellable
+- Clean up on drop
+- Use `select!` for racing futures
+- **Why**: Resource management
+
+## Macros
+
+### Use Macros Sparingly
+
+- Prefer functions and generics
+- Macros for code generation only when needed
+- Procedural macros for complex cases
+- **Why**: Macros harder to debug and understand
+
+### Leverage Standard Macros
+
+- `vec![]`, `format!()`, `println!()`
+- `derive` macros for traits
+- `cfg!()` for conditional compilation
+- **Why**: Well-tested and familiar
+
+## Cargo and Dependencies
+
+### Manage Dependencies Carefully
+
+- Use semantic versioning
+- Pin versions in Cargo.lock
+- Regular dependency updates
+- **Why**: Reproducible builds, security
+
+### Use Cargo Features
+
+- Optional dependencies via features
+- Feature flags for conditional code
+- Default features for common use cases
+- **Why**: Modular dependency management
 
 ## Testing
 
-- Write unit tests for all public functions
-- Use `#[cfg(test)]` module for test code
-- Name test functions descriptively, using the pattern `test_<functionality_being_tested>`
-- Use meaningful assertions that clearly indicate what's being tested
+### Write Unit Tests in Same File
 
-## Tauri-Specific Guidelines
+- `#[cfg(test)]` mod tests
+- Tests close to implementation
+- Private function testing enabled
+- **Why**: Easy to maintain
 
-- Register commands with appropriate permissions
-- Use proper error handling in commands that can be called from the frontend
-- Serialize/deserialize data using `serde` with consistent patterns
-- Keep command handlers small and focused on a single responsibility
-- Use Tauri's logging facilities for debugging and error reporting
+### Use Integration Tests
 
-## Common Pitfalls to Avoid
+- `tests/` directory for integration tests
+- Test public API
+- Each file is separate crate
+- **Why**: Tests from consumer perspective
 
-- Excessive cloning of data
-- Deeply nested error handling
-- Overuse of macros for simple tasks
-- Premature optimization
-- Inconsistent error handling patterns
-- Mixing synchronous and asynchronous code without clear boundaries
+### Leverage Test Attributes
 
-## Dependencies
+- `#[test]` for tests
+- `#[should_panic]` for expected panics
+- `#[ignore]` for slow tests
+- **Why**: Flexible test control
 
-- Be selective about adding new dependencies
-- Prefer well-maintained crates with good documentation
-- Consider the licensing implications of dependencies
-- Keep dependencies up to date using `cargo update`
+## Documentation
 
-By following these guidelines, we can maintain a high-quality, consistent, and maintainable Rust codebase for the KoDoGu
-project.
+### Write Rustdoc Comments
+
+- `///` for item documentation
+- `//!` for module documentation
+- Use markdown in doc comments
+- **Why**: Integrated documentation
+
+### Include Examples in Docs
+
+- Code blocks in doc comments are tests
+- `# ` prefix for hidden lines
+- Demonstrate usage in examples
+- **Why**: Docs stay up to date
+
+## Safety and Unsafe
+
+### Avoid Unsafe When Possible
+
+- Most code doesn't need `unsafe`
+- Understand invariants before using unsafe
+- Minimize unsafe boundaries
+- **Why**: Safety is Rust's strength
+
+### Document Unsafe Invariants
+
+- Comment why unsafe is needed
+- Document what invariants must hold
+- Review unsafe code carefully
+- **Why**: Future maintainers need context
+
+## Performance
+
+### Measure Before Optimizing
+
+- Use `cargo bench` for benchmarks
+- Profile with appropriate tools
+- Don't assume, measure
+- **Why**: Premature optimization wastes time
+
+### Understand Zero-Cost Abstractions
+
+- Generics monomorphized (no runtime cost)
+- Iterators optimize to same as loops
+- Newtype pattern has no overhead
+- **Why**: Abstraction without performance penalty
+
+### Use Release Builds for Performance
+
+- Debug builds prioritize compile time
+- Release builds enable optimizations
+- Always benchmark release builds
+- **Why**: Debug performance not representative
+
+## Common Pitfalls
+
+### Avoid These Patterns
+
+- `.unwrap()` in production code
+- Cloning everything to avoid borrow checker
+- Fighting the borrow checker instead of learning
+- Ignoring compiler warnings
+- **Why**: These indicate misunderstanding
+
+## Code Style
+
+### Follow Rustfmt
+
+- Use `cargo fmt` for formatting
+- Consistent style across ecosystem
+- Integrate into CI/CD
+- **Why**: No debates about style
+
+### Use Clippy
+
+- Run `cargo clippy` regularly
+- Fix warnings, don't suppress
+- Teaches Rust idioms
+- **Why**: Catches common mistakes
+
+## Ecosystem Libraries
+
+### Prefer Standard Library
+
+- Use `std` when sufficient
+- Battle-tested and stable
+- Part of language guarantee
+- **Why**: Minimal dependencies
+
+### Use Well-Maintained Crates
+
+- `serde` for serialization
+- `tokio` or `async-std` for async runtime
+- `thiserror`/`anyhow` for errors
+- `clap` for CLI parsing
+- **Why**: Ecosystem best practices

@@ -39,6 +39,44 @@
 - Implement interfaces in outer layers
 - **Why**: Enables flexibility and testability without coupling
 
+## Architectural Layers
+
+### Layer Structure
+
+This project follows Clean Architecture with DDD tactical patterns:
+
+**Domain**
+- [Entities](#entities), [Value Objects](#value-objects), [Aggregates](#aggregates)
+- [Domain Behaviors](#domain-behaviors)
+- [Domain Events](#domain-events)
+- [Repository](#repositories) interfaces (abstractions)
+
+**Use Cases**
+- [Use Cases](#use-cases) (orchestration)
+- Commands and Queries
+- Application-specific workflows
+
+**Adapters**
+- Controllers, Presenters
+- Repository implementations
+- External service clients
+- Message queue adapters
+
+**Frameworks**
+- Web frameworks
+- Database drivers
+- External libraries
+- Infrastructure tools
+
+### Mapping to Other Architectures
+
+| This Project | Clean Architecture   | DDD Layered       | Onion Architecture   | Hexagonal Architecture |
+|--------------|----------------------|-------------------|----------------------|------------------------|
+| Domain       | Entities             | Domain Layer      | Domain Model         | Core/Hexagon           |
+| Use Cases    | Use Cases            | Application Layer | Application Services | Core/Hexagon           |
+| Adapters     | Interface Adapters   | Infrastructure    | Infrastructure       | Adapters               |
+| Frameworks   | Frameworks & Drivers | Infrastructure    | Infrastructure       | Frameworks             |
+
 ## Cohesion and Coupling
 
 ### High Cohesion
@@ -64,13 +102,20 @@
 - Don't allow invalid states to exist
 - **Why**: Eliminates whole classes of bugs
 
-[//]: # (
-TODO: 以下のような内容が誤解なく伝わるように、適切なファイルに記載する（このファイルに書くべきかどうかの判断から必要）
-  - 「作成」とは実装における「インスタンスの生成」とは異なります。
-  - 例えば、「過去には制限がなかったが、新しく追加された制限」を考えると自明です。
-    - 過去に生成されたエンティティは、「新しく追加された制限」を満たさなくてもインスタンス化できないと業務を継続できません。
-    - 一方で、新しくエンティティを作成するときには、「新しく追加された制限」が絶対に満たされている必要があります。
-)
+### Creation vs Instantiation
+
+- **Creation**: Domain act of bringing an entity into existence (business operation)
+- **Instantiation**: Technical act of creating an object in memory (programming operation)
+- These are different concepts with different invariant requirements
+- **Why**: Understanding this distinction prevents incorrect invariant enforcement
+
+### When Invariants Apply
+
+- **New entities (Creation)**: Must satisfy ALL current invariants
+- **Existing entities (Instantiation)**: May not satisfy recently-added invariants
+- **Example**: New validation rule added → old data still needs to load
+- **Pattern**: Factory methods enforce creation rules, constructors allow flexible instantiation
+- **Why**: Enables system evolution while maintaining historical data
 
 ### Fail Fast
 
@@ -79,9 +124,7 @@ TODO: 以下のような内容が誤解なく伝わるように、適切なフ�
 - Make invalid states unrepresentable
 - **Why**: Errors are caught early and close to their source
 
-## Value Objects vs Entities
-
-### Value Objects
+## Value Objects
 
 - Defined by their attributes, not identity
 - Immutable
@@ -89,7 +132,7 @@ TODO: 以下のような内容が誤解なく伝わるように、適切なフ�
 - Examples: Email, Money, DateRange
 - **Why**: Reduce bugs through immutability, express domain concepts clearly
 
-### Entities
+## Entities
 
 - Have unique identity
 - Mutable state over time
@@ -129,6 +172,28 @@ TODO: 以下のような内容が誤解なく伝わるように、適切なフ�
 - Events enable eventual consistency across boundaries
 - **Why**: Decouples contexts while maintaining data consistency
 
+## Domain Behaviors
+
+### Operations and Rules Without a Natural Home
+
+- Operations and rules that don't naturally belong to an entity or value object
+- Stateless operations and rules on domain concepts
+- Contain business logic (not just orchestration)
+- Can coordinate multiple aggregates when applying business rules
+- Examples: CalculateShipping, ValidateCrossAggregateInvariant
+- **Why**: Keeps entities focused, expresses complex domain logic clearly
+
+### What Domain Behaviors Don't Do
+
+- Don't handle transactions or infrastructure (that's Use Cases)
+- Don't orchestrate without business logic (that's also Use Cases)
+- **Why**: Maintains clean separation between domain logic and application layer
+
+> [!Note]
+> Also known as "Domain Services" in DDD literature. We use "Domain Behaviors"
+> instead because the term "Service" can be confused with Application Services
+> (Use Cases), which handle orchestration rather than domain logic.
+
 ## Repositories
 
 ### Repository Abstraction
@@ -144,22 +209,69 @@ TODO: 以下のような内容が誤解なく伝わるように、適切なフ�
 - Load entire aggregate, not individual entities
 - **Why**: Maintains aggregate consistency guarantees
 
-[//]: # (TODO: Add "Adapters" stereotype from Clean Architecture, Use "Use Cases" or "Command+Query" instead of Services)
-## Services
+## Use Cases
 
-### Domain Services
+### Application Orchestration
 
-- Operations that don't naturally belong to an entity or value object
-- Stateless
-- Express domain concepts
-- **Why**: Keeps entities focused, expresses domain operations clearly
-
-### Application Services
-
-- Orchestrate domain objects
-- Handle transactions
-- Don't contain business logic
+- Coordinate domain objects and services
+- Implement application-specific workflows
+- Handle transactions and cross-cutting concerns
+- Examples: CreateOrderUseCase, ProcessPaymentCommand, GetOrderDetailsQuery
 - **Why**: Separates coordination from domain logic
+
+### Commands and Queries
+
+- **Commands**: Operations that change state (CreateOrder, UpdatePayment)
+- **Queries**: Operations that read state (GetOrderById, ListOrders)
+- Commands may return success/failure, queries return data
+- **Why**: Clear distinction between reads and writes
+
+### Use Case Responsibilities
+
+- Validate input (application-level validation)
+- Load aggregates via repositories
+- Execute domain logic via aggregates and domain behaviors
+- Save changes via repositories
+- Publish domain events (if needed)
+- **Why**: Defines clear application workflow
+
+### What Use Cases Don't Do
+
+- Don't contain business logic (that's in domain)
+- Don't access infrastructure directly (use adapters)
+- Don't know about HTTP, databases, or frameworks
+- **Why**: Keeps application layer focused and testable
+
+## Adapters
+
+### Port and Adapter Pattern
+
+- Domain defines interfaces (ports)
+- Infrastructure provides implementations (adapters)
+- Domain depends on abstractions, not implementations
+- **Why**: Protects domain from infrastructure changes
+
+### Adapter Responsibilities
+
+- Convert between external formats and domain models
+- Handle technical concerns (serialization, protocols, etc.)
+- Implement domain-defined interfaces
+- **Why**: Clean separation of concerns
+
+### Anti-Corruption Layer
+
+- Protect domain from external system changes
+- Translate external models to domain models
+- Don't leak external concepts into domain
+- **Why**: Domain integrity and independence
+
+### Common Adapter Types
+
+- **Framework Adapters**: Controllers, Presenters
+- **Persistence Adapters**: Database, file system, cache
+- **Message Adapters**: Queues, event buses, pub/sub
+- **External Service Adapters**: REST, GraphQL, gRPC clients of third-party APIs or legacy systems
+- **Why**: Each handles different integration concerns
 
 ## Anti-Patterns to Avoid
 

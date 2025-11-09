@@ -214,6 +214,36 @@
 - Refactor tests when code changes
 - **Why**: Dead tests create maintenance burden
 
+## Testing Strategy
+
+### Prioritize Testing Pure Functions
+
+- Unit test pure functions first and most thoroughly
+- Pure functions are easiest to test
+- Provide highest value-to-effort ratio
+- **Why**: Maximum coverage with minimal setup
+
+### Test Repositories with In-Memory Implementations
+
+- Create in-memory versions of repositories for testing
+- Test domain logic without database dependencies
+- Fast, reliable, and isolated tests
+- **Why**: Tests run quickly and don't require external services
+
+### Build Testability into Design
+
+- Consider testing needs during design phase
+- Design interfaces that are easy to mock
+- Inject dependencies explicitly
+- **Why**: Testable design is good design
+
+### Assert-First Development
+
+- Start by writing the assertion
+- Work backwards to determine setup
+- Clarifies what you're actually testing
+- **Why**: Forces clear thinking about expected outcomes
+
 ## Cross-Cutting Concerns
 
 ### Test Performance Requirements
@@ -252,6 +282,34 @@
 - See it fail, make it pass, refactor
 - Design emerges from tests
 - **Why**: Better design and guaranteed testability
+
+### The Red-Green-Refactor Cycle
+
+- **Red**: Write a failing test that describes desired behavior
+- **Green**: Write minimal code to make the test pass
+- **Refactor**: Improve code quality without changing behavior
+- **Why**: Small iterations with continuous validation
+
+### Treat Tests as Specifications
+
+- Tests document what the code should do
+- Test names describe behavior, not implementation
+- Tests serve as living documentation
+- **Why**: Tests communicate intent to future developers
+
+### Iterate in Small Units
+
+- Make one small change at a time
+- Run tests frequently during development
+- Keep each cycle short (minutes, not hours)
+- **Why**: Fast feedback loop catches errors early
+
+### Continuous Refactoring
+
+- Improve design throughout development
+- Refactor when tests are green
+- Keep code clean from the start
+- **Why**: Prevents technical debt accumulation
 
 ### Listen to Your Tests
 

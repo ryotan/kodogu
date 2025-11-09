@@ -1,190 +1,416 @@
-# TypeScript Style Guide
+# TypeScript Practices
 
-This style guide outlines the conventions and best practices for TypeScript code in the KoDoGu project. Following these
-guidelines will ensure code consistency, readability, and maintainability across the codebase.
+TypeScript-specific practices for realizing universal principles in this language.
 
-## Code Formatting
+## Type System
 
-- Use ESLint and Biome for code formatting and linting
-- Run `bun run fix` before committing code to ensure consistent formatting
-- Use 2 spaces for indentation (as specified in .editorconfig)
-- Maximum line length is 120 characters
-- Use LF line endings
-- Always include a final newline in files
-- Use single quotes for strings
-- No trailing commas in function parameters
-- Trailing commas in object and array literals
+### Enable Strict Mode
 
-## Naming Conventions
+- Use `"strict": true` in tsconfig.json
+- Enables all strict type checks
+- Catches errors at compile time
+- **Why**: Maximum type safety
 
-- Use **camelCase** for variables, functions, methods, and properties
-  ```typescript
-  const userName = 'example';
-  function calculateTotalPrice() { /* ... */ }
-  ```
-- Use **PascalCase** for classes, interfaces, types, enums, and React components
-  ```typescript
-  class UserProfile { /* ... */ }
-  interface UserData { /* ... */ }
-  type ConnectionState = 'connected' | 'disconnected';
-  enum HttpStatus { OK, NotFound, ServerError }
-  function UserAvatar() { /* ... */ }
-  ```
-- Use **SCREAMING_SNAKE_CASE** for constants and static variables
-  ```typescript
-  const MAX_CONNECTIONS = 100;
-  const DEFAULT_TIMEOUT = 30000;
-  ```
-- Do not use "I" prefix for interfaces
-- Use descriptive names that clearly convey purpose
-- Prefer complete words over abbreviations unless the abbreviation is more widely recognized
+### Use Explicit Types for Public APIs
 
-## Code Organization
+- Type function parameters and return values
+- Type class properties
+- Let inference work for local variables
+- **Why**: Clear contracts, better tooling
 
-- Organize code into modules based on functionality
-- Keep files focused on a single responsibility
-- Follow a consistent directory structure:
-  - `components/`: Reusable UI components
-  - `api/`: API client code and data fetching
-  - `routes/`: Route definitions and page components
-  - `types/`: TypeScript type definitions
-  - `utils/`: Utility functions
-  - `hooks/`: Custom React hooks
-  - `stores/`: State management
+### Prefer Interfaces for Objects
 
-## React Components
+- `interface` for object shapes
+- `type` for unions, intersections, primitives
+- Extend interfaces, don't use intersections
+- **Why**: Better error messages, more extensible
 
-- Use functional components with hooks instead of class components
-  ```typescript jsx
-  function UserProfile({ userId }: UserProfileProps) {
-    const [user, setUser] = useState<User | null>(null);
-    // ...
-    return <div>...</div>;
-  }
-  ```
-- Extract complex logic into custom hooks
-- Keep components small and focused on a single responsibility
-- Use proper prop typing with TypeScript interfaces
-  ```typescript
-  interface UserProfileProps {
-    userId: string;
-    showAvatar?: boolean;
-  }
-  ```
-- Use destructuring for props and state
-- Use React.Fragment or the shorthand `<>...</>` to avoid unnecessary divs
+## Null and Undefined
 
-## State Management
+### Handle Null and Undefined Explicitly
 
-- Use React hooks (`useState`, `useReducer`) for component-level state
-- Use TanStack Store for application-wide state
-- Prefer immutable state updates
-- Use immer for complex state updates
-- Keep state as close as possible to where it's used
+- Enable `strictNullChecks`
+- Use optional chaining `?.` for safe access
+- Use nullish coalescing `??` for defaults
+- **Why**: Prevents runtime null/undefined errors
 
-## TypeScript Best Practices
+### Prefer Undefined Over Null
 
-- Enable strict mode in TypeScript configuration
-- Explicitly type function parameters and return types
-  ```typescript
-  function fetchUser(userId: string): Promise<User> {
-    // ...
-  }
-  ```
-- Use type inference when the type is obvious
-- Use interfaces for object shapes that will be implemented or extended
-- Use type aliases for unions, intersections, and complex types
-- Avoid using `any` type; use `unknown` instead when type is truly unknown
-- Use generics for reusable components and functions
-- Use discriminated unions for state management
-  ```typescript
-  type RequestState<T> =
-    | { status: 'idle' }
-    | { status: 'loading' }
-    | { status: 'success'; data: T }
-    | { status: 'error'; error: Error };
-  ```
+- Use `undefined` for "not present"
+- Reserve `null` for explicit "no value"
+- Be consistent across codebase
+- **Why**: Simpler mental model
 
-## Asynchronous Code
+### Avoid Non-Null Assertions
 
-- Use async/await instead of Promise chains when possible
-- Handle errors properly in async functions
-- Use TanStack Query for data fetching and caching
-- Implement proper loading and error states for async operations
+- Don't use `!` except when absolutely certain
+- Prefer type guards or optional chaining
+- Comment why when using `!`
+- **Why**: Defeats type safety
 
-## Tauri Integration
+## Union Types
 
-- Use Tauri API types for better type safety
-- Create typed wrappers around Tauri commands
-  ```typescript
-  async function saveUserPreferences(prefs: UserPreferences): Promise<void> {
-    return invoke('save_user_preferences', { prefs });
-  }
-  ```
-- Handle errors from Tauri commands appropriately
-- Use proper serialization/deserialization for data passed between TypeScript and Rust
+### Use Discriminated Unions
+
+- Add literal type field for discrimination
+- Exhaustive checking with `never`
+- Type-safe state machines
+- **Why**: Compiler ensures all cases handled
+
+### Prefer Union Types Over Enums
+
+- Union of string literals over string enums
+- Type safety without runtime overhead
+- Easier to refactor
+- **Why**: More type-safe, simpler
+
+## Type Guards
+
+### Use Type Guards for Narrowing
+
+- `typeof` for primitives
+- `instanceof` for classes
+- User-defined type guards with `is`
+- **Why**: Type-safe runtime checks
+
+### Create Custom Type Guards
+
+- `function isUser(x: unknown): x is User`
+- Encapsulate complex checks
+- Reusable type narrowing logic
+- **Why**: DRY principle for type checking
+
+## Generics
+
+### Use Generics for Reusable Code
+
+- Generic functions and classes
+- Constraint with `extends`
+- Default type parameters
+- **Why**: Type-safe reusability
+
+### Avoid Over-Generic Code
+
+- Too many type parameters is a code smell
+- Consider splitting into specific functions
+- Use generics when truly reusable
+- **Why**: Simpler is better
+
+## Readonly and Immutability
+
+### Use Readonly for Immutable Data
+
+- `readonly` for properties that don't change
+- `Readonly<T>` for entire objects
+- `ReadonlyArray<T>` for arrays
+- **Why**: Prevents accidental mutations
+
+### Prefer Const Assertions
+
+- `as const` for literal types
+- Deeply readonly objects
+- Narrower types
+- **Why**: Maximum type safety for constants
+
+## Async/Await
+
+### Always Use Async/Await
+
+- Prefer async/await over `.then()`
+- Handle errors with try/catch
+- Return promises from async functions
+- **Why**: More readable, easier error handling
+
+### Handle Promise Rejection
+
+- Always catch errors in async functions
+- Use `Promise.allSettled()` for parallel operations
+- Don't ignore unhandled rejection warnings
+- **Why**: Prevents silent failures
+
+## Error Handling
+
+### Use Custom Error Classes
+
+- Extend `Error` for domain errors
+- Include relevant context in errors
+- Use discriminated unions for expected errors
+- **Why**: Type-safe error handling
+
+### Prefer Result Types for Expected Errors
+
+- `type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }`
+- Explicit error handling in type system
+- No exceptions for control flow
+- **Why**: Forces error handling
+
+## Functions
+
+### Use Arrow Functions Appropriately
+
+- Arrow functions for callbacks and inline functions
+- Regular functions for methods that need `this`
+- Consistent `this` binding
+- **Why**: Avoid `this` confusion
+
+### Prefer Function Overloads
+
+- Multiple signatures for different argument types
+- Type-safe variant handling
+- Better than union types for parameters
+- **Why**: Precise type inference
+
+## Classes
+
+### Use Access Modifiers
+
+- `private` for internal implementation
+- `protected` for inheritance
+- `public` as default
+- **Why**: Encapsulation
+
+### Prefer Composition Over Inheritance
+
+- Use interfaces for contracts
+- Implement multiple interfaces
+- Delegate instead of extend
+- **Why**: More flexible, easier to test
+
+### Use Parameter Properties
+
+- `constructor(private readonly id: string)`
+- Declares and initializes in one line
+- Less boilerplate
+- **Why**: Concise class definitions
+
+## Modules
+
+### Use ES Modules
+
+- `import`/`export` not `require`
+- Named exports for multiple items
+- Default export for primary export
+- **Why**: Standard, tree-shakeable
+
+### Avoid Barrel Exports
+
+- Don't re-export everything in index.ts
+- Explicit imports are clearer
+- Better for tree-shaking
+- **Why**: Performance and clarity
+
+## Utility Types
+
+### Leverage Built-in Utility Types
+
+- `Partial<T>`, `Required<T>`, `Pick<T>`, `Omit<T>`
+- `Record<K, V>` for objects
+- `ReturnType<T>`, `Parameters<T>` for function types
+- **Why**: Standard, well-understood
+
+### Create Custom Mapped Types
+
+- Transform object types systematically
+- Use template literal types
+- Conditional types for complex logic
+- **Why**: Type-level programming
+
+## Type Assertions
+
+### Avoid Type Assertions
+
+- `as` assertions bypass type checking
+- Use type guards instead
+- Only when you know more than compiler
+- **Why**: Maintains type safety
+
+### Use Type Assertions Sparingly
+
+- DOM element types: `as HTMLInputElement`
+- Unknown to specific type after validation
+- Document why assertion is safe
+- **Why**: Explicit escape hatch
+
+## Declaration Files
+
+### Create .d.ts for Untyped Libraries
+
+- Declare types for JavaScript libraries
+- Use `@types/` packages when available
+- Minimal types better than `any`
+- **Why**: Type safety for entire codebase
+
+### Use Ambient Declarations
+
+- `declare` for global types
+- Keep declarations minimal
+- Organize in `types/` directory
+- **Why**: Clean type definitions
 
 ## Testing
 
-- Write unit tests for utility functions and hooks
-- Write component tests for UI components
-- Use Vitest for testing
-- Use meaningful test descriptions
-- Follow the Arrange-Act-Assert pattern in tests
-- Mock external dependencies in tests
+### Type Test Data Properly
+
+- Use `as const` for test fixtures
+- Type test doubles
+- Use `jest.MockedFunction<typeof fn>`
+- **Why**: Tests benefit from types too
+
+### Test Types with tsd
+
+- Use `tsd` for type-level testing
+- Verify complex type transformations
+- Catch type regressions
+- **Why**: Types are part of API
+
+## Configuration
+
+### Configure TypeScript Strictly
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true
+  }
+}
+```
+
+- **Why**: Catch more errors at compile time
+
+### Use Path Mapping
+
+- `@/` for src root
+- Avoid `../../../` imports
+- Configure in tsconfig.json
+- **Why**: Cleaner imports
+
+## Formatting and Linting
+
+### Use Prettier for Formatting
+
+- Autoformat on save
+- No debates about style
+- Consistent across team
+- **Why**: Focus on code, not formatting
+
+### Use ESLint with TypeScript
+
+- `@typescript-eslint` plugin
+- Catches common mistakes
+- Enforces best practices
+- **Why**: Better code quality
+
+## React-Specific (if applicable)
+
+### Type React Components Properly
+
+- Use `React.FC<Props>` or function components
+- Type props interfaces
+- Type state with `useState<T>`
+- **Why**: Type-safe components
+
+### Use Discriminated Unions for State
+
+- Model component states explicitly
+- Use union types for status
+- Exhaustive checking in render
+- **Why**: Prevents invalid states
+
+## Node.js-Specific
+
+### Use Appropriate Types
+
+- `@types/node` for Node APIs
+- Use `process.env` with type safety
+- Type Express handlers properly
+- **Why**: Type safety in backend code
+
+### Handle Async Properly
+
+- Always await database calls
+- Use `Promise.all()` for parallel operations
+- Handle errors in async routes
+- **Why**: Prevents unhandled rejections
+
+## Common Pitfalls
+
+### Avoid These Patterns
+
+- `any` type (use `unknown` instead)
+- Type assertions without justification
+- Ignoring compiler errors
+- Non-strict mode
+- Empty interfaces
+- **Why**: Defeats TypeScript's purpose
+
+## Build and Tooling
+
+### Use Modern Build Tools
+
+- Vite for frontend
+- esbuild or swc for speed
+- tsc for type checking only
+- **Why**: Fast development feedback
+
+### Separate Type Checking from Build
+
+- Run `tsc --noEmit` for type check
+- Use faster tools for transpilation
+- Type check in CI/CD
+- **Why**: Faster builds, reliable checks
 
 ## Documentation
 
-- Document complex functions and components with JSDoc comments
-  ```typescript
-  /**
-   * Fetches user data from the API
-   * @param userId - The ID of the user to fetch
-   * @returns A promise that resolves to the user data
-   * @throws {ApiError} If the user cannot be found
-   */
-  async function fetchUser(userId: string): Promise<User> {
-    // ...
-  }
-  ```
-- Include examples in documentation where appropriate
-- Document non-obvious implementations with regular comments
-- Use `// TODO:` or `// FIXME:` comments for temporary solutions or known issues
+### Use JSDoc for Documentation
 
-## Performance Considerations
+- JSDoc comments for public APIs
+- Show in IDE tooltips
+- Generate documentation
+- **Why**: Self-documenting code
 
-- Use memoization for expensive calculations (`useMemo`, `useCallback`)
-- Avoid unnecessary re-renders
-- Use virtualization for long lists
-- Be mindful of bundle size when adding dependencies
-- Use code splitting for large applications
+### Type JSDoc Annotations
 
-## Common Pitfalls to Avoid
+- `@param {string} name` with types
+- `@returns {Promise<User>}` for return types
+- Enhances IDE experience
+- **Why**: Documentation and types together
 
-- Excessive prop drilling (use context or state management instead)
-- Overusing global state
-- Not handling loading and error states
-- Type casting with `as` without proper validation
-- Complex conditional rendering (extract to helper functions)
-- Mixing synchronous and asynchronous code without clear boundaries
+## Project Libraries
 
-## UI Components and Design System
+### State Management
 
-- Use Radix Themes as the design system for UI components
-- Import Radix Themes components from '@radix-ui/themes'
-- Follow Radix Themes' component API and styling conventions
-- Use the provided theme tokens for colors, spacing, typography, etc.
-- Wrap your application with the Theme component to enable theming
-- Use the 'rt-reset' class on the body element to reset browser styles
-- Customize themes using the theme configuration options provided by Radix
-- For components not available in Radix Themes, create custom components that follow the same design principles
+- React hooks (`useState`, `useReducer`) for component-level state
+- TanStack Store for application-wide state
+- `immer` for complex immutable state updates
+- **Why**: Keeps state management predictable and type-safe
 
-## Dependencies
+### Data Fetching
 
-- Be selective about adding new dependencies
-- Prefer well-maintained packages with good TypeScript support
-- Consider the bundle size implications of dependencies
-- Keep dependencies up to date
+- TanStack Query for server state management and caching
+- Handles loading, error, and success states
+- Automatic refetching and cache invalidation
+- **Why**: Simplifies async data management
 
-By following these guidelines, we can maintain a high-quality, consistent, and maintainable TypeScript codebase for the
-KoDoGu project.
+### UI Components
+
+- Radix Themes as the design system
+- Import from `@radix-ui/themes`
+- Use theme tokens for colors, spacing, typography
+- **Why**: Consistent, accessible component library
+
+### Testing
+
+- Vitest for unit and component testing
+- Fast test execution with Vite integration
+- Compatible with Jest API
+- **Why**: Modern testing with great TypeScript support
+
+### Tauri Integration
+
+- Use Tauri API types for type safety
+- Create typed wrappers around Tauri commands
+- Handle serialization/deserialization properly
+- **Why**: Type-safe communication between frontend and backend

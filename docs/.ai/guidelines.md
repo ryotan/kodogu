@@ -14,6 +14,122 @@ This file serves as the index for all AI practice documents in this project.
 > On the other hand, you are not so great at processing according to the current context. When the context is unclear, I
 > check with the user.
 
+## Working Style
+
+### Progress Tracking
+
+When executing multi-step plans or analyses:
+
+- Clearly indicate current progress (e.g., "Step 2 of 5: Analyzing domain boundaries")
+- Complete one step at a time
+- Wait for user confirmation before proceeding to the next step
+- Provide a brief summary of what was accomplished after each step
+
+### Incremental Delivery
+
+- Break work into visible checkpoints
+- Show intermediate results whenever possible
+- Allow for course correction at each stage
+- Make it easy to pause and resume work
+
+## Communication Protocol
+
+### When Seeking User Confirmation
+
+When you need user input, decisions, or validation:
+
+**One Question at a Time**
+
+- Present only one question or decision point per message
+- Do not dump multiple questions at once
+- Wait for user response before presenting the next question
+
+**Question Format**
+
+- Keep each question concise: **20-30 lines maximum** (user should grasp the full context without scrolling)
+- Include necessary context, options, and implications
+- Make the decision point clear and actionable
+- If you have multiple questions, show progress: "Question 1 of 3:", "Question 2 of 3:", etc.
+
+**Progressive Disclosure**
+If you have multiple questions:
+
+1. Ask the first question
+2. Wait for response
+3. Then ask the second question
+4. Continue until all questions are answered
+
+### Examples
+
+**Good - Single Focused Question:**
+
+```
+Question 1/3: 集約の境界について
+
+Paymentは、Order集約の一部とすべきでしょうか、それとも独立した集約にすべきでしょうか？
+
+選択肢A: Order集約の一部とする
+- メリット: シンプル、即座の整合性、単一トランザクション
+- デメリット: Orderが肥大化、結合度が高くなる
+
+選択肢B: 独立した集約にする
+- メリット: 関心の分離、独立したライフサイクル
+- デメリット: 結果整合性が必要、複雑性が増す
+
+背景: 支払いは注文完了後も返金や調整が発生します。
+
+どちらが良いと思いますか？
+```
+
+**Bad - Multiple Questions at Once:**
+
+```
+❌ いくつか質問があります：
+1. Paymentは Order集約の一部にすべきですか？
+2. 返金処理はどう扱いますか？
+3. リポジトリパターンはどうしますか？
+4. ドメインイベントを使いますか？
+5. 整合性モデルはどれが良いですか？
+```
+
+All questions dumped at once - overwhelming
+
+**Bad - Too Long:**
+
+```
+集約設計についての理論全体、すべての可能なパターン、各アプローチの詳細な説明、歴史的背景、他のシステムからの10個の異なる例、それぞれの詳細な長所と短所、そしてこの1つの質問の中に5つのネストされたサブ質問があります...
+
+❌ Here's everything about aggregate design including all the theory, all possible patterns, detailed explanations of each approach, historical context, 10 different examples from other systems, pros and cons of each with extensive detail, and here are 5 nested sub-questions within this one question...
+```
+
+50+ lines - requires scrolling to understand
+
+### Automatic Execution is Fine
+
+You can execute multiple steps automatically **without confirmation** as long as no user decisions are needed. Only
+pause and ask when user input is actually required.
+
+**Example Flow:**
+
+```
+[Auto-executes: Analyzes domain, identifies aggregates, maps relationships]
+[Auto-executes: Creates initial design recommendations]
+[Pauses: Needs user decision on consistency model]
+
+Question: Order→Paymentの関係について、即座の整合性と結果整合性のどちらを使うべきでしょうか？
+[Waits for response]
+
+[Auto-executes: Applies decision, completes design]
+[Pauses: Needs user decision on repository pattern]
+
+Question: リポジトリは...
+[Continues this pattern]
+```
+
+### Key Principle
+
+**When asking = concise and focused. When executing = work efficiently without unnecessary pauses.**
+
 ## Available Practice Files
 
 ### General Project Information

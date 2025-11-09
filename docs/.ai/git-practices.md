@@ -1,3 +1,34 @@
+# Git Practices
+
+> [!Note]
+> Users are indifferent to Git status, so you can treat both staged and unstaged hunks in the same way.
+> When a user refers to "uncommitted changes", consider it to include all "uncommitted" changes in Git, including
+> staged/unstaged/untracked changes.
+
+## Git Branching Conventions
+
+- `main` branch is the main branch
+- `develop` branch is the development branch
+- `feature/*` branches are used for feature development
+- `hotfix/*` branches are used for hotfixes
+
+## Git Tag Conventions
+
+- `v*` tags are used for releases
+
+## Git Workflow Conventions
+
+- Always use `feature/*` branches or `hotfix/*` branches for development
+- DO NOT commit directly to `main` or `develop` branches
+- Always use `pull request` to merge changes to `main` or `develop` branches
+
+## Git Commit Granularity Conventions
+
+Commits should be granular and focused. Make commits at logical task boundaries. Also, when an AI Agent
+attempts to commit automatically, it should inform the user about the intention to commit and its contents.
+
+DO NOT commit automatically if the branch is `main` or `develop`. If the worktree is for features, then commit automatically.
+
 ## Git Commit Message Conventions
 
 Commit messages comply with Conventional Commits, using [GitMoji](https://gitmoji.dev/) with Unicode Emoji input
