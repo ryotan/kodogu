@@ -69,43 +69,43 @@ jobs:
         name: TypeScript
         working-directory: app
         run: bun run lint:tsc
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: biome
         name: Biome
         working-directory: app
         run: bun run lint:biome --reporter=github
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: eslint
         name: ESLint
         working-directory: app
         run: bun run lint:es
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: rustfmt
         name: Rust Format
         working-directory: app
         run: bun run lint:cargo:fmt
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: clippy
         name: Clippy
         working-directory: app
         run: bun run lint:cargo:clippy
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: frontend-test
         name: Frontend Tests & Coverage
         working-directory: app
         run: bun run test:vitest:coverage
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: backend-test
         name: Backend Tests & Coverage
         working-directory: app
         run: bun run test:cargo:coverage
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
@@ -119,7 +119,18 @@ jobs:
 
       - name: Check for lint and test results
         run: |
-          echo "Checking outcomes of all steps..."
+          # Fail the build if any lint or test step failed
+          # This allows us to see all failures at once, not just the first one
+          echo "=== Check Results ==="
+          echo "TypeScript: ${{ steps.tsc.outcome }}"
+          echo "Biome: ${{ steps.biome.outcome }}"
+          echo "ESLint: ${{ steps.eslint.outcome }}"
+          echo "Rust Format: ${{ steps.rustfmt.outcome }}"
+          echo "Clippy: ${{ steps.clippy.outcome }}"
+          echo "Frontend Tests: ${{ steps.frontend-test.outcome }}"
+          echo "Backend Tests: ${{ steps.backend-test.outcome }}"
+          echo "===================="
+
           if [[ "${{ steps.tsc.outcome }}" == "failure" || \
                 "${{ steps.biome.outcome }}" == "failure" || \
                 "${{ steps.eslint.outcome }}" == "failure" || \
@@ -127,8 +138,8 @@ jobs:
                 "${{ steps.clippy.outcome }}" == "failure" || \
                 "${{ steps.frontend-test.outcome }}" == "failure" || \
                 "${{ steps.backend-test.outcome }}" == "failure" ]]; then
-            echo "One or more lints or tests failed."
+            echo "❌ One or more checks failed."
             exit 1
           else
-            echo "All steps succeeded."
+            echo "✅ All checks succeeded."
           fi

@@ -33,7 +33,6 @@ AI agents MAY commit automatically when ALL of the following conditions are met:
 - On `feature/*` or `hotfix/*` branches (NOT on `main` or `develop`)
 - User explicitly requested a commit or task completion
 - All automated checks passing (tests, linters, type checks, formatters)
-- Changes represent a single logical unit
 
 AI agents MUST NOT commit automatically when:
 - On `main` or `develop` branches
@@ -45,7 +44,7 @@ AI agents MUST NOT commit automatically when:
 When committing automatically, AI agents MUST:
 - Inform the user about the intention to commit
 - Describe what will be committed
-- Wait for user confirmation if uncertain
+- Wait for user confirmation (AI cannot reliably judge if changes form a single logical unit)
 
 ## Git Commit Message Conventions
 

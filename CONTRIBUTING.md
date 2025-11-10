@@ -122,7 +122,18 @@ These guidelines apply to all aspects of the project, regardless of the programm
 
 ## Coding Conventions
 
-See practices in [docs](./docs).
+See `docs/.ai/` for comprehensive development practices:
+
+- [Design Practices](./docs/.ai/design-practices.md) - DDD and Clean Architecture principles
+- [Testing Practices](./docs/.ai/testing-practices.md) - Testing strategy and patterns
+- [Coding Practices](./docs/.ai/coding-practices.md) - Cross-language implementation guidance
+- [Git Practices](./docs/.ai/git-practices.md) - Commit conventions and workflow
+- [Kotlin Practices](./docs/.ai/kotlin-practices.md) - For backend development
+- [Rust Practices](./docs/.ai/rust-practices.md) - For CLI apps and Tauri backend
+- [TypeScript Practices](./docs/.ai/typescript-practices.md) - For frontend development
+- [AI Agent Guidelines](./docs/.ai/guidelines.md) - Additional instructions for AI coding assistants
+
+See each document for detailed guidance on implementing features, writing tests, and maintaining code quality.
 
 ## Stereotypical Structure of a Tauri App
 
@@ -180,6 +191,40 @@ The backend application consists of the following layers.
 - This project uses Tauri v2.
 - Refer to the [Tauri v2 official documentation](https://tauri.app/start/) for API references.
 - Use the [Tauri plugin system](https://tauri.app/guides/plugins/) for plugin development.
+
+## Git Workflow
+
+### Branching Strategy
+
+- `main` - Production-ready code
+- `develop` - Integration branch for ongoing work
+- `feature/*` - New features (e.g., `feature/add-dark-mode`)
+- `hotfix/*` - Production hotfixes (e.g., `hotfix/fix-crash`)
+
+**Rules**:
+- Never commit directly to `main` or `develop`
+- Always create pull requests for merging
+- Use descriptive branch names
+
+### Commit Message Format
+
+We use [GitMoji](https://gitmoji.dev/) with conventional commits:
+
+```
+✨: Add dark mode toggle
+🐛: Fix crash on startup
+📝: Update installation guide
+```
+
+Common emojis:
+- ✨ New feature
+- 🐛 Bug fix
+- 📝 Documentation
+- ♻️ Refactor
+- ✅ Tests
+- 🚀 Deploy
+
+See [Git Practices](./docs/.ai/git-practices.md) for complete emoji list, detailed workflow guidelines, and AI agent commit rules.
 
 ## Release Process
 

@@ -227,7 +227,8 @@ See [coding-practices.md](./coding-practices.md#error-handling) for error classi
 ### Implement Error Hierarchy with Custom Exception Classes
 
 - Model Domain and Infrastructure errors as exception hierarchy
-- Programming errors use `require()`, `check()`, `!!` only where appropriate
+- For Programming errors (implementation bugs), use `require()` to validate function preconditions and `check()` to assert internal state
+- For Domain/Infrastructure errors, always use custom exception classes (see below)
 
 ```kotlin
 open class ApplicationError : Exception()

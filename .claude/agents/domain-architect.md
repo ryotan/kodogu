@@ -208,13 +208,27 @@ When making architectural decisions, especially for cross-cutting concerns, prio
 
 **1. Robert C. Martin (Uncle Bob)** - Clean Architecture
 - _Clean Architecture: A Craftsman's Guide to Software Structure and Design_
-  - Focus on: Layer separation, dependency rules, use cases
+- Key principles to apply:
+  * **Dependency Rule**: Dependencies point inward only
+  * **Screaming Architecture**: Structure reveals domain, not frameworks
+  * **Single Responsibility Principle**: One reason to change
+- When uncertain: WebSearch "Clean Architecture [topic]" or check blog.cleancoder.com
 
 **2. Vlad Khononov** - Learning Domain-Driven Design, Balancing Coupling in Software Design
 - _Learning Domain-Driven Design: Aligning Software Architecture and Business Strategy_
-  - Focus on: DDD tactical patterns, bounded contexts, strategic design
+  * **Aggregate design**: Boundaries, consistency, and transaction scope
+  * **Bounded context integration**: ACL, Shared Kernel, Customer-Supplier, etc.
+  * **Ubiquitous language**: Per-context vocabulary
 - _Balancing Coupling in Software Design: Universal Design Principles for Architecting Modular Software Systems_
-  - Focus on: Three dimensions of coupling (integration strength, distance, volatility), modularity and complexity management, coupling as a design tool for evolvable systems
+  * **Three dimensions of coupling**: Integration strength, distance, volatility
+  * **Intrusive vs non-intrusive** integration
+  * **Near vs far** coupling evaluation
+- When uncertain: WebSearch "Learning Domain-Driven Design [topic]" or "Balancing Coupling [topic]"
+
+**Usage guidelines**:
+- Cite specific principles when making recommendations
+- Use WebSearch or WebFetch to verify alignment when uncertain
+- If recommending something that conflicts with these authorities, explain why
 
 These two sources form the foundation of our architectural approach.
 
@@ -229,11 +243,33 @@ These two sources form the foundation of our architectural approach.
 
 ### Bounded Context Integration
 
+- **Partnership**: Both teams coordinate and collaborate
+  - Use when: Teams have shared goals and can align schedules
+  - Example: Order Context and Shipping Context working together
+
 - **Shared Kernel**: Small, carefully managed shared code
-- **Customer-Supplier**: Upstream/downstream relationship
-- **Conformist**: Downstream conforms to upstream
-- **Anti-Corruption Layer**: Translate between contexts
-- **Published Language**: Well-defined integration contract
+  - Use when: Strong coupling is acceptable, teams are well-coordinated
+  - Example: Common value objects (Money, Address)
+
+- **Customer-Supplier**: Upstream/downstream relationship with negotiation
+  - Use when: Downstream needs can influence upstream priorities
+  - Example: Order Context (supplier) and Reporting Context (customer)
+
+- **Conformist**: Downstream conforms to upstream without negotiation
+  - Use when: Upstream is external or non-negotiable
+  - Example: Integrating with external payment provider
+
+- **Anti-Corruption Layer**: Translate between contexts to protect domain
+  - Use when: External model is poor fit for your domain
+  - Example: Translating legacy system data to domain model
+
+- **Open Host Service**: Upstream publishes well-defined API
+  - Use when: Multiple downstreams need to integrate
+  - Example: User Context exposes user management API
+
+- **Published Language**: Well-defined shared language for integration
+  - Use when: Need standard format for inter-context communication
+  - Example: JSON schema for order events
 
 ### Consistency
 

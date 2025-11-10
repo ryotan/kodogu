@@ -32,12 +32,34 @@
 - Application layer orchestrates but doesn't contain business logic
 - **Why**: Keeps business logic pure and testable
 
-### Dependency Inversion
+### SOLID Principles
 
-- Depend on abstractions, not concretions
-- Define interfaces in the layer that uses them
-- Implement interfaces in outer layers
-- **Why**: Enables flexibility and testability without coupling
+Clean Architecture is built on SOLID principles, particularly the Dependency Inversion Principle.
+
+#### Dependency Inversion Principle (DIP)
+
+The core principle of Clean Architecture's dependency rule:
+
+- **High-level modules** should not depend on **low-level modules**. Both should depend on **abstractions**
+- **Abstractions** should not depend on **details**. **Details** should depend on **abstractions**
+
+Application in this project:
+- Domain layer defines interfaces (abstractions)
+- Infrastructure layer implements interfaces (details depend on abstractions)
+- Dependencies point inward, never outward
+
+**Why**: Enables flexibility, testability, and independent deployability of layers.
+
+#### Other SOLID Principles
+
+While all SOLID principles apply, DIP is most central to Clean Architecture:
+
+- **Single Responsibility Principle (SRP)**: Each module has one reason to change
+- **Open/Closed Principle (OCP)**: Open for extension, closed for modification
+- **Liskov Substitution Principle (LSP)**: Subtypes are substitutable for base types
+- **Interface Segregation Principle (ISP)**: Clients shouldn't depend on unused methods
+
+Reference: Robert C. Martin's "Clean Architecture" (Chapters 7-11)
 
 ## Architectural Layers
 
@@ -77,6 +99,46 @@ This project follows Clean Architecture with DDD tactical patterns:
 | Adapters     | Interface Adapters   | Infrastructure    | Infrastructure       | Adapters               |
 | Frameworks   | Frameworks & Drivers | Infrastructure    | Infrastructure       | Frameworks             |
 
+### Screaming Architecture
+
+- Project structure should reveal the domain, not the frameworks
+- Top-level directories should be named after business concepts
+- Framework details should be buried in inner layers
+- **Why**: Architecture should communicate intent
+
+**Good Structure (Domain-Centric)**:
+```
+src/
+  order-context/           # Bounded Context
+    domain/                # Business concepts
+      Order.kt
+      OrderLine.kt
+    usecases/              # Business workflows
+      PlaceOrder.kt
+    adapters/              # Technical adapters
+      OrderController.kt
+      OrderRepository.kt
+```
+
+When you see this structure, you immediately know:
+- This is about **Orders**
+- It has **domain logic**, **use cases**, and **adapters**
+
+**Bad Structure (Framework-Centric)**:
+```
+src/
+  models/                  # What domain?
+    Order.kt
+  services/                # What kind of service?
+    OrderService.kt
+  controllers/
+    OrderController.kt
+  repositories/
+    OrderRepository.kt
+```
+
+This structure screams "**Spring MVC**", not "**Order Management**".
+
 ## Cohesion and Coupling
 
 ### High Cohesion
@@ -92,6 +154,45 @@ This project follows Clean Architecture with DDD tactical patterns:
 - Communicate through well-defined interfaces
 - Avoid shared mutable state
 - **Why**: Changes in one module don't ripple across the system
+
+### Coupling Analysis Framework (Khononov)
+
+Evaluate coupling using three dimensions to identify problematic dependencies:
+
+**1. Integration Strength**
+
+A dependency is **Intrusive** (problematic) if it meets ANY of:
+- Depends on concrete implementation classes (e.g., `JpaRepository`, `HttpClient`, `MySQLConnection`)
+- Uses library-specific APIs directly (e.g., `entityManager.find()`, `axios.get()`)
+- Requires knowledge of internal implementation details
+- Cannot be replaced without changing dependent code
+
+If none of the above apply, the dependency is **Non-intrusive** (acceptable).
+
+**2. Distance**
+
+- **Near**: Within same aggregate, same bounded context, same module
+- **Far**: Between bounded contexts, between services, between applications
+
+**3. Volatility**
+
+- **High**: Changes frequently (UI components, external API formats, evolving business rules)
+- **Low**: Stable (core domain concepts, mathematical operations, established standards)
+
+**Decision Matrix**
+
+| Integration | Distance | Volatility | Action |
+|-------------|----------|------------|--------|
+| Intrusive   | Far      | High       | 🚨 Refactor immediately |
+| Intrusive   | Far      | Low        | ⚠️ Add abstraction layer |
+| Intrusive   | Near     | High       | ⚠️ Consider abstraction |
+| Non-intrusive | Far    | High       | ⚠️ Monitor stability |
+| Non-intrusive | Near   | Low        | ✅ Acceptable |
+| Non-intrusive | Far    | Low        | ✅ Ideal |
+
+**Guideline**: Far × High Volatility dependencies must be Non-intrusive.
+
+Reference: Vlad Khononov's "Balancing Coupling in Software Design"
 
 ## Invariants
 

@@ -152,12 +152,6 @@ class OrderNotFound extends DomainError {
 - Use centralized error handling (e.g., Express middleware)
 - **Why**: Type-safe error classification
 
-### Prefer Result Types for Expected Errors
-
-- `type Result<T, E> = { ok: true; value: T } | { ok: false; error: E }`
-- Explicit error handling in type system
-- **Why**: Forces error handling at call site
-
 ## Functions
 
 ### Use Arrow Functions Appropriately
