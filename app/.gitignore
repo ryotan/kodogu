@@ -27,5 +27,6 @@ dist-ssr
 
 # Test coverage
 coverage/
+test-results/
 lcov.info
 test-results.json

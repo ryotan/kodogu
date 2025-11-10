@@ -25,6 +25,9 @@ jobs:
         with:
           cache-workspaces: ./app/src-tauri -> target
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: Install additional problem matchers
         run: echo "::add-matcher::.github/problem-matchers.json"
 
@@ -53,6 +56,10 @@ jobs:
         working-directory: app
         # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
         run: bun install --frozen-lock-file # change this to npm or pnpm depending on which one you use.
+
+      - name: Install Playwright Browsers
+        working-directory: app
+        run: bunx playwright install --with-deps chromium
 
       - name: Generate route files
         working-directory: app

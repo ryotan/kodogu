@@ -2,10 +2,17 @@
   <dictionary name="project">
     <words>
       <w>anflug</w>
+      <w>bunx</w>
       <w>gitmoji</w>
       <w>khononov</w>
       <w>lateinit</w>
+      <w>libappindicator</w>
+      <w>librsvg</w>
+      <w>libwebkit</w>
+      <w>patchelf</w>
+      <w>rustfmt</w>
       <w>suzunari</w>
+      <w>taiki</w>
     </words>
   </dictionary>
 </component>

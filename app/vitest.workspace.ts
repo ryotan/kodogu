@@ -1,5 +1,5 @@
 /// <reference types="@vitest/browser/providers/playwright" />
-import {defineConfig} from 'vitest/config';
+import {defineWorkspace} from 'vitest/config';
 
 import {storybookTest} from '@storybook/experimental-addon-test/vitest-plugin';
 // @ts-expect-error -- node:path is Node.js module
@@ -12,9 +12,7 @@ import {fileURLToPath} from 'node:url';
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // More info at: https://storybook.js.org/docs/writing-tests/test-addon
-export default defineConfig({
-  test: {
-    projects: [
+export default defineWorkspace([
       'vite.config.ts',
       {
         extends: 'vite.config.ts',
@@ -36,5 +34,4 @@ export default defineConfig({
         },
       },
     ],
-  },
-});
+);
