@@ -59,7 +59,7 @@ While all SOLID principles apply, DIP is most central to Clean Architecture:
 - **Liskov Substitution Principle (LSP)**: Subtypes are substitutable for base types
 - **Interface Segregation Principle (ISP)**: Clients shouldn't depend on unused methods
 
-Reference: Robert C. Martin's "Clean Architecture" (Chapters 7-11)
+Reference: Robert C. Martin's "Clean Architecture"
 
 ## Architectural Layers
 
@@ -139,7 +139,7 @@ src/
 
 This structure screams "**Spring MVC**", not "**Order Management**".
 
-Reference: Robert C. Martin's "Clean Architecture" (Chapter 21: Screaming Architecture)
+Reference: Robert C. Martin's "Clean Architecture"
 
 ## Cohesion and Coupling
 
@@ -183,14 +183,14 @@ If none of the above apply, the dependency is **Non-intrusive** (acceptable).
 
 **Decision Matrix**
 
-| Integration | Distance | Volatility | Action |
-|-------------|----------|------------|--------|
-| Intrusive   | Far      | High       | 🚨 Refactor immediately |
-| Intrusive   | Far      | Low        | ⚠️ Add abstraction layer |
-| Intrusive   | Near     | High       | ⚠️ Consider abstraction |
-| Non-intrusive | Far    | High       | ⚠️ Monitor stability |
-| Non-intrusive | Near   | Low        | ✅ Acceptable |
-| Non-intrusive | Far    | Low        | ✅ Ideal |
+| Integration   | Distance | Volatility | Action                   |
+|---------------|----------|------------|--------------------------|
+| Intrusive     | Far      | High       | 🚨 Refactor immediately  |
+| Intrusive     | Far      | Low        | ⚠️ Add abstraction layer |
+| Intrusive     | Near     | High       | ⚠️ Consider abstraction  |
+| Non-intrusive | Far      | High       | ⚠️ Monitor stability     |
+| Non-intrusive | Near     | Low        | ✅ Acceptable             |
+| Non-intrusive | Far      | Low        | ✅ Ideal                  |
 
 **Guideline**: Far × High Volatility dependencies must be Non-intrusive.
 

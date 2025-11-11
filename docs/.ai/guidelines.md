@@ -13,7 +13,7 @@ This file serves as the index for all AI practice documents in this project.
 > You might get a ton of know-how from GitHub, and your use of individual algorithms and libraries is gonna be faster than my
 > implementation. You'll write the test code and check the operation, while explaining the code to the user.
 > 
-> On the other hand, you are not so great at processing according to the current context. When the context is unclear, I
+> However, you may struggle with processing ambiguous requirements or unclear context. When the context is unclear, I
 > check with the user.
 
 ## Critical Thinking and Decision Making

@@ -99,7 +99,7 @@ These guidelines apply to all aspects of the project, regardless of the programm
     - Framework glue code
   - Quality over quantity: covering edge cases matters more than raw percentage
 
-### 5. Documentation Conventions)
+### 5. Documentation Conventions
 
 - Prepare README.md for each feature
 - Generate API documentation automatically

@@ -8,7 +8,7 @@
 
 Clean Architecture および Hexagonal Architecture では、レイヤー境界でのデータ変換が必要とされる。この変換を実現するパターンとして、以下の2つが存在する：
 
-1. **Adapter Interface**（Hexagonal Architecture では「Port」と呼ばれる）: 振舞いを定義する抽象契約
+1. **Adapter Interface（Port）**: 振舞いを定義する抽象契約
 2. **Translator（具象クラス）**: データ変換ロジック
 
 疑問: データ変換は interface を通じて抽象化すべきか、それとも具象クラスとして実装すべきか？
@@ -282,7 +282,7 @@ object JpaOrderTranslator {
 
 ## 参考文献
 
-- Clean Architecture (Robert C. Martin, Chapter 22: The Clean Architecture)
-- Domain-Driven Design (Eric Evans, Chapter 14: Maintaining Model Integrity - Anti-Corruption Layer)
-- Implementing Domain-Driven Design (Vaughn Vernon, Chapter 4: Architecture - Application Services)
+- Clean Architecture (Robert C. Martin)
+- Domain-Driven Design (Eric Evans)
+- Implementing Domain-Driven Design (Vaughn Vernon)
 - The Hexagonal Architecture (Alistair Cockburn) - Port の概念的定義

@@ -1,5 +1,8 @@
 # Error Handling Examples
 
+> **Important**: This project uses a custom error handling crate. See [Dependencies](#dependencies)
+> section at the end of this document for setup instructions.
+
 ## suzunari-error with snafu
 
 This project uses `suzunari-error` macro to enhance error handling with stack trace context.

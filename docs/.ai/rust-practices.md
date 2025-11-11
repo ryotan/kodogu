@@ -31,8 +31,20 @@ See [coding-practices.md](./coding-practices.md#error-handling) for error classi
 
 ### Use suzunari-error for Error Hierarchy
 
+> **Note**: `suzunari-error` is a custom error handling crate developed specifically
+> for this project. It is **not available on crates.io** and must be added from the
+> GitHub repository:
+>
+> ```toml
+> [dependencies]
+> suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
+> suzunari-error-macro-impl = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
+> snafu = "0.8"
+> ```
+
 - Apply `#[suzunari_error]` macro to error enums
 - Combines snafu error handling with stack trace context
+- Provides automatic stack trace propagation through error chains
 - Implement the error hierarchy pattern:
 
 ```rust

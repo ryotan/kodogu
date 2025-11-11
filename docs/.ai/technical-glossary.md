@@ -118,7 +118,7 @@ The fundamental rule of Clean Architecture: dependencies point inward only. Oute
 
 ### Port
 
-A term from Hexagonal Architecture referring to interfaces that adapters implement. In this project, we call these "Adapter Interface" or use specific names like Repository, ExternalService, MessageQueue instead of the abstract term "Port".
+A term from Hexagonal Architecture referring to interfaces that adapters implement. **Note: This project does not use this term in practice**, but it's explained here because you may encounter it in other literature. We call these "Adapter Interface" or use specific names like Repository, ExternalService, MessageQueue.
 
 → See [design-practices.md](./design-practices.md#adapter-interface-pattern) · [ADR-0002](../adr/0002-prefer-translator-for-data-transformation.md)
 

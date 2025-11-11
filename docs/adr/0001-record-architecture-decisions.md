@@ -30,7 +30,7 @@
 **配置場所:**
 
 - ADR は `docs/adr/` に保存
-- 連番で命名: `0001-タイトル.md`, `0002-タイトル.md` など
+- 連番で命名（英語 kebab-case）: `0001-descriptive-title.md`, `0002-descriptive-title.md` など
 - `docs/adr/README.md` にリスト化
 
 **ADR を書くべきとき:**

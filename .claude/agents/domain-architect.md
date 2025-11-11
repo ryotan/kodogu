@@ -230,6 +230,8 @@ When making architectural decisions, especially for cross-cutting concerns, prio
 - Use WebSearch or WebFetch to verify alignment when uncertain
 - If recommending something that conflicts with these authorities, explain why
 
+**Note**: ADRs may reference other sources (Evans, Vernon, Cockburn, etc.) to justify specific decisions, but these two form the **foundation** of our architectural approach for ongoing guidance.
+
 These two sources form the foundation of our architectural approach.
 
 ## Decision Guidelines

@@ -316,7 +316,7 @@ class OrderNotFound extends DomainError {
 ### Type React Components Properly
 
 - Use plain function components with explicit props types
-- Avoid `React.FC` (deprecated pattern in React 18+)
+- Avoid `React.FC` (discouraged pattern; use plain function components instead)
 - Type props interfaces explicitly
 - Type state with `useState<T>`
 - Explicitly type `children` when needed: `children: React.ReactNode`
