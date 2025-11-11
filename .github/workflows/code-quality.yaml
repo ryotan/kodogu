@@ -25,6 +25,9 @@ jobs:
         with:
           cache-workspaces: ./app/src-tauri -> target
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: Install additional problem matchers
         run: echo "::add-matcher::.github/problem-matchers.json"
 
@@ -54,6 +57,10 @@ jobs:
         # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
         run: bun install --frozen-lock-file # change this to npm or pnpm depending on which one you use.
 
+      - name: Install Playwright Browsers
+        working-directory: app
+        run: bunx playwright install --with-deps chromium
+
       - name: Generate route files
         working-directory: app
         run: bun run build
@@ -62,42 +69,78 @@ jobs:
         name: TypeScript
         working-directory: app
         run: bun run lint:tsc
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: biome
         name: Biome
         working-directory: app
         run: bun run lint:biome --reporter=github
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: eslint
         name: ESLint
         working-directory: app
         run: bun run lint:es
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: rustfmt
         name: Rust Format
         working-directory: app
         run: bun run lint:cargo:fmt
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: clippy
         name: Clippy
         working-directory: app
         run: bun run lint:cargo:clippy
-        continue-on-error: true
+        continue-on-error: true  # Run all checks, then fail at the end
 
-      - name: Check for lint results
+      - id: frontend-test
+        name: Frontend Tests & Coverage
+        working-directory: app
+        run: bun run test:vitest:coverage
+        continue-on-error: true  # Run all checks, then fail at the end
+
+      - id: backend-test
+        name: Backend Tests & Coverage
+        working-directory: app
+        # WORKAROUND: wayland-client 0.31.8 uses not stable feature (`coverage_attribute`) of Rust 1.85.1 for coverage
+        run: bun run test:cargo:coverage -- --no-cfg-coverage
+        continue-on-error: true  # Run all checks, then fail at the end
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: app/coverage/clover.xml,app/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false  # Don't fail on Codecov service issues
+          # Note: Coverage requirements are configured in codecov.yml
+
+      - name: Check for lint and test results
         run: |
-          echo "Checking outcomes of all steps..."
+          # Fail the build if any lint or test step failed
+          # This allows us to see all failures at once, not just the first one
+          echo "=== Check Results ==="
+          echo "TypeScript: ${{ steps.tsc.outcome }}"
+          echo "Biome: ${{ steps.biome.outcome }}"
+          echo "ESLint: ${{ steps.eslint.outcome }}"
+          echo "Rust Format: ${{ steps.rustfmt.outcome }}"
+          echo "Clippy: ${{ steps.clippy.outcome }}"
+          echo "Frontend Tests: ${{ steps.frontend-test.outcome }}"
+          echo "Backend Tests: ${{ steps.backend-test.outcome }}"
+          echo "===================="
+
           if [[ "${{ steps.tsc.outcome }}" == "failure" || \
                 "${{ steps.biome.outcome }}" == "failure" || \
                 "${{ steps.eslint.outcome }}" == "failure" || \
                 "${{ steps.rustfmt.outcome }}" == "failure" || \
-                "${{ steps.clippy.outcome }}" == "failure" ]]; then
-            echo "One or more lints failed."
+                "${{ steps.clippy.outcome }}" == "failure" || \
+                "${{ steps.frontend-test.outcome }}" == "failure" || \
+                "${{ steps.backend-test.outcome }}" == "failure" ]]; then
+            echo "❌ One or more checks failed."
             exit 1
           else
-            echo "All steps succeeded."
+            echo "✅ All checks succeeded."
           fi

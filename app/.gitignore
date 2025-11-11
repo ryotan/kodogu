@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 *storybook.log
+
+# Test coverage
+coverage/
+test-results/
+lcov.info
+test-results.json
