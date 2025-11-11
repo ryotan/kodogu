@@ -9,6 +9,7 @@
       <w>libappindicator</w>
       <w>librsvg</w>
       <w>libwebkit</w>
+      <w>nygard</w>
       <w>patchelf</w>
       <w>rustfmt</w>
       <w>suzunari</w>

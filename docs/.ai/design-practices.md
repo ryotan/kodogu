@@ -139,6 +139,8 @@ src/
 
 This structure screams "**Spring MVC**", not "**Order Management**".
 
+Reference: Robert C. Martin's "Clean Architecture" (Chapter 21: Screaming Architecture)
+
 ## Cohesion and Coupling
 
 ### High Cohesion
@@ -377,11 +379,12 @@ When adding new invariants to existing systems:
 
 ## Adapters
 
-### Port and Adapter Pattern
+### Adapter Interface Pattern
 
-- Domain defines interfaces (ports)
+- Domain defines interfaces for external system boundaries
 - Infrastructure provides implementations (adapters)
 - Domain depends on abstractions, not implementations
+- Examples: Repository, ExternalService, MessageQueue
 - **Why**: Protects domain from infrastructure changes
 
 ### Adapter Responsibilities
@@ -405,6 +408,30 @@ When adding new invariants to existing systems:
 - **Message Adapters**: Queues, event buses, pub/sub
 - **External Service Adapters**: REST, GraphQL, gRPC clients of third-party APIs or legacy systems
 - **Why**: Each handles different integration concerns
+
+## Translators
+
+- Concrete classes (no interface) for data transformation at layer boundaries
+- Separates data transformation from behavioral logic (SRP)
+- **Why**: Testability, reusability, YAGNI compliance
+
+### Translator vs Adapter Interface
+
+- **Adapter Interface**: Abstracts behavior at external system boundaries (Repository, ExternalService)
+- **Translator**: Transforms data at layer boundaries (Command→Domain, Domain→Entity)
+- **Key distinction**: Adapter Interface abstracts "what to do", Translator transforms "how to convert"
+
+### When to Use Translators
+
+✅ **Use when:**
+- Structural transformation needed (multiple fields, complex mapping)
+- Conversion logic is non-trivial
+
+❌ **Skip when:**
+- Simple value wrapping/unwrapping (e.g., `OrderId(string)`)
+- Direct pass-through with no transformation
+
+→ See [ADR-0002](../adr/0002-prefer-translator-for-data-transformation.md) for detailed rationale and examples
 
 ## Anti-Patterns to Avoid
 
