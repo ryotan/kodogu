@@ -104,7 +104,8 @@ jobs:
       - id: backend-test
         name: Backend Tests & Coverage
         working-directory: app
-        run: bun run test:cargo:coverage
+        # WORKAROUND: wayland-client 0.31.8 uses not stable feature (`coverage_attribute`) of Rust 1.85.1 for coverage
+        run: bun run test:cargo:coverage -- --no-cfg-coverage
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
