@@ -4,21 +4,15 @@
 
 This file serves as the index for all AI practice documents in this project.
 
-> [!Important]
-> 
-> The user is better at programming than you (AI Agents), but we ask you to code for us to save time.
-> 
+> [!IMPORTANT]
 > If a test fails two or more times in a row, we'll figure out the current situation and work together to find a solution.
-> 
-> You might get a ton of know-how from GitHub, and your use of individual algorithms and libraries is gonna be faster than my
-> implementation. You'll write the test code and check the operation, while explaining the code to the user.
-> 
-> However, you may struggle with processing ambiguous requirements or unclear context. When the context is unclear, I
+>
+> And, you will struggle with processing ambiguous requirements or unclear context. When the context is unclear, I
 > check with the user.
 
 ## Critical Thinking and Decision Making
 
-> [!Important]
+> [!IMPORTANT]
 >
 > AI agents must demonstrate critical thinking before presenting solutions or asking questions.
 > Avoid cargo-cult adherence to patterns - understand the fundamentals and reason from first principles.
@@ -88,7 +82,7 @@ When executing multi-step plans or analyses:
 
 ## Communication Protocol
 
-> [!Important]
+> [!IMPORTANT]
 >
 > All communication with the user must be concise and focused. Avoid overwhelming the user with long messages.
 
@@ -212,6 +206,9 @@ Question: リポジトリは...
 
 ## Available Practice Files
 
+You might get a ton of know-how from GitHub, and your use of individual algorithms and libraries is gonna be faster
+than my implementation. But YOU MUST follow my practices.
+
 ### General Project Information
 
 - [README.md](../../README.md) - Project overview, features, and setup introduction
@@ -270,69 +267,3 @@ Each bounded context has its own `.ai/context.md`:
 - `src/shared-kernel/.ai/context.md`
 
 Load the relevant domain context when working within that context.
-
-## Integration Examples
-
-### Claude Code
-
-Recommended minimal CLAUDE.md:
-
-```markdown
-@docs/.ai/guidelines.md
-
-Multi-module DDD architecture. Each bounded context in src/*-context/ has .ai/context.md.
-```
-
-For task-specific agents:
-
-```markdown
-# .claude/agents/kotlin-feature.md
-@docs/.ai/design-practices.md
-@docs/.ai/kotlin-practices.md
-```
-
-### Junie
-
-Link to this file in `.junie/guidelines.md`:
-
-```markdown
-See [AI Guidelines](../../docs/.ai/guidelines.md) for complete practices.
-```
-
-### JetBrains AI Assistant
-
-Link to this file in `.aiassistant/rules/project.md`:
-
-```markdown
-See [AI Guidelines](../../docs/.ai/guidelines.md) for complete practices.
-```
-
-## Quick Reference by Task
-
-> [!Important]
-> This section is for JetBrains Junie and JetBrains AI Assistant. And NOT FOR Claude Code subagents.
-
-**Starting new feature:**
-
-1. Read design-practices.md
-2. Read relevant domain's .ai/context.md
-3. Read {language}-practices.md
-
-**Writing tests:**
-
-1. Read testing-practices.md
-2. Read {language}-practices.md
-3. Check domain's .ai/context.md for invariants
-
-**Code review:**
-
-1. Read design-practices.md
-2. Read testing-practices.md
-3. Read {language}-practices.md
-4. Verify domain rules from .ai/context.md
-
-**Refactoring:**
-
-1. Read design-practices.md
-2. Read coding-practices.md
-3. Read {language}-practices.md

@@ -71,9 +71,10 @@ See language-specific practices for implementation.
 ### Make Errors Explicit
 
 - Errors are part of your API contract
-- Use Result/Either types for recoverable errors
-- Use exceptions only for truly exceptional cases
-- **Why**: Caller knows what can go wrong, forced to handle errors
+- Default to exceptions with a global error handling system for centralized management
+- Use Result/Either types only when callers must handle errors differently based on the error type
+- **Why**: Centralized error handling reduces boilerplate and ensures consistent error responses
+- **Why**: Result types make error handling explicit when caller-specific logic is needed
 
 ### Fail Fast
 
