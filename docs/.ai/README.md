@@ -66,8 +66,8 @@ AI Agentが以下を行うための明確で構造化された指針を提供し
 
 **命名規約**:
 
-- `{lang]-examples.md`
-- `{lang]-examples/{example-title}.md`
+- `{lang}-examples.md`
+- `{lang}-examples/{example-title}.md`
 
 **目的**: プラクティスの具体的な実装を示す
 
