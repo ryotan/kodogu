@@ -123,7 +123,7 @@ If you have multiple questions:
 
 ### Examples
 
-**Good - Single Focused Question:**
+**GOOD** - Single Focused Question:
 
 ```
 Question 1/3: 集約の境界について
@@ -143,7 +143,7 @@ Paymentは、Order集約の一部とすべきでしょうか、それとも独�
 どちらが良いと思いますか？
 ```
 
-**Bad - Multiple Questions at Once:**
+**BAD** - Multiple Questions at Once:
 
 ```
 ❌ いくつか質問があります：
@@ -156,7 +156,7 @@ Paymentは、Order集約の一部とすべきでしょうか、それとも独�
 
 All questions dumped at once - overwhelming
 
-**Bad - Too Long:**
+**BAD** - Too Long:
 
 ```
 集約設計についての理論全体、すべての可能なパターン、各アプローチの詳細な説明、歴史的背景、他のシステムからの10個の異なる例、それぞれの詳細な長所と短所、そしてこの1つの質問の中に5つのネストされたサブ質問があります...
@@ -204,7 +204,7 @@ Question: リポジトリは...
 
 **When asking = concise and focused. When executing = work efficiently without unnecessary pauses.**
 
-## Available Practice Files
+## Available Practice and Context Files
 
 You might get a ton of know-how from GitHub, and your use of individual algorithms and libraries is gonna be faster
 than my implementation. But YOU MUST follow my practices.
@@ -220,7 +220,7 @@ than my implementation. But YOU MUST follow my practices.
 - [**design-practices.md**](./design-practices.md) - Core design principles (DDD, boundaries, dependencies)
 - [**testing-practices.md**](./testing-practices.md) - Testing principles across all levels
 - [**coding-practices.md**](./coding-practices.md) - Cross-language implementation guidance
-- [**git-practices.md**](./git-practices.md) - Git commit message conventions
+- [**git-practices.md**](./git-practices.md) - Git workflow and commit message conventions
 
 ### Language-Specific Practices
 
@@ -228,11 +228,21 @@ than my implementation. But YOU MUST follow my practices.
 - [**rust-practices.md**](./rust-practices.md) - Rust patterns and best practices
 - [**typescript-practices.md**](./typescript-practices.md) - TypeScript guidelines
 
-### Examples (Created when needed)
+### Language-Specific Examples (Created when needed)
 
 - `kotlin-examples.md` or files in `kotlin-examples`
 - `rust-examples.md` or files in `rust-examples`
 - `typescript-examples.md` or files in `typescript-examples`
+
+## Domain-Specific Context
+
+Each bounded context has its own `.ai/context.md`:
+
+- `src/user-context/.ai/context.md`
+- `src/order-context/.ai/context.md`
+- `src/shared-kernel/.ai/context.md`
+
+Load the relevant domain context when working within that context.
 
 ## Loading Strategy
 
@@ -257,13 +267,3 @@ Load only what's needed for your current task to optimize token usage.
 - coding = [coding-practices.md](./coding-practices.md)
 - {lang} = [kotlin](./kotlin-practices.md), [rust](./rust-practices.md), or [typescript](./typescript-practices.md)
 - domain = src/{context}/.ai/context.md
-
-## Domain-Specific Context
-
-Each bounded context has its own `.ai/context.md`:
-
-- `src/user-context/.ai/context.md`
-- `src/order-context/.ai/context.md`
-- `src/shared-kernel/.ai/context.md`
-
-Load the relevant domain context when working within that context.
