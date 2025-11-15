@@ -38,11 +38,11 @@ These practices apply across languages, though each language realizes them diffe
 
 ### Error Classification
 
-**Domain Errors**: Business rule violations
+**Application Errors**: Business rule violations
 - Represented as custom types
 - Examples: OrderNotFound, InsufficientStock
 
-**Infrastructure Errors**: External system failures
+**Platform Errors**: External system failures
 - Represented as custom types
 - Examples: NetworkTimeout, DatabaseError
 
@@ -52,21 +52,30 @@ These practices apply across languages, though each language realizes them diffe
 
 ### Design Principle
 
-Model Domain/Infrastructure errors as a hierarchy:
+Model errors as a hierarchy with RootError at the top:
 
 ```
-ApplicationError
-├─ DomainError
-│  ├─ OrderNotFound
-│  └─ InvalidInput
-└─ InfrastructureError
-   ├─ NetworkTimeout
-   └─ DatabaseError
+<Language-specific root error type>
+└─ RootError (for centralized error handling)
+   ├─ ApplicationError (our code)
+   │  ├─ DomainError
+   │  │  ├─ InvalidOrderState
+   │  │  └─ OrderNotFound
+   │  ├─ UseCaseError
+   │  │  ├─ PlaceOrderFailed
+   │  │  └─ InvalidInput
+   │  ├─ AdapterError
+   │  └─ FrameworkError
+   └─ PlatformError (external systems)
+      ├─ DatabaseError
+      │  ├─ TransactionFailed
+      │  └─ TransactionTimeout
+      ├─ KeyValueStoreError
+      ├─ PubSubError
+      └─ XxxExternalServiceError
 ```
 
 Programming errors use language mechanisms (panic, check, etc.).
-
-See language-specific practices for implementation.
 
 ### Make Errors Explicit
 

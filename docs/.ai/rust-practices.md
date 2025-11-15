@@ -29,6 +29,8 @@ Rust-specific practices for realizing universal principles in this language.
 
 See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
 
+For the architectural rationale behind Rust's error handling strategy (Visitor Pattern vs other approaches), see [ADR-0003](../../docs/adr/0003-error-handling-strategy-in-rust.md).
+
 ### Use suzunari-error for Error Hierarchy
 
 > **Note**: `suzunari-error` is a custom error handling crate developed specifically
@@ -45,6 +47,20 @@ See [coding-practices.md](./coding-practices.md#error-handling) for error classi
 - Implement the error hierarchy pattern:
 
 ```rust
+// Rust enum (no language-specific root type)
+// └─ RootError (for centralized error handling)
+//    ├─ Application { ApplicationError }
+//    └─ Platform { PlatformError }
+
+#[suzunari_error]
+pub enum RootError {
+    #[snafu(display("Application error: {source}"))]
+    Application { source: ApplicationError },
+    #[snafu(display("Platform error: {source}"))]
+    Platform { source: PlatformError },
+}
+
+// Application errors (our code: domain, use case, adapter, framework)
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
 pub enum ApplicationError {
@@ -52,22 +68,32 @@ pub enum ApplicationError {
     Domain { source: DomainError },
     #[suzu(display("Infrastructure error: {source}"))]
     Infrastructure { source: InfrastructureError },
+  // UseCaseError, AdapterError, etc. can be added as needed
 }
 
+// Domain-specific errors
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
 pub enum DomainError {
     #[suzu(display("Order not found: {id}"))]
     OrderNotFound { id: String },
 }
+
+// Platform errors (external systems)
+#[suzunari_error]
+pub enum PlatformError {
+    #[snafu(display("Database error: {source}"))]
+    Database { source: DatabaseError },
+    // KeyValueStore, PubSub, etc. can be added as needed
+}
 ```
 
 - **Why**: Type-safe error hierarchy with full context
 - **Example**: See [rust-examples/error-handling.md](./rust-examples/error-handling.md)
 
-### Use Result for Domain and Infrastructure Errors
+### Use Result for Application and Platform Errors
 
-- Domain and Infrastructure errors are recoverable errors in Rust terms
+- Application and Platform errors are recoverable errors in Rust terms
 - `Result<T, E>` for operations that can fail
 - `?` operator for error propagation
 - **Why**: Explicit, type-safe error handling

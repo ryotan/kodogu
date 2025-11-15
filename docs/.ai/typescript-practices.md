@@ -138,13 +138,38 @@ See [coding-practices.md](./coding-practices.md#error-handling) for error classi
 - Programming errors use language assertions
 
 ```typescript
-class ApplicationError extends Error {}
-class DomainError extends ApplicationError {}
-class InfrastructureError extends ApplicationError {}
+// Error (TypeScript's root for application errors)
+// └─ RootError (for centralized error handling)
+//    ├─ ApplicationError (our code)
+//    └─ PlatformError (external systems)
 
+class RootError extends Error {}
+
+// Application errors (our code: domain, use case, adapter, framework)
+class ApplicationError extends RootError {}
+class DomainError extends ApplicationError {}
+class UseCaseError extends ApplicationError {}
+
+// Platform errors (external systems: database, network, etc.)
+class PlatformError extends RootError {}
+class DatabaseError extends PlatformError {}
+
+// Concrete errors
 class OrderNotFound extends DomainError {
   constructor(public readonly id: string) {
     super(`Order not found: ${id}`)
+  }
+}
+
+class PlaceOrderFailed extends UseCaseError {
+  constructor(public readonly reason: string) {
+    super(`Place order failed: ${reason}`)
+  }
+}
+
+class ConnectionFailed extends DatabaseError {
+  constructor(public readonly url: string) {
+    super(`Connection failed: ${url}`)
   }
 }
 ```
