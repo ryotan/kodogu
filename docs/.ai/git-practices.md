@@ -34,6 +34,11 @@ AI agents MAY commit automatically when ALL of the following conditions are met:
 - User explicitly requested a commit or task completion
 - All automated checks passing (tests, linters, type checks, formatters)
 
+**Important distinction for TDD workflow:**
+- The above conditions apply to **automatic commits** (without asking the user)
+- AI agents CAN and SHOULD ask the user to commit even with failing tests when following Test-Driven Development (Red-Green-Refactor cycle)
+- When the user explicitly wants to commit a failing test (e.g., "commit this failing test"), ask for confirmation and proceed
+
 AI agents MUST NOT commit automatically when:
 - On `main` or `develop` branches
 - Automated checks are failing or not run yet
