@@ -411,27 +411,13 @@ When adding new invariants to existing systems:
 
 ## Translators
 
-- Concrete classes (no interface) for data transformation at layer boundaries
+Concrete classes (no interface) for data transformation at layer boundaries.
+
 - Separates data transformation from behavioral logic (SRP)
+- Key distinction: Adapter Interface abstracts "what to do" (behavior), Translator transforms "how to convert" (data)
 - **Why**: Testability, reusability, YAGNI compliance
 
-### Translator vs Adapter Interface
-
-- **Adapter Interface**: Abstracts behavior at external system boundaries (Repository, ExternalService)
-- **Translator**: Transforms data at layer boundaries (Command→Domain, Domain→Entity)
-- **Key distinction**: Adapter Interface abstracts "what to do", Translator transforms "how to convert"
-
-### When to Use Translators
-
-✅ **Use when:**
-- Structural transformation needed (multiple fields, complex mapping)
-- Conversion logic is non-trivial
-
-❌ **Skip when:**
-- Simple value wrapping/unwrapping (e.g., `OrderId(string)`)
-- Direct pass-through with no transformation
-
-→ See [ADR-0002](../adr/0002-prefer-translator-for-data-transformation.md) for detailed rationale and examples
+For the detailed rationale and decision guidelines on the Translator pattern, see [ADR-0002](../adr/0002-prefer-translator-for-data-transformation.md)
 
 ## Anti-Patterns to Avoid
 
