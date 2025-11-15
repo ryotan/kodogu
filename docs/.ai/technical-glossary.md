@@ -64,37 +64,25 @@ An explicit boundary within which a domain model applies. Each context has its o
 
 A context mapping pattern where the downstream context conforms to the upstream model without negotiation. Used when upstream is external or non-negotiable.
 
-→ See [domain-architect.md](../../.claude/agents/domain-architect.md#bounded-context-integration)
-
 ### Customer-Supplier
 
 A context mapping pattern with upstream/downstream relationship where downstream needs can influence upstream priorities through negotiation.
-
-→ See [domain-architect.md](../../.claude/agents/domain-architect.md#bounded-context-integration)
 
 ### Open Host Service
 
 A context mapping pattern where the upstream context publishes a well-defined API for multiple downstream contexts to integrate with.
 
-→ See [domain-architect.md](../../.claude/agents/domain-architect.md#bounded-context-integration)
-
 ### Partnership
 
 A context mapping pattern where both teams coordinate and collaborate closely, sharing goals and aligning schedules.
-
-→ See [domain-architect.md](../../.claude/agents/domain-architect.md#bounded-context-integration)
 
 ### Published Language
 
 A well-defined shared language (e.g., JSON schema) used for inter-context communication.
 
-→ See [domain-architect.md](../../.claude/agents/domain-architect.md#bounded-context-integration)
-
 ### Shared Kernel
 
 A small, carefully managed portion of code shared between bounded contexts. Requires strong coordination between teams.
-
-→ See [domain-architect.md](../../.claude/agents/domain-architect.md#bounded-context-integration)
 
 ### Ubiquitous Language
 
