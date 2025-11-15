@@ -134,48 +134,19 @@ See [coding-practices.md](./coding-practices.md#error-handling) for error classi
 
 ### Implement Error Hierarchy with Custom Error Classes
 
-- Extend `Error` for Domain and Infrastructure errors
-- Programming errors use language assertions
+- Extend `Error` for Application and Platform errors (domain, use case, infrastructure)
+- Create error hierarchy: `RootError` → `ApplicationError` / `PlatformError` → specific errors
+- Pass descriptive messages to `super()` constructor
+- Include relevant context as readonly properties
+- Use centralized error handling (Express middleware, etc.)
+- **Why**: Type-safe error classification, consistent error responses
 
-```typescript
-// Error (TypeScript's root for application errors)
-// └─ RootError (for centralized error handling)
-//    ├─ ApplicationError (our code)
-//    └─ PlatformError (external systems)
+### Handle Programming Errors with Type System and Assertions
 
-class RootError extends Error {}
-
-// Application errors (our code: domain, use case, adapter, framework)
-class ApplicationError extends RootError {}
-class DomainError extends ApplicationError {}
-class UseCaseError extends ApplicationError {}
-
-// Platform errors (external systems: database, network, etc.)
-class PlatformError extends RootError {}
-class DatabaseError extends PlatformError {}
-
-// Concrete errors
-class OrderNotFound extends DomainError {
-  constructor(public readonly id: string) {
-    super(`Order not found: ${id}`)
-  }
-}
-
-class PlaceOrderFailed extends UseCaseError {
-  constructor(public readonly reason: string) {
-    super(`Place order failed: ${reason}`)
-  }
-}
-
-class ConnectionFailed extends DatabaseError {
-  constructor(public readonly url: string) {
-    super(`Connection failed: ${url}`)
-  }
-}
-```
-
-- Use centralized error handling (e.g., Express middleware)
-- **Why**: Type-safe error classification
+- **Prevent at compile time**: `strictNullChecks`, `noUncheckedIndexedAccess`, `never` for exhaustiveness
+- **Runtime assertions**: Use `assert()` or throw for "should never happen" conditions
+- **Don't catch Programming Errors**: Let them crash and fix the bug
+- **Why**: Programming errors indicate bugs, should fail fast
 
 ## Functions
 

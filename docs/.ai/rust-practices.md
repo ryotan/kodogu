@@ -334,6 +334,13 @@ pub enum PlatformError {
 - `#[ignore]` for slow tests
 - **Why**: Flexible test control
 
+### Use Standard Testing Tools
+
+- Rust's built-in test framework covers most needs
+- `cargo test` is the standard - no external framework required
+- Add specialized tools only when specific needs arise
+- **Why**: Standard tooling is well-integrated, maintained, and sufficient
+
 ## Documentation
 
 ### Write Rustdoc Comments

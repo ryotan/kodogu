@@ -248,9 +248,9 @@ open class PlatformError : RootError()
 open class DatabaseError : PlatformError()
 
 // Concrete errors
-class OrderNotFound(val id: String) : DomainError()
-class PlaceOrderFailed(val reason: String) : UseCaseError()
-class ConnectionFailed(val url: String) : DatabaseError()
+class OrderNotFound(val id: String) : DomainError("Order not found: $id")
+class PlaceOrderFailed(val reason: String) : UseCaseError("Place order failed: $reason")
+class ConnectionFailed(val url: String) : DatabaseError("Connection failed: $url")
 ```
 
 - Use `@ControllerAdvice` or similar for centralized error handling

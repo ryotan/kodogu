@@ -258,6 +258,8 @@ Load only what's needed for your current task to optimize token usage.
 | Domain Modeling         | ✓      | ✓       | -      | -      | ✓      |
 | Infrastructure          | -      | -       | ✓      | ✓      | -      |
 
+**Note**: This matrix shows the **minimum** required documents to load. Load additional documents as needed based on the specific task context.
+
 **Legend:**
 
 - design = [design-practices.md](./design-practices.md)
