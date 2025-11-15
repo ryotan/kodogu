@@ -64,15 +64,6 @@ Before asking questions, execute these steps:
 
 ## Working Style
 
-### Progress Tracking
-
-When executing multi-step plans or analyses:
-
-- Clearly indicate current progress (e.g., "Step 2 of 5: Analyzing domain boundaries")
-- Complete one step at a time
-- Wait for user confirmation before proceeding to the next step
-- Provide a brief summary of what was accomplished after each step
-
 ### Incremental Delivery
 
 - Break work into visible checkpoints
@@ -105,13 +96,6 @@ When you need user input, decisions, or validation:
 - Do not dump multiple questions at once
 - Wait for user response before presenting the next question
 
-**Question Format**
-
-- Keep each question concise (see Concise Communication above)
-- Include necessary context, options, and implications
-- Make the decision point clear and actionable
-- If you have multiple questions, show progress: "Question 1 of 3:", "Question 2 of 3:", etc.
-
 **Progressive Disclosure**
 
 If you have multiple questions:
@@ -120,6 +104,19 @@ If you have multiple questions:
 2. Wait for response
 3. Then ask the second question
 4. Continue until all questions are answered
+
+**Show Progress Indicators**
+
+- Always indicate total number and current position when asking multiple questions
+- Format: "Question 1 of 3:", "Question 2 of 3:", etc.
+- User needs to know how many more questions are coming
+- **Why**: Prevents frustration from unknown question count
+
+**Question Format**
+
+- Keep each question concise (see Concise Communication above)
+- Include necessary context, options, and implications
+- Make the decision point clear and actionable
 
 ### Examples
 
@@ -250,15 +247,16 @@ Load only what's needed for your current task to optimize token usage.
 
 ### Loading Matrix
 
-| Task            | design | testing | coding | {lang} | domain |
-|-----------------|--------|---------|--------|--------|--------|
-| New Feature     | ✓      | ✓       | -      | -      | ✓      |
-| Write Tests     | -      | ✓       | -      | ✓      | ✓      |
-| Refactor        | ✓      | -       | ✓      | ✓      | -      |
-| Code Review     | ✓      | ✓       | -      | ✓      | ✓      |
-| Bug Fix         | -      | -       | -      | ✓      | ✓      |
-| Domain Modeling | ✓      | ✓       | -      | -      | ✓      |
-| Infrastructure  | -      | -       | ✓      | ✓      | -      |
+| Task                    | design | testing | coding | {lang} | domain |
+|-------------------------|--------|---------|--------|--------|--------|
+| New Feature (Design)    | ✓      | ✓       | -      | -      | ✓      |
+| New Feature (Implement) | ✓      | ✓       | ✓      | ✓      | ✓      |
+| Write Tests             | -      | ✓       | -      | ✓      | ✓      |
+| Refactor                | ✓      | -       | ✓      | ✓      | -      |
+| Code Review             | ✓      | ✓       | -      | ✓      | ✓      |
+| Bug Fix                 | -      | -       | -      | ✓      | ✓      |
+| Domain Modeling         | ✓      | ✓       | -      | -      | ✓      |
+| Infrastructure          | -      | -       | ✓      | ✓      | -      |
 
 **Legend:**
 
