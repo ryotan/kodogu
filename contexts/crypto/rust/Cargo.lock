@@ -403,6 +403,7 @@ dependencies = [
  "pkcs8",
  "rand",
  "rsa",
+ "sha2",
  "snafu",
  "suzunari-error",
  "suzunari-error-macro-impl",
