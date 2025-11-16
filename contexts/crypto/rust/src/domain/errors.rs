@@ -14,7 +14,10 @@ pub enum CryptoError {
     Decryption { source: DecryptionError },
 
     #[snafu(transparent)]
-    InvalidKeyFormat { source: InvalidKeyFormatError },
+    InvalidKeyEncoding { source: InvalidKeyEncodingError },
+
+    #[snafu(transparent)]
+    InvalidKeySize { source: InvalidKeySizeError },
 
     #[snafu(transparent)]
     KeyDerivation { source: KeyDerivationError },
@@ -43,9 +46,16 @@ pub struct DecryptionError {
 
 #[suzunari_error]
 #[snafu(visibility(pub))]
-#[snafu(display("Invalid key format"))]
-pub struct InvalidKeyFormatError {
-    pub source: BoxedStackError,
+#[snafu(display("Invalid key encoding: {reason}"))]
+pub struct InvalidKeyEncodingError {
+    pub reason: String,
+}
+
+#[suzunari_error]
+#[snafu(visibility(pub))]
+#[snafu(display("Invalid key size: {size} bytes"))]
+pub struct InvalidKeySizeError {
+    pub size: usize,
 }
 
 #[suzunari_error]

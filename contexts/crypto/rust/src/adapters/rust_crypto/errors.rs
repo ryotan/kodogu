@@ -1,6 +1,7 @@
 use suzunari_error::{suzunari_error, BoxedStackError};
 use crate::domain::{
-    CryptoError, DecryptionErrorSnafu, EncryptionErrorSnafu, KeyDerivationErrorSnafu, KeyGenerationErrorSnafu,
+    CryptoError, DecryptionErrorSnafu, EncryptionErrorSnafu, InvalidKeySizeErrorSnafu,
+    KeyDerivationErrorSnafu, KeyGenerationErrorSnafu,
 };
 
 /// RustCrypto adapter layer errors
@@ -55,13 +56,12 @@ pub enum RustCryptoError {
 
 impl From<RustCryptoError> for CryptoError {
     fn from(e: RustCryptoError) -> Self {
-        match &e {
+        match e {
             RustCryptoError::AesCipherCreation { .. }
             | RustCryptoError::AesEncryption { .. }
             | RustCryptoError::RsaEncryption { .. }
             | RustCryptoError::RsaPublicKeyParsing { .. }
-            | RustCryptoError::InvalidPemEncoding { .. }
-            | RustCryptoError::InvalidKeySize { .. } => EncryptionErrorSnafu {
+            | RustCryptoError::InvalidPemEncoding { .. } => EncryptionErrorSnafu {
                 source: BoxedStackError::new(e),
             }
             .build()
@@ -81,6 +81,9 @@ impl From<RustCryptoError> for CryptoError {
             }
             .build()
             .into(),
+            RustCryptoError::InvalidKeySize { size } => {
+                InvalidKeySizeErrorSnafu { size }.build().into()
+            }
             RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivationErrorSnafu {
                 source: BoxedStackError::new(e),
             }
