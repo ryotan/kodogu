@@ -8,7 +8,6 @@
 
 pub mod adapters;
 mod domain;
-mod usecases;
 
 // Re-export public API at crate root
 pub use domain::{
