@@ -10,38 +10,38 @@ use crate::domain::{
 #[suzunari_error]
 #[snafu(visibility(pub(crate)))]
 pub enum RustCryptoError {
-    #[snafu(display("AES cipher creation failed: {source}"))]
-    AesCipherCreation { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("AES cipher creation failed"))]
+    AesCipherCreation { source: BoxedStackError },
 
-    #[snafu(display("AES encryption failed: {source}"))]
-    AesEncryption { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("AES encryption failed"))]
+    AesEncryption { source: BoxedStackError },
 
-    #[snafu(display("AES decryption failed: {source}"))]
-    AesDecryption { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("AES decryption failed"))]
+    AesDecryption { source: BoxedStackError },
 
     #[snafu(display("RSA key generation failed"))]
     RsaKeyGeneration { source: BoxedStackError },
 
-    #[snafu(display("RSA encryption failed: {source}"))]
-    RsaEncryption { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("RSA encryption failed"))]
+    RsaEncryption { source: BoxedStackError },
 
-    #[snafu(display("RSA decryption failed: {source}"))]
-    RsaDecryption { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("RSA decryption failed"))]
+    RsaDecryption { source: BoxedStackError },
 
-    #[snafu(display("RSA public key parsing failed: {source}"))]
-    RsaPublicKeyParsing { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("RSA public key parsing failed"))]
+    RsaPublicKeyParsing { source: BoxedStackError },
 
-    #[snafu(display("RSA private key parsing failed: {source}"))]
-    RsaPrivateKeyParsing { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("RSA private key parsing failed"))]
+    RsaPrivateKeyParsing { source: BoxedStackError },
 
-    #[snafu(display("ECDSA key generation failed: {source}"))]
-    EcdsaKeyGeneration { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("ECDSA key generation failed"))]
+    EcdsaKeyGeneration { source: BoxedStackError },
 
-    #[snafu(display("Ed25519 key generation failed: {reason}"))]
-    Ed25519KeyGeneration { reason: String },
+    #[snafu(display("Ed25519 key generation failed"))]
+    Ed25519KeyGeneration { source: BoxedStackError },
 
-    #[snafu(display("Invalid PEM encoding: {source}"))]
-    InvalidPemEncoding { source: std::string::FromUtf8Error },
+    #[snafu(display("Invalid PEM encoding"))]
+    InvalidPemEncoding { source: BoxedStackError },
 
     #[snafu(display("Invalid key size: {size} bytes"))]
     InvalidKeySize { size: usize },
