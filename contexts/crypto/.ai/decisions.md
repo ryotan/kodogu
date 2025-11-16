@@ -85,3 +85,35 @@ contexts/crypto/rust/
 - snafu使用（suzunari-errorは制約により使用せず）
 - `#[snafu(visibility(pub))]`でSnafuコンテキストをエクスポート
 - シンプルなエラー型（reasonフィールドのみ）
+
+## 実装状態（最終）
+
+### 完了機能
+
+- ✅ 鍵ペア生成（RSA 2048/4096, ECDSA P-256/P-384, Ed25519）
+- ✅ 対称鍵生成（AES-128/AES-256）
+- ✅ パスワード文字列生成（ランダム英数字）
+- ✅ Base64インポート/エクスポート
+- ✅ PBKDF2鍵導出（100,000イテレーション、SHA-256）
+- ✅ AES-GCM暗号化/復号（nonce自動生成、12バイト）
+- ✅ RSAハイブリッド暗号化/復号（RSA-PKCS1v15 + AES-256-GCM）
+- ✅ 統合テスト（24テスト全パス）
+
+### 暗号文形式
+
+**対称暗号（AES-GCM）**:
+```
+[nonce (12 bytes) | ciphertext + auth_tag]
+```
+
+**非対称暗号（RSAハイブリッド）**:
+```
+[encrypted_key_len (2 bytes big-endian) | encrypted_aes_key | aes_ciphertext]
+```
+
+### 未実装（将来のスコープ）
+
+- 署名/検証機能
+- DER形式サポート
+- ストリーミング暗号化
+- クレデンシャルストア連携
