@@ -1,7 +1,7 @@
 use crate::domain::{
-    KeyPair,
-    CryptoError,
-    values::{AsymmetricAlgorithm, SymmetricKey, SymmetricAlgorithm},
+    CryptoError, KeyPair,
+    algorithms::{AsymmetricAlgorithm, SymmetricAlgorithm},
+    keys::SymmetricKey,
 };
 
 /// Key generation abstraction

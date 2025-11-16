@@ -61,9 +61,12 @@ pub trait Decryptor { ... }
 contexts/crypto/rust/
 ├── src/
 │   ├── domain/
-│   │   ├── key_pair.rs
-│   │   ├── values/
-│   │   └── traits/
+│   │   ├── keys/          # 鍵関連（PublicKey, PrivateKey, SymmetricKey, KeyPair）
+│   │   ├── providers/     # アダプター抽象（Encryptor, Decryptor, KeyGenerator, KeyDeriver）
+│   │   ├── algorithms/    # アルゴリズム定義
+│   │   ├── plaintext.rs
+│   │   ├── ciphertext.rs
+│   │   └── errors.rs
 │   ├── usecases/
 │   └── adapters/
 │       └── rustcrypto/

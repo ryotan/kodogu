@@ -1,4 +1,5 @@
-use crate::domain::values::{PublicKey, PrivateKey, AsymmetricAlgorithm};
+use super::{PrivateKey, PublicKey};
+use crate::domain::algorithms::AsymmetricAlgorithm;
 
 /// Key pair aggregate root
 #[derive(Debug, Clone)]

@@ -3,11 +3,9 @@ use rand::Rng;
 
 use crate::domain::{
     CryptoError, KeyGenerationSnafu, KeyPair,
-    traits::KeyGenerator,
-    values::{
-        AsymmetricAlgorithm, EcdsaCurve, PrivateKey, PublicKey, RsaKeySize, SymmetricAlgorithm,
-        SymmetricKey,
-    },
+    algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
+    keys::{PrivateKey, PublicKey, SymmetricKey},
+    providers::KeyGenerator,
 };
 
 /// RustCrypto-based key generator implementation

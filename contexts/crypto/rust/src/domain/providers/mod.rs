@@ -1,4 +1,4 @@
-//! Domain trait definitions (abstractions)
+//! Provider trait definitions (abstractions for adapters)
 
 mod key_generator;
 mod key_deriver;

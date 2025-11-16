@@ -5,11 +5,10 @@ use kodogu_crypto::{
         RustCryptoDecryptor, RustCryptoEncryptor, RustCryptoKeyDeriver, RustCryptoKeyGenerator,
     },
     domain::{
-        traits::{Decryptor, Encryptor, KeyDeriver, KeyGenerator},
-        values::{
-            AsymmetricAlgorithm, EcdsaCurve, Plaintext, RsaKeySize, SymmetricAlgorithm,
-            SymmetricKey,
-        },
+        algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
+        keys::SymmetricKey,
+        plaintext::Plaintext,
+        providers::{Decryptor, Encryptor, KeyDeriver, KeyGenerator},
     },
 };
 

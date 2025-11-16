@@ -7,8 +7,10 @@ use pkcs8::DecodePrivateKey;
 
 use crate::domain::{
     CryptoError, DecryptionSnafu,
-    traits::Decryptor,
-    values::{Ciphertext, Plaintext, PrivateKey, SymmetricKey},
+    ciphertext::Ciphertext,
+    keys::{PrivateKey, SymmetricKey},
+    plaintext::Plaintext,
+    providers::Decryptor,
 };
 
 /// AES-GCM based decryptor using RustCrypto

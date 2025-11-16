@@ -1,6 +1,8 @@
 use crate::domain::{
     CryptoError,
-    values::{Plaintext, Ciphertext, SymmetricKey, PublicKey},
+    ciphertext::Ciphertext,
+    keys::{PublicKey, SymmetricKey},
+    plaintext::Plaintext,
 };
 
 /// Encryption abstraction

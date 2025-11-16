@@ -1,4 +1,4 @@
-use crate::domain::{CryptoError, values::SymmetricKey};
+use crate::domain::{CryptoError, keys::SymmetricKey};
 
 /// Key derivation abstraction (e.g., PBKDF2)
 pub trait KeyDeriver {

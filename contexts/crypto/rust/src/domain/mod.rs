@@ -1,9 +1,11 @@
 //! Domain layer - core business concepts and rules
 
-pub mod values;
-pub mod key_pair;
-pub mod traits;
+pub mod keys;
+pub mod providers;
+pub mod algorithms;
+pub mod plaintext;
+pub mod ciphertext;
 pub mod errors;
 
-pub use key_pair::KeyPair;
+pub use keys::KeyPair;
 pub use errors::*;

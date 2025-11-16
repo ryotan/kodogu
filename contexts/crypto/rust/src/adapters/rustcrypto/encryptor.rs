@@ -8,8 +8,10 @@ use pkcs8::DecodePublicKey;
 
 use crate::domain::{
     CryptoError, EncryptionSnafu,
-    traits::Encryptor,
-    values::{Ciphertext, Plaintext, PublicKey, SymmetricKey},
+    ciphertext::Ciphertext,
+    keys::{PublicKey, SymmetricKey},
+    plaintext::Plaintext,
+    providers::Encryptor,
 };
 
 /// AES-GCM based encryptor using RustCrypto

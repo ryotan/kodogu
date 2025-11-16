@@ -4,8 +4,8 @@ use sha2::Sha256;
 
 use crate::domain::{
     CryptoError, KeyDerivationSnafu,
-    traits::KeyDeriver,
-    values::SymmetricKey,
+    keys::SymmetricKey,
+    providers::KeyDeriver,
 };
 
 /// PBKDF2-based key deriver using RustCrypto
