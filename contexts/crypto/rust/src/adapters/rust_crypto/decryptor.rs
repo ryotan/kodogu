@@ -54,8 +54,9 @@ impl Decryptor for RustCryptoDecryptor {
                 let cipher = Aes256Gcm::new_from_slice(key_bytes).context(AesCipherCreationSnafu)?;
                 cipher.decrypt(nonce, encrypted).context(AesDecryptionSnafu)?
             }
-            _ => {
-                return Err(InvalidKeySizeSnafu { size: key_bytes.len() }.build().into());
+            size => {
+                ensure!(false, InvalidKeySizeSnafu { size });
+                unreachable!()
             }
         };
 
@@ -69,15 +70,11 @@ impl Decryptor for RustCryptoDecryptor {
         let data = ciphertext.as_bytes();
 
         // 1. Extract encrypted key length
-        if data.len() < 2 {
-            return Err(CiphertextTooShortSnafu { size: data.len() }.build().into());
-        }
+        ensure!(data.len() >= 2, CiphertextTooShortSnafu { size: data.len() });
         let key_len = u16::from_be_bytes([data[0], data[1]]) as usize;
 
         // 2. Extract encrypted key and AES ciphertext
-        if data.len() < 2 + key_len {
-            return Err(CiphertextTooShortSnafu { size: data.len() }.build().into());
-        }
+        ensure!(data.len() >= 2 + key_len, CiphertextTooShortSnafu { size: data.len() });
         let encrypted_key = &data[2..2 + key_len];
         let aes_ciphertext_bytes = &data[2 + key_len..];
 

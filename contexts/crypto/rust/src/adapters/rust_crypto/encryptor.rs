@@ -5,7 +5,7 @@ use aes_gcm::{
 use rand::RngCore;
 use rsa::{Pkcs1v15Encrypt, RsaPublicKey};
 use pkcs8::DecodePublicKey;
-use snafu::ResultExt;
+use snafu::{ResultExt, ensure};
 
 use crate::domain::{
     CryptoError,
@@ -54,8 +54,9 @@ impl Encryptor for RustCryptoEncryptor {
                 let cipher = Aes256Gcm::new_from_slice(key_bytes).context(AesCipherCreationSnafu)?;
                 cipher.encrypt(nonce, plaintext.as_bytes()).context(AesEncryptionSnafu)?
             }
-            _ => {
-                return Err(InvalidKeySizeSnafu { size: key_bytes.len() }.build().into());
+            size => {
+                ensure!(false, InvalidKeySizeSnafu { size });
+                unreachable!()
             }
         };
 
