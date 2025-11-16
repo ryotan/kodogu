@@ -1,9 +1,6 @@
-use crate::CryptoError::{
-    Decryption, Encryption, InvalidKeyEncoding, InvalidKeySize as DomainInvalidKeySize,
-    KeyDerivation, KeyGeneration,
-};
 use crate::domain::CryptoError;
-use suzunari_error::{BoxedStackError, suzunari_error};
+use crate::CryptoError::{Decryption, Encryption, KeyDerivation, KeyGeneration};
+use suzunari_error::{suzunari_error, BoxedStackError};
 
 /// RustCrypto adapter layer errors
 ///
@@ -61,17 +58,11 @@ pub enum RustCryptoError {
     #[snafu(display("Invalid UTF-8 in PEM data"))]
     InvalidUtf8 { source: std::string::FromUtf8Error },
 
-    #[snafu(display("Invalid key size: {size} bytes"))]
-    InvalidKeySize { size: usize },
-
     #[snafu(display("Ciphertext too short: {size} bytes"))]
     CiphertextTooShort { size: usize },
 
     #[snafu(display("PBKDF2 derivation failed: {reason}"))]
     Pbkdf2Derivation { reason: String },
-
-    #[snafu(display("Base64 decoding failed"))]
-    Base64Decoding { source: base64::DecodeError },
 }
 
 impl From<RustCryptoError> for CryptoError {
@@ -100,13 +91,7 @@ impl From<RustCryptoError> for CryptoError {
             | RustCryptoError::CiphertextTooShort { .. } => Decryption {
                 source: BoxedStackError::new(e),
             },
-            RustCryptoError::InvalidKeySize { .. } => DomainInvalidKeySize {
-                source: BoxedStackError::new(e),
-            },
             RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivation {
-                source: BoxedStackError::new(e),
-            },
-            RustCryptoError::Base64Decoding { .. } => InvalidKeyEncoding {
                 source: BoxedStackError::new(e),
             },
         }

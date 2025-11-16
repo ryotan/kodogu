@@ -1,12 +1,11 @@
 //! Integration tests for crypto functionality
 
 use kodogu_crypto::{
-    AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,
-    RsaKeySize, SymmetricAlgorithm,
     adapters::rust_crypto::{
         RustCryptoDecryptor, RustCryptoEncryptor, RustCryptoKeyDeriver, RustCryptoKeyGenerator,
-        symmetric_key_serializer,
     },
+    AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,
+    RsaKeySize, SymmetricAlgorithm, SymmetricKey,
 };
 
 mod key_generation {
@@ -126,31 +125,33 @@ mod symmetric_key_management {
     use super::*;
 
     #[test]
-    fn base64_round_trip() {
-        let generator = RustCryptoKeyGenerator::new();
-        let original_key = generator
-            .generate_symmetric_key(SymmetricAlgorithm::Aes256)
-            .unwrap();
-
-        let encoded = symmetric_key_serializer::to_base64(&original_key);
-        let decoded_key =
-            symmetric_key_serializer::from_base64(&encoded).expect("Base64 decode failed");
-
-        assert_eq!(original_key.as_bytes(), decoded_key.as_bytes());
+    fn valid_aes128_key_size_accepted() {
+        let bytes = vec![0u8; 16];
+        let key = SymmetricKey::new(bytes);
+        assert!(key.is_ok());
+        assert_eq!(key.unwrap().len(), 16);
     }
 
     #[test]
-    fn invalid_base64_rejected() {
-        let result = symmetric_key_serializer::from_base64("not-valid-base64!!!");
-        assert!(result.is_err());
+    fn valid_aes256_key_size_accepted() {
+        let bytes = vec![0u8; 32];
+        let key = SymmetricKey::new(bytes);
+        assert!(key.is_ok());
+        assert_eq!(key.unwrap().len(), 32);
     }
 
     #[test]
     fn invalid_key_size_rejected() {
         // 24 bytes is not a valid AES key size
-        let invalid_bytes =
-            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &[0u8; 24]);
-        let result = symmetric_key_serializer::from_base64(&invalid_bytes);
+        let bytes = vec![0u8; 24];
+        let result = SymmetricKey::new(bytes);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn empty_key_rejected() {
+        let bytes = vec![];
+        let result = SymmetricKey::new(bytes);
         assert!(result.is_err());
     }
 

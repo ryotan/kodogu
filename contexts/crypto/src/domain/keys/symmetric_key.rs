@@ -1,12 +1,19 @@
+use snafu::ensure;
 use zeroize::{Zeroize, ZeroizeOnDrop};
+
+use crate::domain::{errors::InvalidKeySizeSnafu, CryptoError};
 
 /// Symmetric key value object with automatic memory cleanup
 #[derive(Debug, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct SymmetricKey(Vec<u8>);
 
 impl SymmetricKey {
-    pub fn new(bytes: Vec<u8>) -> Self {
-        Self(bytes)
+    pub fn new(bytes: Vec<u8>) -> Result<Self, CryptoError> {
+        ensure!(
+            bytes.len() == 16 || bytes.len() == 32,
+            InvalidKeySizeSnafu { size: bytes.len() }
+        );
+        Ok(Self(bytes))
     }
 
     pub fn as_bytes(&self) -> &[u8] {

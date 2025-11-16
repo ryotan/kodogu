@@ -1,12 +1,10 @@
 //! RustCrypto-based implementations
 
-pub mod ciphertext_serializer;
 mod decryptor;
 mod encryptor;
 mod errors;
 mod key_deriver;
 mod key_generator;
-pub mod symmetric_key_serializer;
 
 pub use decryptor::RustCryptoDecryptor;
 pub use encryptor::RustCryptoEncryptor;

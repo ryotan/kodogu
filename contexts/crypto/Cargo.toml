@@ -1,7 +1,7 @@
 [package]
 name = "kodogu-crypto"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 description = "Cryptographic operations library for KoDoGu"
 authors = ["ryotan"]
 
@@ -25,7 +25,6 @@ aes-gcm = { version = "0.10", features = ["std"] }
 pbkdf2 = "0.12"
 sha2 = "0.10"
 rand = "0.8"
-base64 = "0.22"
 zeroize = { version = "1.7", features = ["derive"] }
 
 [dev-dependencies]

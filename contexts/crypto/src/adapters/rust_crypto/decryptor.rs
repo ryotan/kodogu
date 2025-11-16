@@ -1,18 +1,18 @@
 use super::errors::{
-    AesCipherCreationSnafu, AesDecryptionSnafu, CiphertextTooShortSnafu, InvalidKeySizeSnafu,
-    InvalidUtf8Snafu, RsaDecryptionSnafu, RsaPrivateKeyParsingSnafu,
+    AesCipherCreationSnafu, AesDecryptionSnafu, CiphertextTooShortSnafu, InvalidUtf8Snafu,
+    RsaDecryptionSnafu, RsaPrivateKeyParsingSnafu,
 };
 use crate::domain::{
-    CryptoError,
     ciphertext::Ciphertext,
     keys::{PrivateKey, SymmetricKey},
     plaintext::Plaintext,
     providers::Decryptor,
+    CryptoError,
 };
-use aes_gcm::{Aes128Gcm, Aes256Gcm, KeyInit, Nonce, aead::Aead};
+use aes_gcm::{aead::Aead, Aes128Gcm, Aes256Gcm, KeyInit, Nonce};
 use pkcs8::DecodePrivateKey;
 use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
-use snafu::{ResultExt, ensure};
+use snafu::{ensure, ResultExt};
 
 /// AES-GCM based decryptor using RustCrypto
 pub struct RustCryptoDecryptor;
@@ -64,7 +64,8 @@ impl Decryptor for RustCryptoDecryptor {
                     .decrypt(nonce, encrypted)
                     .context(AesDecryptionSnafu)?
             }
-            size => InvalidKeySizeSnafu { size }.fail()?,
+            // SymmetricKey invariant guarantees 16 or 32 bytes
+            _ => unreachable!("SymmetricKey should only contain 16 or 32 bytes"),
         };
 
         Ok(Plaintext::new(decrypted))
@@ -105,7 +106,7 @@ impl Decryptor for RustCryptoDecryptor {
         let aes_key_bytes = rsa_private_key
             .decrypt(Pkcs1v15Encrypt, encrypted_key)
             .context(RsaDecryptionSnafu)?;
-        let aes_key = SymmetricKey::new(aes_key_bytes);
+        let aes_key = SymmetricKey::new(aes_key_bytes)?;
 
         // 5. Decrypt ciphertext with AES key
         let aes_ciphertext = Ciphertext::new(aes_ciphertext_bytes.to_vec());

@@ -1,6 +1,6 @@
 use aes_gcm::{
-    Aes128Gcm, Aes256Gcm, KeyInit, Nonce,
     aead::{Aead, OsRng},
+    Aes128Gcm, Aes256Gcm, KeyInit, Nonce,
 };
 use pkcs8::DecodePublicKey;
 use rand::RngCore;
@@ -8,15 +8,15 @@ use rsa::{Pkcs1v15Encrypt, RsaPublicKey};
 use snafu::ResultExt;
 
 use super::errors::{
-    AesCipherCreationSnafu, AesEncryptionSnafu, InvalidKeySizeSnafu, InvalidUtf8Snafu,
-    RsaEncryptionSnafu, RsaPublicKeyParsingSnafu,
+    AesCipherCreationSnafu, AesEncryptionSnafu, InvalidUtf8Snafu, RsaEncryptionSnafu,
+    RsaPublicKeyParsingSnafu,
 };
 use crate::domain::{
-    CryptoError,
     ciphertext::Ciphertext,
     keys::{PublicKey, SymmetricKey},
     plaintext::Plaintext,
     providers::Encryptor,
+    CryptoError,
 };
 
 /// AES-GCM based encryptor using RustCrypto
@@ -64,7 +64,8 @@ impl Encryptor for RustCryptoEncryptor {
                     .encrypt(nonce, plaintext.as_bytes())
                     .context(AesEncryptionSnafu)?
             }
-            size => InvalidKeySizeSnafu { size }.fail()?,
+            // SymmetricKey invariant guarantees 16 or 32 bytes
+            _ => unreachable!("SymmetricKey should only contain 16 or 32 bytes"),
         };
 
         // Prepend nonce to ciphertext: [nonce (12 bytes) | ciphertext]
@@ -92,7 +93,7 @@ impl Encryptor for RustCryptoEncryptor {
         // 2. Generate random AES-256 key
         let mut aes_key_bytes = vec![0u8; 32];
         OsRng.fill_bytes(&mut aes_key_bytes);
-        let aes_key = SymmetricKey::new(aes_key_bytes);
+        let aes_key = SymmetricKey::new(aes_key_bytes)?;
 
         // 3. Encrypt plaintext with AES key
         let aes_ciphertext = self.encrypt_symmetric(plaintext, &aes_key)?;

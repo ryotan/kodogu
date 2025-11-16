@@ -1,5 +1,5 @@
 use super::errors::Pbkdf2DerivationSnafu;
-use crate::domain::{CryptoError, keys::SymmetricKey, providers::KeyDeriver};
+use crate::domain::{keys::SymmetricKey, providers::KeyDeriver, CryptoError};
 use pbkdf2::pbkdf2_hmac;
 use rand::RngCore;
 use sha2::Sha256;
@@ -47,7 +47,7 @@ impl KeyDeriver for RustCryptoKeyDeriver {
         let mut key = vec![0u8; key_size];
         pbkdf2_hmac::<Sha256>(password.as_bytes(), salt, self.iterations, &mut key);
 
-        Ok(SymmetricKey::new(key))
+        SymmetricKey::new(key)
     }
 
     fn derive_key_with_random_salt(

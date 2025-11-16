@@ -1,5 +1,5 @@
-use rand::Rng;
 use rand::rngs::OsRng;
+use rand::Rng;
 use snafu::ResultExt;
 
 use super::errors::{
@@ -7,10 +7,10 @@ use super::errors::{
     Ed25519SpkiEncodingSnafu, RsaKeyGenerationSnafu, RsaPkcs8EncodingSnafu, RsaSpkiEncodingSnafu,
 };
 use crate::domain::{
-    CryptoError, KeyPair,
     algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
     keys::{PrivateKey, PublicKey, SymmetricKey},
     providers::KeyGenerator,
+    CryptoError, KeyPair,
 };
 
 /// RustCrypto-based key generator implementation
@@ -142,7 +142,7 @@ impl KeyGenerator for RustCryptoKeyGenerator {
         let key_size = algorithm.key_size_bytes();
         let mut key_bytes = vec![0u8; key_size];
         OsRng.fill(&mut key_bytes[..]);
-        Ok(SymmetricKey::new(key_bytes))
+        SymmetricKey::new(key_bytes)
     }
 
     fn generate_password_string(&self, length: usize) -> Result<String, CryptoError> {
