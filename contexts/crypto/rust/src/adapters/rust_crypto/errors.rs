@@ -5,31 +5,31 @@ use suzunari_error::suzunari_error;
 #[snafu(visibility(pub(crate)))]
 pub enum RustCryptoError {
     #[snafu(display("AES cipher creation failed: {source}"))]
-    AesCipherCreation { source: Box<dyn std::error::Error + Send + Sync> },
+    AesCipherCreation { source: aes_gcm::aead::Error },
 
     #[snafu(display("AES encryption failed: {source}"))]
-    AesEncryption { source: Box<dyn std::error::Error + Send + Sync> },
+    AesEncryption { source: aes_gcm::aead::Error },
 
     #[snafu(display("AES decryption failed: {source}"))]
-    AesDecryption { source: Box<dyn std::error::Error + Send + Sync> },
+    AesDecryption { source: aes_gcm::aead::Error },
 
     #[snafu(display("RSA key generation failed: {source}"))]
-    RsaKeyGeneration { source: Box<dyn std::error::Error + Send + Sync> },
+    RsaKeyGeneration { source: rsa::Error },
 
     #[snafu(display("RSA encryption failed: {source}"))]
-    RsaEncryption { source: Box<dyn std::error::Error + Send + Sync> },
+    RsaEncryption { source: rsa::Error },
 
     #[snafu(display("RSA decryption failed: {source}"))]
-    RsaDecryption { source: Box<dyn std::error::Error + Send + Sync> },
+    RsaDecryption { source: rsa::Error },
 
     #[snafu(display("RSA public key parsing failed: {source}"))]
-    RsaPublicKeyParsing { source: Box<dyn std::error::Error + Send + Sync> },
+    RsaPublicKeyParsing { source: rsa::pkcs8::spki::Error },
 
     #[snafu(display("RSA private key parsing failed: {source}"))]
-    RsaPrivateKeyParsing { source: Box<dyn std::error::Error + Send + Sync> },
+    RsaPrivateKeyParsing { source: rsa::pkcs8::Error },
 
     #[snafu(display("ECDSA key generation failed: {source}"))]
-    EcdsaKeyGeneration { source: Box<dyn std::error::Error + Send + Sync> },
+    EcdsaKeyGeneration { source: p256::elliptic_curve::Error },
 
     #[snafu(display("Ed25519 key generation failed: {reason}"))]
     Ed25519KeyGeneration { reason: String },
