@@ -3,6 +3,8 @@ use aes_gcm::{
     aead::{Aead, OsRng},
 };
 use rand::RngCore;
+use rsa::{Pkcs1v15Encrypt, RsaPublicKey};
+use pkcs8::DecodePublicKey;
 
 use crate::domain::{
     CryptoError, EncryptionSnafu,
@@ -81,11 +83,49 @@ impl Encryptor for RustCryptoEncryptor {
         Ok(Ciphertext::new(result))
     }
 
-    fn encrypt_asymmetric(&self, _plaintext: &Plaintext, _public_key: &PublicKey) -> Result<Ciphertext, CryptoError> {
-        // TODO: Implement hybrid encryption (RSA + AES)
-        Err(EncryptionSnafu {
-            reason: "Asymmetric encryption not yet implemented".to_string(),
-        }
-        .build())
+    fn encrypt_asymmetric(&self, plaintext: &Plaintext, public_key: &PublicKey) -> Result<Ciphertext, CryptoError> {
+        // Hybrid encryption: RSA + AES-256-GCM
+        // Format: [encrypted_key_len (2 bytes big-endian) | encrypted_key | aes_ciphertext]
+
+        // 1. Parse RSA public key from PEM
+        let pem_string = String::from_utf8(public_key.as_bytes().to_vec()).map_err(|e| {
+            EncryptionSnafu {
+                reason: format!("Invalid PEM encoding: {}", e),
+            }
+            .build()
+        })?;
+        let rsa_public_key = RsaPublicKey::from_public_key_pem(&pem_string).map_err(|e| {
+            EncryptionSnafu {
+                reason: format!("Failed to parse RSA public key: {}", e),
+            }
+            .build()
+        })?;
+
+        // 2. Generate random AES-256 key
+        let mut aes_key_bytes = vec![0u8; 32];
+        OsRng.fill_bytes(&mut aes_key_bytes);
+        let aes_key = SymmetricKey::new(aes_key_bytes);
+
+        // 3. Encrypt plaintext with AES key
+        let aes_ciphertext = self.encrypt_symmetric(plaintext, &aes_key)?;
+
+        // 4. Encrypt AES key with RSA public key
+        let encrypted_key = rsa_public_key
+            .encrypt(&mut OsRng, Pkcs1v15Encrypt, aes_key.as_bytes())
+            .map_err(|e| {
+                EncryptionSnafu {
+                    reason: format!("RSA encryption failed: {}", e),
+                }
+                .build()
+            })?;
+
+        // 5. Pack result: [key_len (2 bytes) | encrypted_key | ciphertext]
+        let key_len = encrypted_key.len() as u16;
+        let mut result = Vec::with_capacity(2 + encrypted_key.len() + aes_ciphertext.as_bytes().len());
+        result.extend_from_slice(&key_len.to_be_bytes());
+        result.extend_from_slice(&encrypted_key);
+        result.extend_from_slice(aes_ciphertext.as_bytes());
+
+        Ok(Ciphertext::new(result))
     }
 }

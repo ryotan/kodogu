@@ -2,6 +2,8 @@ use aes_gcm::{
     Aes128Gcm, Aes256Gcm, KeyInit, Nonce,
     aead::Aead,
 };
+use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
+use pkcs8::DecodePrivateKey;
 
 use crate::domain::{
     CryptoError, DecryptionSnafu,
@@ -82,11 +84,58 @@ impl Decryptor for RustCryptoDecryptor {
         Ok(Plaintext::new(decrypted))
     }
 
-    fn decrypt_asymmetric(&self, _ciphertext: &Ciphertext, _private_key: &PrivateKey) -> Result<Plaintext, CryptoError> {
-        // TODO: Implement hybrid decryption (RSA + AES)
-        Err(DecryptionSnafu {
-            reason: "Asymmetric decryption not yet implemented".to_string(),
+    fn decrypt_asymmetric(&self, ciphertext: &Ciphertext, private_key: &PrivateKey) -> Result<Plaintext, CryptoError> {
+        // Hybrid decryption: RSA + AES-256-GCM
+        // Format: [encrypted_key_len (2 bytes big-endian) | encrypted_key | aes_ciphertext]
+
+        let data = ciphertext.as_bytes();
+
+        // 1. Extract encrypted key length
+        if data.len() < 2 {
+            return Err(DecryptionSnafu {
+                reason: "Ciphertext too short (missing key length)".to_string(),
+            }
+            .build());
         }
-        .build())
+        let key_len = u16::from_be_bytes([data[0], data[1]]) as usize;
+
+        // 2. Extract encrypted key and AES ciphertext
+        if data.len() < 2 + key_len {
+            return Err(DecryptionSnafu {
+                reason: "Ciphertext too short (incomplete encrypted key)".to_string(),
+            }
+            .build());
+        }
+        let encrypted_key = &data[2..2 + key_len];
+        let aes_ciphertext_bytes = &data[2 + key_len..];
+
+        // 3. Parse RSA private key from PEM
+        let pem_string = String::from_utf8(private_key.as_bytes().to_vec()).map_err(|e| {
+            DecryptionSnafu {
+                reason: format!("Invalid PEM encoding: {}", e),
+            }
+            .build()
+        })?;
+        let rsa_private_key = RsaPrivateKey::from_pkcs8_pem(&pem_string).map_err(|e| {
+            DecryptionSnafu {
+                reason: format!("Failed to parse RSA private key: {}", e),
+            }
+            .build()
+        })?;
+
+        // 4. Decrypt AES key with RSA private key
+        let aes_key_bytes = rsa_private_key
+            .decrypt(Pkcs1v15Encrypt, encrypted_key)
+            .map_err(|e| {
+                DecryptionSnafu {
+                    reason: format!("RSA decryption failed: {}", e),
+                }
+                .build()
+            })?;
+        let aes_key = SymmetricKey::new(aes_key_bytes);
+
+        // 5. Decrypt ciphertext with AES key
+        let aes_ciphertext = Ciphertext::new(aes_ciphertext_bytes.to_vec());
+        self.decrypt_symmetric(&aes_ciphertext, &aes_key)
     }
 }
