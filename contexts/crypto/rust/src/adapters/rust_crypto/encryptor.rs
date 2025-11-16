@@ -5,10 +5,9 @@ use aes_gcm::{
 use rand::RngCore;
 use rsa::{Pkcs1v15Encrypt, RsaPublicKey};
 use pkcs8::DecodePublicKey;
-use suzunari_error::BoxedStackError;
 
 use crate::domain::{
-    CryptoError, EncryptionSnafu,
+    CryptoError,
     ciphertext::Ciphertext,
     keys::{PublicKey, SymmetricKey},
     plaintext::Plaintext,
@@ -46,29 +45,22 @@ impl Encryptor for RustCryptoEncryptor {
         let encrypted = match key_bytes.len() {
             16 => {
                 // AES-128-GCM
-                let cipher = Aes128Gcm::new_from_slice(key_bytes).map_err(|e| {
-                    let adapter_err = AesCipherCreationSnafu { source: Box::new(e) as _ }.build();
-                    EncryptionSnafu { source: BoxedStackError::new(adapter_err) }.build()
-                })?;
-                cipher.encrypt(nonce, plaintext.as_bytes()).map_err(|e| {
-                    let adapter_err = AesEncryptionSnafu { source: Box::new(e) as _ }.build();
-                    EncryptionSnafu { source: BoxedStackError::new(adapter_err) }.build()
-                })?
+                let cipher = Aes128Gcm::new_from_slice(key_bytes)
+                    .map_err(|e| AesCipherCreationSnafu { source: Box::new(e) as _ }.build())?;
+                cipher
+                    .encrypt(nonce, plaintext.as_bytes())
+                    .map_err(|e| AesEncryptionSnafu { source: Box::new(e) as _ }.build())?
             }
             32 => {
                 // AES-256-GCM
-                let cipher = Aes256Gcm::new_from_slice(key_bytes).map_err(|e| {
-                    let adapter_err = AesCipherCreationSnafu { source: Box::new(e) as _ }.build();
-                    EncryptionSnafu { source: BoxedStackError::new(adapter_err) }.build()
-                })?;
-                cipher.encrypt(nonce, plaintext.as_bytes()).map_err(|e| {
-                    let adapter_err = AesEncryptionSnafu { source: Box::new(e) as _ }.build();
-                    EncryptionSnafu { source: BoxedStackError::new(adapter_err) }.build()
-                })?
+                let cipher = Aes256Gcm::new_from_slice(key_bytes)
+                    .map_err(|e| AesCipherCreationSnafu { source: Box::new(e) as _ }.build())?;
+                cipher
+                    .encrypt(nonce, plaintext.as_bytes())
+                    .map_err(|e| AesEncryptionSnafu { source: Box::new(e) as _ }.build())?
             }
             _ => {
-                let adapter_err = InvalidKeySizeSnafu { size: key_bytes.len() }.build();
-                return Err(EncryptionSnafu { source: BoxedStackError::new(adapter_err) }.build());
+                return Err(InvalidKeySizeSnafu { size: key_bytes.len() }.build().into());
             }
         };
 
@@ -85,14 +77,10 @@ impl Encryptor for RustCryptoEncryptor {
         // Format: [encrypted_key_len (2 bytes big-endian) | encrypted_key | aes_ciphertext]
 
         // 1. Parse RSA public key from PEM
-        let pem_string = String::from_utf8(public_key.as_bytes().to_vec()).map_err(|e| {
-            let adapter_err = InvalidPemEncodingSnafu { source: e }.build();
-            EncryptionSnafu { source: BoxedStackError::new(adapter_err) }.build()
-        })?;
-        let rsa_public_key = RsaPublicKey::from_public_key_pem(&pem_string).map_err(|e| {
-            let adapter_err = RsaPublicKeyParsingSnafu { source: Box::new(e) as _ }.build();
-            EncryptionSnafu { source: BoxedStackError::new(adapter_err) }.build()
-        })?;
+        let pem_string = String::from_utf8(public_key.as_bytes().to_vec())
+            .map_err(|e| InvalidPemEncodingSnafu { source: e }.build())?;
+        let rsa_public_key = RsaPublicKey::from_public_key_pem(&pem_string)
+            .map_err(|e| RsaPublicKeyParsingSnafu { source: Box::new(e) as _ }.build())?;
 
         // 2. Generate random AES-256 key
         let mut aes_key_bytes = vec![0u8; 32];
@@ -105,10 +93,7 @@ impl Encryptor for RustCryptoEncryptor {
         // 4. Encrypt AES key with RSA public key
         let encrypted_key = rsa_public_key
             .encrypt(&mut OsRng, Pkcs1v15Encrypt, aes_key.as_bytes())
-            .map_err(|e| {
-                let adapter_err = RsaEncryptionSnafu { source: Box::new(e) as _ }.build();
-                EncryptionSnafu { source: BoxedStackError::new(adapter_err) }.build()
-            })?;
+            .map_err(|e| RsaEncryptionSnafu { source: Box::new(e) as _ }.build())?;
 
         // 5. Pack result: [key_len (2 bytes) | encrypted_key | ciphertext]
         let key_len = encrypted_key.len() as u16;
