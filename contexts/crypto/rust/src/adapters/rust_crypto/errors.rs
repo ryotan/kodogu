@@ -1,48 +1,59 @@
 use suzunari_error::{suzunari_error, BoxedStackError};
 use crate::domain::{
-    CryptoError, DecryptionErrorSnafu, EncryptionErrorSnafu, InvalidKeySizeErrorSnafu,
-    KeyDerivationErrorSnafu, KeyGenerationErrorSnafu,
+    CryptoError, DecryptionSnafu, EncryptionSnafu, InvalidKeySizeSnafu,
+    KeyDerivationSnafu, KeyGenerationSnafu,
 };
 
 /// RustCrypto adapter layer errors
 ///
-/// Note: External library errors (aes_gcm, rsa, etc.) are wrapped in Box<dyn Error>
-/// because they don't implement snafu::Error trait required for source chaining.
+/// Each variant wraps the concrete library error type to preserve the full error chain.
 #[suzunari_error]
 #[snafu(visibility(pub(crate)))]
 pub enum RustCryptoError {
     #[snafu(display("AES cipher creation failed"))]
-    AesCipherCreation { source: BoxedStackError },
+    AesCipherCreation { source: aes_gcm::aes::cipher::InvalidLength },
 
     #[snafu(display("AES encryption failed"))]
-    AesEncryption { source: BoxedStackError },
+    AesEncryption { source: aes_gcm::Error },
 
     #[snafu(display("AES decryption failed"))]
-    AesDecryption { source: BoxedStackError },
+    AesDecryption { source: aes_gcm::Error },
 
     #[snafu(display("RSA key generation failed"))]
-    RsaKeyGeneration { source: BoxedStackError },
+    RsaKeyGeneration { source: rsa::Error },
+
+    #[snafu(display("RSA PKCS8 encoding failed"))]
+    RsaPkcs8Encoding { source: pkcs8::Error },
+
+    #[snafu(display("RSA SPKI encoding failed"))]
+    RsaSpkiEncoding { source: pkcs8::spki::Error },
 
     #[snafu(display("RSA encryption failed"))]
-    RsaEncryption { source: BoxedStackError },
+    RsaEncryption { source: rsa::Error },
 
     #[snafu(display("RSA decryption failed"))]
-    RsaDecryption { source: BoxedStackError },
+    RsaDecryption { source: rsa::Error },
 
     #[snafu(display("RSA public key parsing failed"))]
-    RsaPublicKeyParsing { source: BoxedStackError },
+    RsaPublicKeyParsing { source: pkcs8::spki::Error },
 
     #[snafu(display("RSA private key parsing failed"))]
-    RsaPrivateKeyParsing { source: BoxedStackError },
+    RsaPrivateKeyParsing { source: pkcs8::Error },
 
-    #[snafu(display("ECDSA key generation failed"))]
-    EcdsaKeyGeneration { source: BoxedStackError },
+    #[snafu(display("ECDSA PKCS8 encoding failed"))]
+    EcdsaPkcs8Encoding { source: pkcs8::Error },
 
-    #[snafu(display("Ed25519 key generation failed"))]
-    Ed25519KeyGeneration { source: BoxedStackError },
+    #[snafu(display("ECDSA SPKI encoding failed"))]
+    EcdsaSpkiEncoding { source: pkcs8::spki::Error },
 
-    #[snafu(display("Invalid PEM encoding"))]
-    InvalidPemEncoding { source: BoxedStackError },
+    #[snafu(display("Ed25519 PKCS8 encoding failed"))]
+    Ed25519Pkcs8Encoding { source: pkcs8::Error },
+
+    #[snafu(display("Ed25519 SPKI encoding failed"))]
+    Ed25519SpkiEncoding { source: pkcs8::spki::Error },
+
+    #[snafu(display("Invalid UTF-8 in PEM data"))]
+    InvalidUtf8 { source: std::string::FromUtf8Error },
 
     #[snafu(display("Invalid key size: {size} bytes"))]
     InvalidKeySize { size: usize },
@@ -57,11 +68,22 @@ pub enum RustCryptoError {
 impl From<RustCryptoError> for CryptoError {
     fn from(e: RustCryptoError) -> Self {
         match e {
+            RustCryptoError::RsaKeyGeneration { .. }
+            | RustCryptoError::RsaPkcs8Encoding { .. }
+            | RustCryptoError::RsaSpkiEncoding { .. }
+            | RustCryptoError::EcdsaPkcs8Encoding { .. }
+            | RustCryptoError::EcdsaSpkiEncoding { .. }
+            | RustCryptoError::Ed25519Pkcs8Encoding { .. }
+            | RustCryptoError::Ed25519SpkiEncoding { .. } => KeyGenerationSnafu {
+                source: BoxedStackError::new(e),
+            }
+            .build()
+            .into(),
             RustCryptoError::AesCipherCreation { .. }
             | RustCryptoError::AesEncryption { .. }
             | RustCryptoError::RsaEncryption { .. }
             | RustCryptoError::RsaPublicKeyParsing { .. }
-            | RustCryptoError::InvalidPemEncoding { .. } => EncryptionErrorSnafu {
+            | RustCryptoError::InvalidUtf8 { .. } => EncryptionSnafu {
                 source: BoxedStackError::new(e),
             }
             .build()
@@ -69,22 +91,15 @@ impl From<RustCryptoError> for CryptoError {
             RustCryptoError::AesDecryption { .. }
             | RustCryptoError::RsaDecryption { .. }
             | RustCryptoError::RsaPrivateKeyParsing { .. }
-            | RustCryptoError::CiphertextTooShort { .. } => DecryptionErrorSnafu {
+            | RustCryptoError::CiphertextTooShort { .. } => DecryptionSnafu {
                 source: BoxedStackError::new(e),
             }
             .build()
             .into(),
-            RustCryptoError::RsaKeyGeneration { .. }
-            | RustCryptoError::EcdsaKeyGeneration { .. }
-            | RustCryptoError::Ed25519KeyGeneration { .. } => KeyGenerationErrorSnafu {
-                source: BoxedStackError::new(e),
+            RustCryptoError::InvalidKeySize { size, .. } => {
+                InvalidKeySizeSnafu { size }.build().into()
             }
-            .build()
-            .into(),
-            RustCryptoError::InvalidKeySize { size } => {
-                InvalidKeySizeErrorSnafu { size }.build().into()
-            }
-            RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivationErrorSnafu {
+            RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivationSnafu {
                 source: BoxedStackError::new(e),
             }
             .build()
