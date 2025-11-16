@@ -1,10 +1,8 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use snafu::ResultExt;
 use suzunari_error::BoxedStackError;
 use zeroize::{Zeroize, ZeroizeOnDrop};
-use crate::adapters::rust_crypto::RustCryptoError::InvalidKeySize;
-use crate::CryptoError::InvalidKeyEncoding;
-use crate::domain::{CryptoError, InvalidKeyEncodingSnafu, InvalidKeySizeErrorSnafu};
+use crate::CryptoError::{InvalidKeyEncoding, InvalidKeySize};
+use crate::domain::CryptoError;
 
 /// Symmetric key value object with automatic memory cleanup
 #[derive(Debug, Clone, Zeroize, ZeroizeOnDrop)]
@@ -17,12 +15,17 @@ impl SymmetricKey {
 
     /// Import symmetric key from Base64-encoded string
     pub fn from_base64(encoded: &str) -> Result<Self, CryptoError> {
-        let bytes = BASE64.decode(encoded).map_err(|e| InvalidKeyEncoding {source: BoxedStackError::new(e) }).context(  )
+        let bytes = BASE64.decode(encoded).map_err(|e| InvalidKeyEncoding {
+            source: BoxedStackError::new(e),
         })?;
 
         // Validate key size (AES-128: 16 bytes, AES-256: 32 bytes)
         if bytes.len() != 16 && bytes.len() != 32 {
-            return Err(InvalidKeySizeErrorSnafu { size: bytes.len() }.build().into());
+            return Err(InvalidKeySize {
+                source: BoxedStackError::new(crate::adapters::rust_crypto::RustCryptoError::InvalidKeySize {
+                    size: bytes.len(),
+                }),
+            });
         }
 
         Ok(Self(bytes))
