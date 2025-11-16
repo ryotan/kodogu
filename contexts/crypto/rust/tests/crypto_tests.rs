@@ -1,12 +1,12 @@
 //! Integration tests for crypto functionality
 
 use kodogu_crypto::{
+    AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,
+    RsaKeySize, SymmetricAlgorithm,
     adapters::rust_crypto::{
         RustCryptoDecryptor, RustCryptoEncryptor, RustCryptoKeyDeriver, RustCryptoKeyGenerator,
         symmetric_key_serializer,
     },
-    AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,
-    RsaKeySize, SymmetricAlgorithm,
 };
 
 mod key_generation {
@@ -133,7 +133,8 @@ mod symmetric_key_management {
             .unwrap();
 
         let encoded = symmetric_key_serializer::to_base64(&original_key);
-        let decoded_key = symmetric_key_serializer::from_base64(&encoded).expect("Base64 decode failed");
+        let decoded_key =
+            symmetric_key_serializer::from_base64(&encoded).expect("Base64 decode failed");
 
         assert_eq!(original_key.as_bytes(), decoded_key.as_bytes());
     }
@@ -147,10 +148,8 @@ mod symmetric_key_management {
     #[test]
     fn invalid_key_size_rejected() {
         // 24 bytes is not a valid AES key size
-        let invalid_bytes = base64::Engine::encode(
-            &base64::engine::general_purpose::STANDARD,
-            &[0u8; 24],
-        );
+        let invalid_bytes =
+            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &[0u8; 24]);
         let result = symmetric_key_serializer::from_base64(&invalid_bytes);
         assert!(result.is_err());
     }

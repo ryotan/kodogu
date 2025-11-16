@@ -6,9 +6,9 @@
 //! - Asymmetric encryption (RSA hybrid)
 //! - Key management (import/export)
 
+pub mod adapters;
 mod domain;
 mod usecases;
-pub mod adapters;
 
 // Re-export public API at crate root
 pub use domain::{

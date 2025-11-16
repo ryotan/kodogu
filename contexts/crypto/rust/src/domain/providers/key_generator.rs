@@ -10,7 +10,10 @@ pub trait KeyGenerator {
     fn generate_key_pair(&self, algorithm: AsymmetricAlgorithm) -> Result<KeyPair, CryptoError>;
 
     /// Generate symmetric key
-    fn generate_symmetric_key(&self, algorithm: SymmetricAlgorithm) -> Result<SymmetricKey, CryptoError>;
+    fn generate_symmetric_key(
+        &self,
+        algorithm: SymmetricAlgorithm,
+    ) -> Result<SymmetricKey, CryptoError>;
 
     /// Generate password-style string for symmetric encryption
     fn generate_password_string(&self, length: usize) -> Result<String, CryptoError>;

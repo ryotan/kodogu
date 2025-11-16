@@ -1,8 +1,8 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use snafu::{ResultExt, ensure};
 
-use crate::domain::{CryptoError, keys::SymmetricKey};
 use super::errors::{Base64DecodingSnafu, InvalidKeySizeSnafu};
+use crate::domain::{CryptoError, keys::SymmetricKey};
 
 /// Serialize symmetric key to Base64
 pub fn to_base64(key: &SymmetricKey) -> String {
