@@ -82,8 +82,9 @@ contexts/crypto/rust/
 
 ## エラーハンドリング
 
-- snafu使用（suzunari-errorは制約により使用せず）
-- `#[snafu(visibility(pub))]`でSnafuコンテキストをエクスポート
+- suzunari-error使用（rust-practices.mdに準拠）
+- `#[suzunari_error]`マクロ + `#[snafu(visibility(pub))]`
+- スタックトレースコンテキストの自動伝播
 - シンプルなエラー型（reasonフィールドのみ）
 
 ## 実装状態（最終）

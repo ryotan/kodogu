@@ -1,7 +1,7 @@
-use snafu::Snafu;
+use suzunari_error::suzunari_error;
 
 /// Domain-level cryptographic errors
-#[derive(Debug, Snafu)]
+#[suzunari_error]
 #[snafu(visibility(pub))]
 pub enum CryptoError {
     #[snafu(display("Key generation failed: {reason}"))]
