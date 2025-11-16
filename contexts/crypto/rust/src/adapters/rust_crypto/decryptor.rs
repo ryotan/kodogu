@@ -54,10 +54,7 @@ impl Decryptor for RustCryptoDecryptor {
                 let cipher = Aes256Gcm::new_from_slice(key_bytes).context(AesCipherCreationSnafu)?;
                 cipher.decrypt(nonce, encrypted).context(AesDecryptionSnafu)?
             }
-            size => {
-                ensure!(false, InvalidKeySizeSnafu { size });
-                unreachable!()
-            }
+            size => return InvalidKeySizeSnafu { size }.fail()?,
         };
 
         Ok(Plaintext::new(decrypted))
