@@ -6,6 +6,16 @@
 //! - Asymmetric encryption (RSA hybrid)
 //! - Key management (import/export)
 
-pub mod domain;
-pub mod usecases;
+mod domain;
+mod usecases;
 pub mod adapters;
+
+// Re-export public API at crate root
+pub use domain::{
+    CryptoError,
+    algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
+    ciphertext::Ciphertext,
+    keys::{KeyPair, PrivateKey, PublicKey, SymmetricKey},
+    plaintext::Plaintext,
+    providers::{Decryptor, Encryptor, KeyDeriver, KeyGenerator},
+};

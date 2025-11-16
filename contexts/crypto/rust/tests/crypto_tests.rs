@@ -4,12 +4,8 @@ use kodogu_crypto::{
     adapters::rustcrypto::{
         RustCryptoDecryptor, RustCryptoEncryptor, RustCryptoKeyDeriver, RustCryptoKeyGenerator,
     },
-    domain::{
-        algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
-        keys::SymmetricKey,
-        plaintext::Plaintext,
-        providers::{Decryptor, Encryptor, KeyDeriver, KeyGenerator},
-    },
+    AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,
+    RsaKeySize, SymmetricAlgorithm, SymmetricKey,
 };
 
 mod key_generation {
