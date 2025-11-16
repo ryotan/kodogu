@@ -16,15 +16,13 @@
 
 ```toml
 # エラーハンドリング
-suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git" }
-suzunari-error-macro-impl = { git = "https://github.com/ryotan/suzunari-error.git" }
 snafu = "0.8"
 
 # 暗号化（アダプター層）
 rsa = "0.9"              # RSA鍵生成・暗号化
 p256 = "0.13"            # ECDSA P-256
 p384 = "0.13"            # ECDSA P-384
-ed25519-dalek = "2.1"    # Ed25519
+ed25519-dalek = { version = "2.1", features = ["pkcs8", "pem"] }  # Ed25519
 pkcs8 = "0.10"           # PEM形式
 aes-gcm = "0.10"         # AES暗号化
 pbkdf2 = "0.12"          # 鍵導出
@@ -84,6 +82,6 @@ contexts/crypto/rust/
 
 ## エラーハンドリング
 
-- suzunari-error + snafu使用
-- 階層化されたエラー型
-- スタックトレース付き
+- snafu使用（suzunari-errorは制約により使用せず）
+- `#[snafu(visibility(pub))]`でSnafuコンテキストをエクスポート
+- シンプルなエラー型（reasonフィールドのみ）
