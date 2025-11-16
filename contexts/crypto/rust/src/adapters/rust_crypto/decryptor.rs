@@ -4,13 +4,19 @@ use aes_gcm::{
 };
 use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
 use pkcs8::DecodePrivateKey;
+use snafu::ResultExt;
+use suzunari_error::BoxedStackError;
 
 use crate::domain::{
-    CryptoError, DecryptionSnafu,
+    CryptoError,
     ciphertext::Ciphertext,
     keys::{PrivateKey, SymmetricKey},
     plaintext::Plaintext,
     providers::Decryptor,
+};
+use super::errors::{
+    AesCipherCreationSnafu, AesDecryptionSnafu, CiphertextTooShortSnafu,
+    InvalidKeySizeSnafu, InvalidPemEncodingSnafu, RsaDecryptionSnafu, RsaPrivateKeyParsingSnafu,
 };
 
 /// AES-GCM based decryptor using RustCrypto
@@ -35,10 +41,7 @@ impl Decryptor for RustCryptoDecryptor {
 
         // Extract nonce and ciphertext: [nonce (12 bytes) | ciphertext]
         if data.len() < 12 {
-            return Err(DecryptionSnafu {
-                reason: "Ciphertext too short (missing nonce)".to_string(),
-            }
-            .build());
+            return Err(CiphertextTooShortSnafu { size: data.len() }.build().into());
         }
 
         let (nonce_bytes, encrypted) = data.split_at(12);
@@ -47,39 +50,26 @@ impl Decryptor for RustCryptoDecryptor {
         let decrypted = match key_bytes.len() {
             16 => {
                 // AES-128-GCM
-                let cipher = Aes128Gcm::new_from_slice(key_bytes).map_err(|e| {
-                    DecryptionSnafu {
-                        reason: format!("Failed to create AES-128 cipher: {}", e),
-                    }
-                    .build()
-                })?;
-                cipher.decrypt(nonce, encrypted).map_err(|e| {
-                    DecryptionSnafu {
-                        reason: format!("AES-128 decryption failed: {}", e),
-                    }
-                    .build()
-                })?
+                let cipher = Aes128Gcm::new_from_slice(key_bytes)
+                    .map_err(BoxedStackError::new)
+                    .context(AesCipherCreationSnafu)?;
+                cipher
+                    .decrypt(nonce, encrypted)
+                    .map_err(BoxedStackError::new)
+                    .context(AesDecryptionSnafu)?
             }
             32 => {
                 // AES-256-GCM
-                let cipher = Aes256Gcm::new_from_slice(key_bytes).map_err(|e| {
-                    DecryptionSnafu {
-                        reason: format!("Failed to create AES-256 cipher: {}", e),
-                    }
-                    .build()
-                })?;
-                cipher.decrypt(nonce, encrypted).map_err(|e| {
-                    DecryptionSnafu {
-                        reason: format!("AES-256 decryption failed: {}", e),
-                    }
-                    .build()
-                })?
+                let cipher = Aes256Gcm::new_from_slice(key_bytes)
+                    .map_err(BoxedStackError::new)
+                    .context(AesCipherCreationSnafu)?;
+                cipher
+                    .decrypt(nonce, encrypted)
+                    .map_err(BoxedStackError::new)
+                    .context(AesDecryptionSnafu)?
             }
             _ => {
-                return Err(DecryptionSnafu {
-                    reason: format!("Invalid key size: {} bytes (expected 16 or 32)", key_bytes.len()),
-                }
-                .build());
+                return Err(InvalidKeySizeSnafu { size: key_bytes.len() }.build().into());
             }
         };
 
@@ -94,46 +84,30 @@ impl Decryptor for RustCryptoDecryptor {
 
         // 1. Extract encrypted key length
         if data.len() < 2 {
-            return Err(DecryptionSnafu {
-                reason: "Ciphertext too short (missing key length)".to_string(),
-            }
-            .build());
+            return Err(CiphertextTooShortSnafu { size: data.len() }.build().into());
         }
         let key_len = u16::from_be_bytes([data[0], data[1]]) as usize;
 
         // 2. Extract encrypted key and AES ciphertext
         if data.len() < 2 + key_len {
-            return Err(DecryptionSnafu {
-                reason: "Ciphertext too short (incomplete encrypted key)".to_string(),
-            }
-            .build());
+            return Err(CiphertextTooShortSnafu { size: data.len() }.build().into());
         }
         let encrypted_key = &data[2..2 + key_len];
         let aes_ciphertext_bytes = &data[2 + key_len..];
 
         // 3. Parse RSA private key from PEM
-        let pem_string = String::from_utf8(private_key.as_bytes().to_vec()).map_err(|e| {
-            DecryptionSnafu {
-                reason: format!("Invalid PEM encoding: {}", e),
-            }
-            .build()
-        })?;
-        let rsa_private_key = RsaPrivateKey::from_pkcs8_pem(&pem_string).map_err(|e| {
-            DecryptionSnafu {
-                reason: format!("Failed to parse RSA private key: {}", e),
-            }
-            .build()
-        })?;
+        let pem_string = String::from_utf8(private_key.as_bytes().to_vec())
+            .map_err(BoxedStackError::new)
+            .context(InvalidPemEncodingSnafu)?;
+        let rsa_private_key = RsaPrivateKey::from_pkcs8_pem(&pem_string)
+            .map_err(BoxedStackError::new)
+            .context(RsaPrivateKeyParsingSnafu)?;
 
         // 4. Decrypt AES key with RSA private key
         let aes_key_bytes = rsa_private_key
             .decrypt(Pkcs1v15Encrypt, encrypted_key)
-            .map_err(|e| {
-                DecryptionSnafu {
-                    reason: format!("RSA decryption failed: {}", e),
-                }
-                .build()
-            })?;
+            .map_err(BoxedStackError::new)
+            .context(RsaDecryptionSnafu)?;
         let aes_key = SymmetricKey::new(aes_key_bytes);
 
         // 5. Decrypt ciphertext with AES key

@@ -9,7 +9,7 @@ use crate::domain::{
     keys::{PrivateKey, PublicKey, SymmetricKey},
     providers::KeyGenerator,
 };
-use super::errors::RsaKeyGenerationSnafu;
+use super::errors::{RsaKeyGenerationSnafu, EcdsaKeyGenerationSnafu, Ed25519KeyGenerationSnafu};
 
 /// RustCrypto-based key generator implementation
 pub struct RustCryptoKeyGenerator;
@@ -61,12 +61,14 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(|e| EcdsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
+            .map_err(BoxedStackError::new)
+            .context(EcdsaKeyGenerationSnafu)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(verifying_key, pkcs8::LineEnding::LF)
-                .map_err(|e| EcdsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
+                .map_err(BoxedStackError::new)
+                .context(EcdsaKeyGenerationSnafu)?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ecdsa(EcdsaCurve::P256),
@@ -83,12 +85,14 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(|e| EcdsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
+            .map_err(BoxedStackError::new)
+            .context(EcdsaKeyGenerationSnafu)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(verifying_key, pkcs8::LineEnding::LF)
-                .map_err(|e| EcdsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
+                .map_err(BoxedStackError::new)
+                .context(EcdsaKeyGenerationSnafu)?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ecdsa(EcdsaCurve::P384),
@@ -107,12 +111,14 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(|e| Ed25519KeyGenerationSnafu { reason: e.to_string() }.build())?;
+            .map_err(BoxedStackError::new)
+            .context(Ed25519KeyGenerationSnafu)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(&verifying_key, pkcs8::LineEnding::LF)
-                .map_err(|e| Ed25519KeyGenerationSnafu { reason: e.to_string() }.build())?;
+                .map_err(BoxedStackError::new)
+                .context(Ed25519KeyGenerationSnafu)?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ed25519,

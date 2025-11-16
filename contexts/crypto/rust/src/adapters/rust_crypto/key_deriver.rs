@@ -3,10 +3,11 @@ use rand::RngCore;
 use sha2::Sha256;
 
 use crate::domain::{
-    CryptoError, KeyDerivationSnafu,
+    CryptoError,
     keys::SymmetricKey,
     providers::KeyDeriver,
 };
+use super::errors::Pbkdf2DerivationSnafu;
 
 /// PBKDF2-based key deriver using RustCrypto
 pub struct RustCryptoKeyDeriver {
@@ -36,10 +37,11 @@ impl Default for RustCryptoKeyDeriver {
 impl KeyDeriver for RustCryptoKeyDeriver {
     fn derive_key(&self, password: &str, salt: &[u8], key_size: usize) -> Result<SymmetricKey, CryptoError> {
         if key_size != 16 && key_size != 32 {
-            return Err(KeyDerivationSnafu {
+            return Err(Pbkdf2DerivationSnafu {
                 reason: format!("Invalid key size: {} bytes (expected 16 or 32)", key_size),
             }
-            .build());
+            .build()
+            .into());
         }
 
         let mut key = vec![0u8; key_size];
