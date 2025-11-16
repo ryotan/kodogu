@@ -1,20 +1,21 @@
-use suzunari_error::suzunari_error;
+use snafu::Snafu;
 
 /// Domain-level cryptographic errors
-#[suzunari_error]
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub))]
 pub enum CryptoError {
-    #[snafu(display("Key generation failed: {message}"))]
-    KeyGeneration { message: String },
+    #[snafu(display("Key generation failed: {reason}"))]
+    KeyGeneration { reason: String },
 
-    #[snafu(display("Encryption failed: {message}"))]
-    Encryption { message: String },
+    #[snafu(display("Encryption failed: {reason}"))]
+    Encryption { reason: String },
 
-    #[snafu(display("Decryption failed: {message}"))]
-    Decryption { message: String },
+    #[snafu(display("Decryption failed: {reason}"))]
+    Decryption { reason: String },
 
-    #[snafu(display("Invalid key format: {message}"))]
-    InvalidKeyFormat { message: String },
+    #[snafu(display("Invalid key format: {reason}"))]
+    InvalidKeyFormat { reason: String },
 
-    #[snafu(display("Key derivation failed: {message}"))]
-    KeyDerivation { message: String },
+    #[snafu(display("Key derivation failed: {reason}"))]
+    KeyDerivation { reason: String },
 }

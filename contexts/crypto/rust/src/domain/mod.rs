@@ -6,4 +6,4 @@ pub mod traits;
 pub mod errors;
 
 pub use key_pair::KeyPair;
-pub use errors::CryptoError;
+pub use errors::*;
