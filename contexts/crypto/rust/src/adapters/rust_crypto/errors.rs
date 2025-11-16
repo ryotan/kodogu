@@ -19,8 +19,8 @@ pub enum RustCryptoError {
     #[snafu(display("AES decryption failed: {source}"))]
     AesDecryption { source: Box<dyn std::error::Error + Send + Sync> },
 
-    #[snafu(display("RSA key generation failed: {source}"))]
-    RsaKeyGeneration { source: Box<dyn std::error::Error + Send + Sync> },
+    #[snafu(display("RSA key generation failed"))]
+    RsaKeyGeneration { source: BoxedStackError },
 
     #[snafu(display("RSA encryption failed: {source}"))]
     RsaEncryption { source: Box<dyn std::error::Error + Send + Sync> },
