@@ -3,9 +3,10 @@
 use kodogu_crypto::{
     adapters::rust_crypto::{
         RustCryptoDecryptor, RustCryptoEncryptor, RustCryptoKeyDeriver, RustCryptoKeyGenerator,
+        symmetric_key_serializer,
     },
     AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,
-    RsaKeySize, SymmetricAlgorithm, SymmetricKey,
+    RsaKeySize, SymmetricAlgorithm,
 };
 
 mod key_generation {
@@ -131,15 +132,15 @@ mod symmetric_key_management {
             .generate_symmetric_key(SymmetricAlgorithm::Aes256)
             .unwrap();
 
-        let encoded = original_key.to_base64();
-        let decoded_key = SymmetricKey::from_base64(&encoded).expect("Base64 decode failed");
+        let encoded = symmetric_key_serializer::to_base64(&original_key);
+        let decoded_key = symmetric_key_serializer::from_base64(&encoded).expect("Base64 decode failed");
 
         assert_eq!(original_key.as_bytes(), decoded_key.as_bytes());
     }
 
     #[test]
     fn invalid_base64_rejected() {
-        let result = SymmetricKey::from_base64("not-valid-base64!!!");
+        let result = symmetric_key_serializer::from_base64("not-valid-base64!!!");
         assert!(result.is_err());
     }
 
@@ -150,7 +151,7 @@ mod symmetric_key_management {
             &base64::engine::general_purpose::STANDARD,
             &[0u8; 24],
         );
-        let result = SymmetricKey::from_base64(&invalid_bytes);
+        let result = symmetric_key_serializer::from_base64(&invalid_bytes);
         assert!(result.is_err());
     }
 
