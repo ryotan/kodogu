@@ -1,7 +1,7 @@
 //! Integration tests for crypto functionality
 
 use kodogu_crypto::{
-    adapters::rustcrypto::{
+    adapters::rust_crypto::{
         RustCryptoDecryptor, RustCryptoEncryptor, RustCryptoKeyDeriver, RustCryptoKeyGenerator,
     },
     AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,

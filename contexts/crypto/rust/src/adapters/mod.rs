@@ -1,3 +1,3 @@
 //! Adapters layer - external system implementations
 
-pub mod rustcrypto;
+pub mod rust_crypto;
