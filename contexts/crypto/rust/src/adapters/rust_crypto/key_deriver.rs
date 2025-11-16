@@ -36,7 +36,7 @@ impl Default for RustCryptoKeyDeriver {
 
 impl KeyDeriver for RustCryptoKeyDeriver {
     fn derive_key(&self, password: &str, salt: &[u8], key_size: usize) -> Result<SymmetricKey, CryptoError> {
-        ensure!(key_size != 16 && key_size != 32, Pbkdf2DerivationSnafu {
+        ensure!(key_size == 16 || key_size == 32, Pbkdf2DerivationSnafu {
                 reason: format!("Invalid key size: {} bytes (expected 16 or 32)", key_size),
             });
 

@@ -6,7 +6,6 @@ use rand::RngCore;
 use rsa::{Pkcs1v15Encrypt, RsaPublicKey};
 use pkcs8::DecodePublicKey;
 use snafu::ResultExt;
-use suzunari_error::BoxedStackError;
 
 use crate::domain::{
     CryptoError,
@@ -17,7 +16,7 @@ use crate::domain::{
 };
 use super::errors::{
     AesCipherCreationSnafu, AesEncryptionSnafu, InvalidKeySizeSnafu,
-    InvalidPemEncodingSnafu, RsaEncryptionSnafu, RsaPublicKeyParsingSnafu,
+    InvalidUtf8Snafu, RsaEncryptionSnafu, RsaPublicKeyParsingSnafu,
 };
 
 /// AES-GCM based encryptor using RustCrypto
@@ -73,7 +72,7 @@ impl Encryptor for RustCryptoEncryptor {
         // Format: [encrypted_key_len (2 bytes big-endian) | encrypted_key | aes_ciphertext]
 
         // 1. Parse RSA public key from PEM
-        let pem_string = String::from_utf8(public_key.as_bytes().to_vec()).context(InvalidPemEncodingSnafu)?;
+        let pem_string = String::from_utf8(public_key.as_bytes().to_vec()).context(InvalidUtf8Snafu)?;
         let rsa_public_key = RsaPublicKey::from_public_key_pem(&pem_string).context(RsaPublicKeyParsingSnafu)?;
 
         // 2. Generate random AES-256 key

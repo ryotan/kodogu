@@ -41,11 +41,17 @@ pub enum RustCryptoError {
     #[snafu(display("RSA private key parsing failed"))]
     RsaPrivateKeyParsing { source: pkcs8::Error },
 
-    #[snafu(display("ECDSA key generation failed"))]
-    EcdsaKeyGeneration { source: pkcs8::Error },
+    #[snafu(display("ECDSA PKCS8 encoding failed"))]
+    EcdsaPkcs8Encoding { source: pkcs8::Error },
 
-    #[snafu(display("Ed25519 key generation failed"))]
-    Ed25519KeyGeneration { source: pkcs8::Error },
+    #[snafu(display("ECDSA SPKI encoding failed"))]
+    EcdsaSpkiEncoding { source: pkcs8::spki::Error },
+
+    #[snafu(display("Ed25519 PKCS8 encoding failed"))]
+    Ed25519Pkcs8Encoding { source: pkcs8::Error },
+
+    #[snafu(display("Ed25519 SPKI encoding failed"))]
+    Ed25519SpkiEncoding { source: pkcs8::spki::Error },
 
     #[snafu(display("Invalid UTF-8 in PEM data"))]
     InvalidUtf8 { source: std::string::FromUtf8Error },
@@ -66,8 +72,10 @@ impl From<RustCryptoError> for CryptoError {
             RustCryptoError::RsaKeyGeneration { .. }
             | RustCryptoError::RsaPkcs8Encoding { .. }
             | RustCryptoError::RsaSpkiEncoding { .. }
-            | RustCryptoError::EcdsaKeyGeneration { .. }
-            | RustCryptoError::Ed25519KeyGeneration { .. } => KeyGeneration { source: BoxedStackError::new(e) },
+            | RustCryptoError::EcdsaPkcs8Encoding { .. }
+            | RustCryptoError::EcdsaSpkiEncoding { .. }
+            | RustCryptoError::Ed25519Pkcs8Encoding { .. }
+            | RustCryptoError::Ed25519SpkiEncoding { .. } => KeyGeneration { source: BoxedStackError::new(e) },
             RustCryptoError::AesCipherCreation { .. }
             | RustCryptoError::AesEncryption { .. }
             | RustCryptoError::RsaEncryption { .. }

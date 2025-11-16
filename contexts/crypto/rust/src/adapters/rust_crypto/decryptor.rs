@@ -14,7 +14,7 @@ use crate::domain::{
 };
 use super::errors::{
     AesCipherCreationSnafu, AesDecryptionSnafu, CiphertextTooShortSnafu,
-    InvalidKeySizeSnafu, RsaDecryptionSnafu, RsaPrivateKeyParsingSnafu, InvalidPemEncodingSnafu
+    InvalidKeySizeSnafu, RsaDecryptionSnafu, RsaPrivateKeyParsingSnafu, InvalidUtf8Snafu
 };
 
 /// AES-GCM based decryptor using RustCrypto
@@ -38,7 +38,7 @@ impl Decryptor for RustCryptoDecryptor {
         let key_bytes = key.as_bytes();
 
         // Extract nonce and ciphertext: [nonce (12 bytes) | ciphertext]
-        ensure!(data.len() < 12, CiphertextTooShortSnafu { size: data.len() });
+        ensure!(data.len() >= 12, CiphertextTooShortSnafu { size: data.len() });
 
         let (nonce_bytes, encrypted) = data.split_at(12);
         let nonce = Nonce::from_slice(nonce_bytes);
@@ -82,7 +82,7 @@ impl Decryptor for RustCryptoDecryptor {
         let aes_ciphertext_bytes = &data[2 + key_len..];
 
         // 3. Parse RSA private key from PEM
-        let pem_string = String::from_utf8(private_key.as_bytes().to_vec()).context(InvalidPemEncodingSnafu)?;
+        let pem_string = String::from_utf8(private_key.as_bytes().to_vec()).context(InvalidUtf8Snafu)?;
         let rsa_private_key = RsaPrivateKey::from_pkcs8_pem(&pem_string).context(RsaPrivateKeyParsingSnafu)?;
 
         // 4. Decrypt AES key with RSA private key
