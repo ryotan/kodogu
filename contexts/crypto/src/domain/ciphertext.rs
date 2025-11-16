@@ -14,13 +14,4 @@ impl Ciphertext {
     pub fn into_bytes(self) -> Vec<u8> {
         self.0
     }
-
-    pub fn to_base64(&self) -> String {
-        base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &self.0)
-    }
-
-    pub fn from_base64(s: &str) -> Result<Self, base64::DecodeError> {
-        let bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, s)?;
-        Ok(Self(bytes))
-    }
 }

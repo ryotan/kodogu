@@ -1,5 +1,6 @@
 //! RustCrypto-based implementations
 
+pub mod ciphertext_serializer;
 mod decryptor;
 mod encryptor;
 mod errors;
