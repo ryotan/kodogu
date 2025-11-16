@@ -6,7 +6,7 @@ use crate::domain::{
 };
 
 /// Decryption abstraction
-pub trait Decryptor {
+pub trait Decryptor: Send + Sync {
     /// Decrypt with symmetric key
     fn decrypt_symmetric(
         &self,

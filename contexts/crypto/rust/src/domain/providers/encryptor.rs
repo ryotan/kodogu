@@ -6,7 +6,7 @@ use crate::domain::{
 };
 
 /// Encryption abstraction
-pub trait Encryptor {
+pub trait Encryptor: Send + Sync {
     /// Encrypt with symmetric key
     fn encrypt_symmetric(
         &self,

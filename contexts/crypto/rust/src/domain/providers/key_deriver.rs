@@ -1,7 +1,7 @@
 use crate::domain::{CryptoError, keys::SymmetricKey};
 
 /// Key derivation abstraction (e.g., PBKDF2)
-pub trait KeyDeriver {
+pub trait KeyDeriver: Send + Sync {
     /// Derive symmetric key from password string
     fn derive_key(
         &self,
