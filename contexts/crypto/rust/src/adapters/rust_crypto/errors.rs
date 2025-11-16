@@ -1,8 +1,6 @@
 use suzunari_error::{suzunari_error, BoxedStackError};
-use crate::domain::{
-    CryptoError, DecryptionSnafu, EncryptionSnafu, InvalidKeySizeSnafu,
-    KeyDerivationSnafu, KeyGenerationSnafu,
-};
+use crate::CryptoError::{Decryption, Encryption, InvalidKeySize as DomainInvalidKeySize, KeyDerivation, KeyGeneration};
+use crate::domain::CryptoError;
 
 /// RustCrypto adapter layer errors
 ///
@@ -36,6 +34,9 @@ pub enum RustCryptoError {
 
     #[snafu(display("RSA public key parsing failed"))]
     RsaPublicKeyParsing { source: pkcs8::spki::Error },
+
+    #[snafu(display("Invalid PEM encoding (not a valid PKCS8 or SPKI block"))]
+    InvalidPemEncoding { source: pkcs8::Error },
 
     #[snafu(display("RSA private key parsing failed"))]
     RsaPrivateKeyParsing { source: pkcs8::Error },
@@ -74,36 +75,19 @@ impl From<RustCryptoError> for CryptoError {
             | RustCryptoError::EcdsaPkcs8Encoding { .. }
             | RustCryptoError::EcdsaSpkiEncoding { .. }
             | RustCryptoError::Ed25519Pkcs8Encoding { .. }
-            | RustCryptoError::Ed25519SpkiEncoding { .. } => KeyGenerationSnafu {
-                source: BoxedStackError::new(e),
-            }
-            .build()
-            .into(),
+            | RustCryptoError::Ed25519SpkiEncoding { .. } => KeyGeneration { source: BoxedStackError::new(e) },
             RustCryptoError::AesCipherCreation { .. }
             | RustCryptoError::AesEncryption { .. }
             | RustCryptoError::RsaEncryption { .. }
             | RustCryptoError::RsaPublicKeyParsing { .. }
-            | RustCryptoError::InvalidUtf8 { .. } => EncryptionSnafu {
-                source: BoxedStackError::new(e),
-            }
-            .build()
-            .into(),
+            | RustCryptoError::InvalidUtf8 { .. } => Encryption { source: BoxedStackError::new(e) },
             RustCryptoError::AesDecryption { .. }
             | RustCryptoError::RsaDecryption { .. }
+            | RustCryptoError::InvalidPemEncoding { .. }
             | RustCryptoError::RsaPrivateKeyParsing { .. }
-            | RustCryptoError::CiphertextTooShort { .. } => DecryptionSnafu {
-                source: BoxedStackError::new(e),
-            }
-            .build()
-            .into(),
-            RustCryptoError::InvalidKeySize { size, .. } => {
-                InvalidKeySizeSnafu { size }.build().into()
-            }
-            RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivationSnafu {
-                source: BoxedStackError::new(e),
-            }
-            .build()
-            .into(),
+            | RustCryptoError::CiphertextTooShort { .. } => Decryption { source: BoxedStackError::new(e) },
+            RustCryptoError::InvalidKeySize { .. } => DomainInvalidKeySize { source: BoxedStackError::new(e) },
+            RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivation { source: BoxedStackError::new(e) },
         }
     }
 }

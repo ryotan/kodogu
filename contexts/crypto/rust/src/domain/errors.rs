@@ -1,66 +1,26 @@
-use suzunari_error::{suzunari_error, BoxedStackError};
+use std::fmt::Display;
+use suzunari_error::{BoxedStackError};
 
 /// Domain-level cryptographic errors
-#[suzunari_error]
-#[snafu(visibility(pub))]
+#[derive(Debug)]
 pub enum CryptoError {
-    #[snafu(transparent)]
-    KeyGeneration { source: KeyGenerationError },
+    KeyGeneration { source: BoxedStackError },
 
-    #[snafu(transparent)]
-    Encryption { source: EncryptionError },
+    Encryption { source: BoxedStackError },
 
-    #[snafu(transparent)]
-    Decryption { source: DecryptionError },
+    Decryption { source: BoxedStackError },
 
-    #[snafu(transparent)]
-    InvalidKeyEncoding { source: InvalidKeyEncodingError },
+    InvalidKeyEncoding { source: BoxedStackError },
 
-    #[snafu(transparent)]
-    InvalidKeySize { source: InvalidKeySizeError },
+    InvalidKeySize { source: BoxedStackError },
 
-    #[snafu(transparent)]
-    KeyDerivation { source: KeyDerivationError },
+    KeyDerivation { source: BoxedStackError },
 }
 
-#[suzunari_error]
-#[snafu(visibility(pub))]
-#[snafu(display("Key generation failed"))]
-pub struct KeyGenerationError {
-    pub source: BoxedStackError,
+impl Display for CryptoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
-#[suzunari_error]
-#[snafu(visibility(pub))]
-#[snafu(display("Encryption failed"))]
-pub struct EncryptionError {
-    pub source: BoxedStackError,
-}
-
-#[suzunari_error]
-#[snafu(visibility(pub))]
-#[snafu(display("Decryption failed"))]
-pub struct DecryptionError {
-    pub source: BoxedStackError,
-}
-
-#[suzunari_error]
-#[snafu(visibility(pub))]
-#[snafu(display("Invalid key encoding: {reason}"))]
-pub struct InvalidKeyEncodingError {
-    pub reason: String,
-}
-
-#[suzunari_error]
-#[snafu(visibility(pub))]
-#[snafu(display("Invalid key size: {size} bytes"))]
-pub struct InvalidKeySizeError {
-    pub size: usize,
-}
-
-#[suzunari_error]
-#[snafu(visibility(pub))]
-#[snafu(display("Key derivation failed"))]
-pub struct KeyDerivationError {
-    pub source: BoxedStackError,
-}
+impl std::error::Error for CryptoError {}

@@ -1,7 +1,6 @@
 use rand::rngs::OsRng;
 use rand::Rng;
 use snafu::ResultExt;
-use suzunari_error::BoxedStackError;
 
 use crate::domain::{
     CryptoError, KeyPair,
@@ -25,18 +24,15 @@ impl RustCryptoKeyGenerator {
 
         let bits = key_size.bits();
         let private_key = RsaPrivateKey::new(&mut OsRng, bits)
-            .map_err(BoxedStackError::new)
             .context(RsaKeyGenerationSnafu)?;
 
         let private_pem = private_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(BoxedStackError::new)
             .context(RsaKeyGenerationSnafu)?;
 
         let public_key = private_key.to_public_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(&public_key, pkcs8::LineEnding::LF)
-                .map_err(BoxedStackError::new)
                 .context(RsaKeyGenerationSnafu)?;
 
         Ok(KeyPair::new(
@@ -61,13 +57,11 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(BoxedStackError::new)
             .context(EcdsaKeyGenerationSnafu)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(verifying_key, pkcs8::LineEnding::LF)
-                .map_err(BoxedStackError::new)
                 .context(EcdsaKeyGenerationSnafu)?;
 
         Ok(KeyPair::new(
@@ -85,13 +79,11 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(BoxedStackError::new)
             .context(EcdsaKeyGenerationSnafu)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(verifying_key, pkcs8::LineEnding::LF)
-                .map_err(BoxedStackError::new)
                 .context(EcdsaKeyGenerationSnafu)?;
 
         Ok(KeyPair::new(
@@ -111,13 +103,11 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(BoxedStackError::new)
             .context(Ed25519KeyGenerationSnafu)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(&verifying_key, pkcs8::LineEnding::LF)
-                .map_err(BoxedStackError::new)
                 .context(Ed25519KeyGenerationSnafu)?;
 
         Ok(KeyPair::new(
