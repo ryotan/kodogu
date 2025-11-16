@@ -2,11 +2,12 @@ use rand::rngs::OsRng;
 use rand::Rng;
 
 use crate::domain::{
-    CryptoError, KeyGenerationSnafu, KeyPair,
+    CryptoError, KeyPair,
     algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
     keys::{PrivateKey, PublicKey, SymmetricKey},
     providers::KeyGenerator,
 };
+use super::errors::RustCryptoError;
 
 /// RustCrypto-based key generator implementation
 pub struct RustCryptoKeyGenerator;
@@ -21,31 +22,17 @@ impl RustCryptoKeyGenerator {
         use rsa::RsaPrivateKey;
 
         let bits = key_size.bits();
-        let private_key = RsaPrivateKey::new(&mut OsRng, bits).map_err(|e| {
-            KeyGenerationSnafu {
-                reason: format!("RSA key generation failed: {}", e),
-            }
-            .build()
-        })?;
+        let private_key = RsaPrivateKey::new(&mut OsRng, bits)
+            .map_err(|e| RsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
 
         let private_pem = private_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(|e| {
-                KeyGenerationSnafu {
-                    reason: format!("Failed to encode private key to PEM: {}", e),
-                }
-                .build()
-            })?;
+            .map_err(|e| RsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
 
         let public_key = private_key.to_public_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(&public_key, pkcs8::LineEnding::LF)
-                .map_err(|e| {
-                    KeyGenerationSnafu {
-                        reason: format!("Failed to encode public key to PEM: {}", e),
-                    }
-                    .build()
-                })?;
+                .map_err(|e| RsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Rsa(key_size),
@@ -69,22 +56,12 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(|e| {
-                KeyGenerationSnafu {
-                    reason: format!("Failed to encode P-256 private key to PEM: {}", e),
-                }
-                .build()
-            })?;
+            .map_err(|e| EcdsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(verifying_key, pkcs8::LineEnding::LF)
-                .map_err(|e| {
-                    KeyGenerationSnafu {
-                        reason: format!("Failed to encode P-256 public key to PEM: {}", e),
-                    }
-                    .build()
-                })?;
+                .map_err(|e| EcdsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ecdsa(EcdsaCurve::P256),
@@ -101,22 +78,12 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(|e| {
-                KeyGenerationSnafu {
-                    reason: format!("Failed to encode P-384 private key to PEM: {}", e),
-                }
-                .build()
-            })?;
+            .map_err(|e| EcdsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(verifying_key, pkcs8::LineEnding::LF)
-                .map_err(|e| {
-                    KeyGenerationSnafu {
-                        reason: format!("Failed to encode P-384 public key to PEM: {}", e),
-                    }
-                    .build()
-                })?;
+                .map_err(|e| EcdsaKeyGenerationSnafu { source: Box::new(e) as _ }.build())?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ecdsa(EcdsaCurve::P384),
@@ -135,22 +102,12 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .map_err(|e| {
-                KeyGenerationSnafu {
-                    reason: format!("Failed to encode Ed25519 private key to PEM: {}", e),
-                }
-                .build()
-            })?;
+            .map_err(|e| Ed25519KeyGenerationSnafu { reason: e.to_string() }.build())?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(&verifying_key, pkcs8::LineEnding::LF)
-                .map_err(|e| {
-                    KeyGenerationSnafu {
-                        reason: format!("Failed to encode Ed25519 public key to PEM: {}", e),
-                    }
-                    .build()
-                })?;
+                .map_err(|e| Ed25519KeyGenerationSnafu { reason: e.to_string() }.build())?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ed25519,

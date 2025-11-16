@@ -1,6 +1,6 @@
 use suzunari_error::{suzunari_error, BoxedStackError};
 use crate::domain::{
-    CryptoError, DecryptionSnafu, EncryptionSnafu, KeyDerivationSnafu, KeyGenerationSnafu,
+    CryptoError, DecryptionErrorSnafu, EncryptionErrorSnafu, KeyDerivationErrorSnafu, KeyGenerationErrorSnafu,
 };
 
 /// RustCrypto adapter layer errors
@@ -61,27 +61,31 @@ impl From<RustCryptoError> for CryptoError {
             | RustCryptoError::RsaEncryption { .. }
             | RustCryptoError::RsaPublicKeyParsing { .. }
             | RustCryptoError::InvalidPemEncoding { .. }
-            | RustCryptoError::InvalidKeySize { .. } => EncryptionSnafu {
-                cause: BoxedStackError::new(e),
+            | RustCryptoError::InvalidKeySize { .. } => EncryptionErrorSnafu {
+                source: BoxedStackError::new(e),
             }
-            .build(),
+            .build()
+            .into(),
             RustCryptoError::AesDecryption { .. }
             | RustCryptoError::RsaDecryption { .. }
             | RustCryptoError::RsaPrivateKeyParsing { .. }
-            | RustCryptoError::CiphertextTooShort { .. } => DecryptionSnafu {
-                cause: BoxedStackError::new(e),
+            | RustCryptoError::CiphertextTooShort { .. } => DecryptionErrorSnafu {
+                source: BoxedStackError::new(e),
             }
-            .build(),
+            .build()
+            .into(),
             RustCryptoError::RsaKeyGeneration { .. }
             | RustCryptoError::EcdsaKeyGeneration { .. }
-            | RustCryptoError::Ed25519KeyGeneration { .. } => KeyGenerationSnafu {
-                cause: BoxedStackError::new(e),
+            | RustCryptoError::Ed25519KeyGeneration { .. } => KeyGenerationErrorSnafu {
+                source: BoxedStackError::new(e),
             }
-            .build(),
-            RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivationSnafu {
-                cause: BoxedStackError::new(e),
+            .build()
+            .into(),
+            RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivationErrorSnafu {
+                source: BoxedStackError::new(e),
             }
-            .build(),
+            .build()
+            .into(),
         }
     }
 }
