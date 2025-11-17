@@ -40,32 +40,26 @@ impl Encryptor for RustCryptoEncryptor {
         plaintext: &Plaintext,
         key: &SymmetricKey,
     ) -> Result<Ciphertext, CryptoError> {
-        let key_bytes = key.as_bytes();
-
         // Generate random 96-bit nonce
         let mut nonce_bytes = [0u8; 12];
         OsRng.fill_bytes(&mut nonce_bytes);
         let nonce = Nonce::from_slice(&nonce_bytes);
 
-        let encrypted = match key_bytes.len() {
-            16 => {
-                // AES-128-GCM
-                let cipher =
-                    Aes128Gcm::new_from_slice(key_bytes).context(AesCipherCreationSnafu)?;
+        let encrypted = match key {
+            SymmetricKey::Aes128(key_bytes) => {
+                let cipher = Aes128Gcm::new_from_slice(key_bytes.as_slice())
+                    .context(AesCipherCreationSnafu)?;
                 cipher
                     .encrypt(nonce, plaintext.as_bytes())
                     .context(AesEncryptionSnafu)?
             }
-            32 => {
-                // AES-256-GCM
-                let cipher =
-                    Aes256Gcm::new_from_slice(key_bytes).context(AesCipherCreationSnafu)?;
+            SymmetricKey::Aes256(key_bytes) => {
+                let cipher = Aes256Gcm::new_from_slice(key_bytes.as_slice())
+                    .context(AesCipherCreationSnafu)?;
                 cipher
                     .encrypt(nonce, plaintext.as_bytes())
                     .context(AesEncryptionSnafu)?
             }
-            // SymmetricKey invariant guarantees 16 or 32 bytes
-            _ => unreachable!("SymmetricKey should only contain 16 or 32 bytes"),
         };
 
         // Prepend nonce to ciphertext: [nonce (12 bytes) | ciphertext]
@@ -91,9 +85,9 @@ impl Encryptor for RustCryptoEncryptor {
             RsaPublicKey::from_public_key_pem(&pem_string).context(RsaPublicKeyParsingSnafu)?;
 
         // 2. Generate random AES-256 key
-        let mut aes_key_bytes = vec![0u8; 32];
+        let mut aes_key_bytes = [0u8; 32];
         OsRng.fill_bytes(&mut aes_key_bytes);
-        let aes_key = SymmetricKey::new(aes_key_bytes)?;
+        let aes_key = SymmetricKey::aes256(aes_key_bytes);
 
         // 3. Encrypt plaintext with AES key
         let aes_ciphertext = self.encrypt_symmetric(plaintext, &aes_key)?;

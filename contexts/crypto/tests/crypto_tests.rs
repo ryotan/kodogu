@@ -125,34 +125,27 @@ mod symmetric_key_management {
     use super::*;
 
     #[test]
-    fn valid_aes128_key_size_accepted() {
-        let bytes = vec![0u8; 16];
-        let key = SymmetricKey::new(bytes);
-        assert!(key.is_ok());
-        assert_eq!(key.unwrap().len(), 16);
+    fn aes128_key_construction() {
+        let key = SymmetricKey::aes128([0u8; 16]);
+        assert_eq!(key.len(), 16);
+        assert!(!key.is_empty());
     }
 
     #[test]
-    fn valid_aes256_key_size_accepted() {
-        let bytes = vec![0u8; 32];
-        let key = SymmetricKey::new(bytes);
-        assert!(key.is_ok());
-        assert_eq!(key.unwrap().len(), 32);
+    fn aes256_key_construction() {
+        let key = SymmetricKey::aes256([0u8; 32]);
+        assert_eq!(key.len(), 32);
+        assert!(!key.is_empty());
     }
 
     #[test]
-    fn invalid_key_size_rejected() {
-        // 24 bytes is not a valid AES key size
-        let bytes = vec![0u8; 24];
-        let result = SymmetricKey::new(bytes);
-        assert!(result.is_err());
-    }
+    fn key_equality() {
+        let key1 = SymmetricKey::aes256([1u8; 32]);
+        let key2 = SymmetricKey::aes256([1u8; 32]);
+        let key3 = SymmetricKey::aes256([2u8; 32]);
 
-    #[test]
-    fn empty_key_rejected() {
-        let bytes = vec![];
-        let result = SymmetricKey::new(bytes);
-        assert!(result.is_err());
+        assert_eq!(key1, key2);
+        assert_ne!(key1, key3);
     }
 
     #[test]

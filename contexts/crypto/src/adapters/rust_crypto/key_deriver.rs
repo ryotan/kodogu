@@ -1,9 +1,9 @@
-use super::errors::Pbkdf2DerivationSnafu;
-use crate::domain::{keys::SymmetricKey, providers::KeyDeriver, CryptoError};
 use pbkdf2::pbkdf2_hmac;
 use rand::RngCore;
 use sha2::Sha256;
-use snafu::ensure;
+
+use super::errors::Pbkdf2DerivationSnafu;
+use crate::domain::{keys::SymmetricKey, providers::KeyDeriver, CryptoError};
 
 /// PBKDF2-based key deriver using RustCrypto
 pub struct RustCryptoKeyDeriver {
@@ -37,17 +37,24 @@ impl KeyDeriver for RustCryptoKeyDeriver {
         salt: &[u8],
         key_size: usize,
     ) -> Result<SymmetricKey, CryptoError> {
-        ensure!(
-            key_size == 16 || key_size == 32,
-            Pbkdf2DerivationSnafu {
+        let key = match key_size {
+            16 => {
+                let mut key_bytes = [0u8; 16];
+                pbkdf2_hmac::<Sha256>(password.as_bytes(), salt, self.iterations, &mut key_bytes);
+                SymmetricKey::aes128(key_bytes)
+            }
+            32 => {
+                let mut key_bytes = [0u8; 32];
+                pbkdf2_hmac::<Sha256>(password.as_bytes(), salt, self.iterations, &mut key_bytes);
+                SymmetricKey::aes256(key_bytes)
+            }
+            _ => Pbkdf2DerivationSnafu {
                 reason: format!("Invalid key size: {} bytes (expected 16 or 32)", key_size),
             }
-        );
+            .fail()?,
+        };
 
-        let mut key = vec![0u8; key_size];
-        pbkdf2_hmac::<Sha256>(password.as_bytes(), salt, self.iterations, &mut key);
-
-        SymmetricKey::new(key)
+        Ok(key)
     }
 
     fn derive_key_with_random_salt(

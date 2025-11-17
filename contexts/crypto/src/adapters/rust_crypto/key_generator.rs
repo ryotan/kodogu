@@ -139,10 +139,19 @@ impl KeyGenerator for RustCryptoKeyGenerator {
         &self,
         algorithm: SymmetricAlgorithm,
     ) -> Result<SymmetricKey, CryptoError> {
-        let key_size = algorithm.key_size_bytes();
-        let mut key_bytes = vec![0u8; key_size];
-        OsRng.fill(&mut key_bytes[..]);
-        SymmetricKey::new(key_bytes)
+        let key = match algorithm {
+            SymmetricAlgorithm::Aes128 => {
+                let mut key_bytes = [0u8; 16];
+                OsRng.fill(&mut key_bytes);
+                SymmetricKey::aes128(key_bytes)
+            }
+            SymmetricAlgorithm::Aes256 => {
+                let mut key_bytes = [0u8; 32];
+                OsRng.fill(&mut key_bytes);
+                SymmetricKey::aes256(key_bytes)
+            }
+        };
+        Ok(key)
     }
 
     fn generate_password_string(&self, length: usize) -> Result<String, CryptoError> {

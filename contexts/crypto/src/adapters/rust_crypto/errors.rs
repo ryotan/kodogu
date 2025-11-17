@@ -61,6 +61,9 @@ pub enum RustCryptoError {
     #[snafu(display("Ciphertext too short: {size} bytes"))]
     CiphertextTooShort { size: usize },
 
+    #[snafu(display("Invalid decrypted key size: {size} bytes (expected 32)"))]
+    InvalidDecryptedKeySize { size: usize },
+
     #[snafu(display("PBKDF2 derivation failed: {reason}"))]
     Pbkdf2Derivation { reason: String },
 }
@@ -88,7 +91,8 @@ impl From<RustCryptoError> for CryptoError {
             | RustCryptoError::RsaDecryption { .. }
             | RustCryptoError::InvalidPemEncoding { .. }
             | RustCryptoError::RsaPrivateKeyParsing { .. }
-            | RustCryptoError::CiphertextTooShort { .. } => Decryption {
+            | RustCryptoError::CiphertextTooShort { .. }
+            | RustCryptoError::InvalidDecryptedKeySize { .. } => Decryption {
                 source: BoxedStackError::new(e),
             },
             RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivation {

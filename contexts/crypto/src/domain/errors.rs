@@ -1,14 +1,6 @@
 use std::fmt::Display;
 
-use suzunari_error::{suzunari_error, BoxedStackError};
-
-/// Domain-level validation errors (internal, with stack trace)
-#[suzunari_error]
-#[snafu(visibility(pub(crate)))]
-pub enum DomainError {
-    #[snafu(display("Invalid key size: {size} bytes (expected 16 or 32)"))]
-    InvalidKeySize { size: usize },
-}
+use suzunari_error::BoxedStackError;
 
 /// Domain-level cryptographic errors
 #[derive(Debug)]
@@ -19,19 +11,7 @@ pub enum CryptoError {
 
     Decryption { source: BoxedStackError },
 
-    InvalidKeySize { source: BoxedStackError },
-
     KeyDerivation { source: BoxedStackError },
-}
-
-impl From<DomainError> for CryptoError {
-    fn from(e: DomainError) -> Self {
-        match &e {
-            DomainError::InvalidKeySize { .. } => CryptoError::InvalidKeySize {
-                source: BoxedStackError::new(e),
-            },
-        }
-    }
 }
 
 impl Display for CryptoError {

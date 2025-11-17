@@ -1,6 +1,6 @@
 use super::errors::{
-    AesCipherCreationSnafu, AesDecryptionSnafu, CiphertextTooShortSnafu, InvalidUtf8Snafu,
-    RsaDecryptionSnafu, RsaPrivateKeyParsingSnafu,
+    AesCipherCreationSnafu, AesDecryptionSnafu, CiphertextTooShortSnafu,
+    InvalidDecryptedKeySizeSnafu, InvalidUtf8Snafu, RsaDecryptionSnafu, RsaPrivateKeyParsingSnafu,
 };
 use crate::domain::{
     ciphertext::Ciphertext,
@@ -36,7 +36,6 @@ impl Decryptor for RustCryptoDecryptor {
         key: &SymmetricKey,
     ) -> Result<Plaintext, CryptoError> {
         let data = ciphertext.as_bytes();
-        let key_bytes = key.as_bytes();
 
         // Extract nonce and ciphertext: [nonce (12 bytes) | ciphertext]
         ensure!(
@@ -47,25 +46,21 @@ impl Decryptor for RustCryptoDecryptor {
         let (nonce_bytes, encrypted) = data.split_at(12);
         let nonce = Nonce::from_slice(nonce_bytes);
 
-        let decrypted = match key_bytes.len() {
-            16 => {
-                // AES-128-GCM
-                let cipher =
-                    Aes128Gcm::new_from_slice(key_bytes).context(AesCipherCreationSnafu)?;
+        let decrypted = match key {
+            SymmetricKey::Aes128(key_bytes) => {
+                let cipher = Aes128Gcm::new_from_slice(key_bytes.as_slice())
+                    .context(AesCipherCreationSnafu)?;
                 cipher
                     .decrypt(nonce, encrypted)
                     .context(AesDecryptionSnafu)?
             }
-            32 => {
-                // AES-256-GCM
-                let cipher =
-                    Aes256Gcm::new_from_slice(key_bytes).context(AesCipherCreationSnafu)?;
+            SymmetricKey::Aes256(key_bytes) => {
+                let cipher = Aes256Gcm::new_from_slice(key_bytes.as_slice())
+                    .context(AesCipherCreationSnafu)?;
                 cipher
                     .decrypt(nonce, encrypted)
                     .context(AesDecryptionSnafu)?
             }
-            // SymmetricKey invariant guarantees 16 or 32 bytes
-            _ => unreachable!("SymmetricKey should only contain 16 or 32 bytes"),
         };
 
         Ok(Plaintext::new(decrypted))
@@ -106,9 +101,20 @@ impl Decryptor for RustCryptoDecryptor {
         let aes_key_bytes = rsa_private_key
             .decrypt(Pkcs1v15Encrypt, encrypted_key)
             .context(RsaDecryptionSnafu)?;
-        let aes_key = SymmetricKey::new(aes_key_bytes)?;
 
-        // 5. Decrypt ciphertext with AES key
+        // 5. Convert to fixed-size array (AES-256 key)
+        ensure!(
+            aes_key_bytes.len() == 32,
+            InvalidDecryptedKeySizeSnafu {
+                size: aes_key_bytes.len()
+            }
+        );
+        let aes_key_array: [u8; 32] = aes_key_bytes
+            .try_into()
+            .expect("Length already verified to be 32");
+        let aes_key = SymmetricKey::aes256(aes_key_array);
+
+        // 6. Decrypt ciphertext with AES key
         let aes_ciphertext = Ciphertext::new(aes_ciphertext_bytes.to_vec());
         self.decrypt_symmetric(&aes_ciphertext, &aes_key)
     }
