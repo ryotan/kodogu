@@ -27,13 +27,13 @@
 
 ### Layer Structure
 
-This project follows Clean Architecture with DDD tactical patterns:
+This project organizes code into layers with dependencies pointing inward, protecting business logic from framework changes:
 
 **Domain Layer**
 - [Entities](#entities), [Value Objects](#value-objects), [Aggregates](#aggregates)
 - [Domain Behaviors](#domain-behaviors)
 - [Domain Events](#domain-events)
-- [Repository](#repositories) interfaces (abstractions)
+- [Adapters](#adapters) interfaces (abstractions)
 
 **Use Cases Layer**
 - [Use Cases](#use-cases) (orchestration)
@@ -42,7 +42,7 @@ This project follows Clean Architecture with DDD tactical patterns:
 
 **Adapters Layer**
 - Controllers, Presenters
-- Repository implementations
+- [Repository implementations](#repositories)
 - External service clients
 - Message queue adapters
 
@@ -114,11 +114,11 @@ Reference: Robert C. Martin's "Clean Architecture"
 
 ### SOLID Principles
 
-Clean Architecture is built on SOLID principles, particularly the Dependency Inversion Principle.
+This layered architecture is built on SOLID principles, particularly the Dependency Inversion Principle.
 
 #### Dependency Inversion Principle (DIP)
 
-The core principle of Clean Architecture's dependency rule:
+The core principle of this dependency rule:
 
 - **High-level modules** should not depend on **low-level modules**. Both should depend on **abstractions**
 - **Abstractions** should not depend on **details**. **Details** should depend on **abstractions**
@@ -132,7 +132,7 @@ Application in this project:
 
 #### Other SOLID Principles
 
-While all SOLID principles apply, DIP is most central to Clean Architecture:
+While all SOLID principles apply, DIP is most central to this layered architecture:
 
 - **Single Responsibility Principle (SRP)**: Each module has one reason to change
 - **Open/Closed Principle (OCP)**: Open for extension, closed for modification
