@@ -23,68 +23,30 @@
 - Don't leak implementation details across boundaries
 - **Why**: Protects domain integrity and enables independent evolution
 
-## Dependency Direction
-
-### The Dependency Rule
-
-- Dependencies point inward: Outer layers depend on inner layers, never the reverse
-- Domain layer has no dependencies on infrastructure or application
-- Application layer orchestrates but doesn't contain business logic
-- **Why**: Keeps business logic pure and testable
-
-### SOLID Principles
-
-Clean Architecture is built on SOLID principles, particularly the Dependency Inversion Principle.
-
-#### Dependency Inversion Principle (DIP)
-
-The core principle of Clean Architecture's dependency rule:
-
-- **High-level modules** should not depend on **low-level modules**. Both should depend on **abstractions**
-- **Abstractions** should not depend on **details**. **Details** should depend on **abstractions**
-
-Application in this project:
-- Domain layer defines interfaces (abstractions)
-- Infrastructure layer implements interfaces (details depend on abstractions)
-- Dependencies point inward, never outward
-
-**Why**: Enables flexibility, testability, and independent deployability of layers.
-
-#### Other SOLID Principles
-
-While all SOLID principles apply, DIP is most central to Clean Architecture:
-
-- **Single Responsibility Principle (SRP)**: Each module has one reason to change
-- **Open/Closed Principle (OCP)**: Open for extension, closed for modification
-- **Liskov Substitution Principle (LSP)**: Subtypes are substitutable for base types
-- **Interface Segregation Principle (ISP)**: Clients shouldn't depend on unused methods
-
-Reference: Robert C. Martin's "Clean Architecture"
-
 ## Architectural Layers
 
 ### Layer Structure
 
 This project follows Clean Architecture with DDD tactical patterns:
 
-**Domain**
+**Domain Layer**
 - [Entities](#entities), [Value Objects](#value-objects), [Aggregates](#aggregates)
 - [Domain Behaviors](#domain-behaviors)
 - [Domain Events](#domain-events)
 - [Repository](#repositories) interfaces (abstractions)
 
-**Use Cases**
+**Use Cases Layer**
 - [Use Cases](#use-cases) (orchestration)
 - Commands and Queries
 - Application-specific workflows
 
-**Adapters**
+**Adapters Layer**
 - Controllers, Presenters
 - Repository implementations
 - External service clients
 - Message queue adapters
 
-**Frameworks**
+**Frameworks Layer**
 - Web frameworks
 - Database drivers
 - External libraries
@@ -138,6 +100,44 @@ src/
 ```
 
 This structure screams "**Spring MVC**", not "**Order Management**".
+
+Reference: Robert C. Martin's "Clean Architecture"
+
+## Dependency Direction
+
+### The Dependency Rule
+
+- Dependencies point inward: Outer layers depend on inner layers, never the reverse
+- Domain layer has no dependencies on infrastructure or application
+- Application layer orchestrates but doesn't contain business logic
+- **Why**: Keeps business logic pure and testable
+
+### SOLID Principles
+
+Clean Architecture is built on SOLID principles, particularly the Dependency Inversion Principle.
+
+#### Dependency Inversion Principle (DIP)
+
+The core principle of Clean Architecture's dependency rule:
+
+- **High-level modules** should not depend on **low-level modules**. Both should depend on **abstractions**
+- **Abstractions** should not depend on **details**. **Details** should depend on **abstractions**
+
+Application in this project:
+- Domain layer defines interfaces (abstractions)
+- Infrastructure layer implements interfaces (details depend on abstractions)
+- Dependencies point inward, never outward
+
+**Why**: Enables flexibility, testability, and independent deployability of layers.
+
+#### Other SOLID Principles
+
+While all SOLID principles apply, DIP is most central to Clean Architecture:
+
+- **Single Responsibility Principle (SRP)**: Each module has one reason to change
+- **Open/Closed Principle (OCP)**: Open for extension, closed for modification
+- **Liskov Substitution Principle (LSP)**: Subtypes are substitutable for base types
+- **Interface Segregation Principle (ISP)**: Clients shouldn't depend on unused methods
 
 Reference: Robert C. Martin's "Clean Architecture"
 
