@@ -117,10 +117,10 @@ Programming errors use language mechanisms (panic, check, etc.).
 
 ### Use Meaningful Names
 
-- Function names describe what they do
-- Parameter names describe what they represent
+- Function names describe what they do, and parameter names describe what they represent
 - Avoid abbreviations unless universally understood
-- **Why**: Self-documenting code
+- Remove redundant context from wider scopes (e.g., `user.save()` not `user.saveUser()`)
+- **Why**: Self-documenting code without unnecessary verbosity
 
 ## Data Modeling
 
@@ -358,8 +358,8 @@ A structured approach to implementation that prioritizes type safety, testabilit
 
 Each language realizes these principles differently:
 
-**Kotlin**: Data classes, null safety, coroutines, sealed classes
-**Rust**: Ownership, Result<T,E>, traits, async/await
-**TypeScript**: Readonly, union types, Promises, strict null checks
+- **Kotlin**: Data classes, null safety, coroutines, sealed classes
+- **Rust**: Ownership, Result<T,E>, traits, async/await
+- **TypeScript**: Readonly, union types, Promises, strict null checks
 
 See language-specific practice files for details.
