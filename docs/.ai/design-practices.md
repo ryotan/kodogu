@@ -329,21 +329,6 @@ When adding new invariants to existing systems:
 > (Use Cases), which handle orchestration rather than domain logic.
 > **Domain Services** and **Domain Behaviors** refer to the same concept.
 
-## Repositories
-
-### Repository Abstraction
-
-- Collection-like interface for aggregates
-- Hide persistence details from domain
-- Methods reflect domain operations, not database operations
-- **Why**: Domain logic stays pure and portable
-
-### Aggregate Root Access
-
-- Repositories only for aggregate roots
-- Load entire aggregate, not individual entities
-- **Why**: Maintains aggregate consistency guarantees
-
 ## Use Cases
 
 ### Application Orchestration
@@ -386,6 +371,25 @@ When adding new invariants to existing systems:
 - Domain depends on abstractions, not implementations
 - Examples: Repository, ExternalService, MessageQueue
 - **Why**: Protects domain from infrastructure changes
+
+### Repository Adapters
+
+**Interface vs Implementation:**
+- **Interface**: Defined in Domain layer (what to do)
+- **Implementation**: Provided in Adapter layer (how to do)
+
+#### Repository Abstraction
+
+- Collection-like interface for aggregates
+- Hide persistence details from domain
+- Methods reflect domain operations, not database operations
+- **Why**: Domain logic stays pure and portable
+
+#### Aggregate Root Access
+
+- Repositories only for aggregate roots
+- Load entire aggregate, not individual entities
+- **Why**: Maintains aggregate consistency guarantees
 
 ### Adapter Responsibilities
 
