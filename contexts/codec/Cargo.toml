@@ -1,0 +1,17 @@
+[package]
+name = "kodogu-codec"
+version = "0.1.0"
+edition = "2021"
+description = "Encoding and decoding library for KoDoGu - supports UTF-8, Hex, Base32/58/64, URL encoding, and Quoted-Printable"
+authors = ["ryotan"]
+
+[lib]
+name = "kodogu_codec"
+path = "src/lib.rs"
+
+[dependencies]
+# Error handling
+suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
+snafu = "0.8"
+
+[dev-dependencies]
