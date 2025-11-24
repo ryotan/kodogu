@@ -14,4 +14,7 @@ path = "src/lib.rs"
 suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
 snafu = "0.8"
 
+# Base encodings
+data-encoding = "2.6"       # Base16, 32, 64
+
 [dev-dependencies]

@@ -2,12 +2,16 @@
 //!
 //! A comprehensive encoding and decoding library supporting multiple formats:
 //! - UTF-8 text encoding
+//! - Hex (Base16) with uppercase/lowercase variants
 
+use data_encoding::{DecodeError, SpecificationError};
 use std::string::FromUtf8Error;
 use suzunari_error::suzunari_error;
 
+mod hex;
 mod utf8;
 
+pub use hex::{Hex, HexCaseInsensitive, HexCodec, HexCustom, HexLower, HexUpper};
 pub use utf8::Utf8;
 
 /// # Codec Architecture
@@ -178,6 +182,13 @@ pub enum BinaryCodecError {
 
     #[snafu(display("Invalid UTF-8 in decoded URL: {source}"))]
     UrlInvalidUtf8 { source: FromUtf8Error },
+
+    // data-encoding library errors
+    #[snafu(display("Data encoding specification error: {source}"))]
+    DataEncodingSpec { source: SpecificationError },
+
+    #[snafu(display("Data encoding decode error: {source}"))]
+    DataEncodingDecode { source: DecodeError },
 }
 
 /// Trait for text encoding codecs (UTF-8, Shift-JIS, EUC-JP, etc.)
