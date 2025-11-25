@@ -6,8 +6,13 @@
       <w>abcdea</w>
       <w>abcdef</w>
       <w>abcdefghijklmnopqrstuvwxyz</w>
+      <w>abcdefghijkmnopqrstuvwxyz</w>
       <w>abcdefghjkmnpqrstvwxyz</w>
+      <w>ajdvzr</w>
       <w>anflug</w>
+      <w>axyz</w>
+      <w>bcde</w>
+      <w>budneghjklm</w>
       <w>bunx</w>
       <w>cpng</w>
       <w>cpnmu</w>
@@ -22,6 +27,7 @@
       <w>imor</w>
       <w>jbswy</w>
       <w>jbuq</w>
+      <w>jcvzr</w>
       <w>jprv</w>
       <w>khononov</w>
       <w>lateinit</w>
@@ -33,11 +39,16 @@
       <w>mzxw</w>
       <w>nygard</w>
       <w>patchelf</w>
+      <w>pqrst</w>
+      <w>rpshnaf</w>
       <w>rustfmt</w>
       <w>suzunari</w>
       <w>taiki</w>
+      <w>vwxyz</w>
       <w>yagni</w>
       <w>zabcdefghijklmnopqrstuvwxyz</w>
+      <w>zabcdefghijkmnopqrstu</w>
+      <w>zabcdefghijkmnopqrstuvwxyz</w>
       <w>zstd</w>
     </words>
   </dictionary>

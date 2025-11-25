@@ -4,6 +4,7 @@
 //! - UTF-8 text encoding
 //! - Hex (Base16) with uppercase/lowercase variants
 //! - Base32 (RFC 4648, Crockford) with custom alphabets
+//! - Base58 (Bitcoin, Flickr) with custom alphabets
 //! - Base64 (Standard, URL-safe, MIME) with custom alphabets
 
 use data_encoding::{DecodeError, SpecificationError};
@@ -11,6 +12,7 @@ use std::string::FromUtf8Error;
 use suzunari_error::suzunari_error;
 
 mod base32;
+mod base58;
 mod base64;
 mod hex;
 mod utf8;
@@ -19,6 +21,7 @@ pub use base32::{
     Base32, Base32Codec, Base32CrockfordLower, Base32CrockfordUpper, Base32Custom, Base32Hex,
     Base32Standard,
 };
+pub use base58::{Base58, Base58Bitcoin, Base58Codec, Base58Custom, Base58Flickr};
 pub use base64::{Base64, Base64Codec, Base64Custom, Base64Mime, Base64Standard, Base64UrlSafe};
 pub use hex::{Hex, HexCaseInsensitive, HexCodec, HexCustom, HexLower, HexUpper};
 pub use utf8::Utf8;
@@ -198,6 +201,13 @@ pub enum BinaryCodecError {
 
     #[snafu(display("Data encoding decode error: {source}"))]
     DataEncodingDecode { source: DecodeError },
+
+    // bs58 library errors
+    #[snafu(display("Base58 decode error: {source}"))]
+    Base58Decode { source: bs58::decode::Error },
+
+    #[snafu(display("Base58 alphabet error: {source}"))]
+    Base58Alphabet { source: bs58::alphabet::Error },
 }
 
 /// Trait for text encoding codecs (UTF-8, Shift-JIS, EUC-JP, etc.)
