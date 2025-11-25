@@ -3,16 +3,22 @@
 //! A comprehensive encoding and decoding library supporting multiple formats:
 //! - UTF-8 text encoding
 //! - Hex (Base16) with uppercase/lowercase variants
+//! - Base32 (RFC 4648, Crockford) with custom alphabets
 //! - Base64 (Standard, URL-safe, MIME) with custom alphabets
 
 use data_encoding::{DecodeError, SpecificationError};
 use std::string::FromUtf8Error;
 use suzunari_error::suzunari_error;
 
+mod base32;
 mod base64;
 mod hex;
 mod utf8;
 
+pub use base32::{
+    Base32, Base32Codec, Base32CrockfordLower, Base32CrockfordUpper, Base32Custom, Base32Hex,
+    Base32Standard,
+};
 pub use base64::{Base64, Base64Codec, Base64Custom, Base64Mime, Base64Standard, Base64UrlSafe};
 pub use hex::{Hex, HexCaseInsensitive, HexCodec, HexCustom, HexLower, HexUpper};
 pub use utf8::Utf8;
