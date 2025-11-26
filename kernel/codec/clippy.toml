@@ -3,9 +3,3 @@
 
 # Allow slightly more arguments for codec construction
 too-many-arguments-threshold = 6
-
-# Cognitive complexity threshold
-cognitive-complexity-threshold = 30
-
-# Type complexity threshold (for Result types with detailed errors)
-type-complexity-threshold = 500
