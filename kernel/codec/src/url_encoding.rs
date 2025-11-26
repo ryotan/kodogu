@@ -22,7 +22,7 @@
 //! ## Examples
 //!
 //! ```
-//! use kodogu_codec::{UrlEncoding, BinaryCodec};
+//! use codec::{UrlEncoding, BinaryCodec};
 //!
 //! // Using the default RFC 3986 variant
 //! let encoded = UrlEncoding::encode(b"Hello, World!");
@@ -67,7 +67,7 @@ use percent_encoding::{percent_decode_str, percent_encode, AsciiSet, CONTROLS, N
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, UrlEncodingRfc3986};
+/// use codec::{BinaryCodec, UrlEncodingRfc3986};
 ///
 /// let encoded = UrlEncodingRfc3986.encode(b"Hello World");
 /// assert_eq!(encoded, "Hello%20World");
@@ -88,7 +88,7 @@ pub struct UrlEncodingRfc3986;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, UrlEncodingForm};
+/// use codec::{BinaryCodec, UrlEncodingForm};
 ///
 /// let encoded = UrlEncodingForm.encode(b"Hello World");
 /// assert_eq!(encoded, "Hello+World");
@@ -108,7 +108,7 @@ pub struct UrlEncodingForm;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, UrlEncodingComponent};
+/// use codec::{BinaryCodec, UrlEncodingComponent};
 ///
 /// let encoded = UrlEncodingComponent.encode(b"Hello, World!");
 /// assert_eq!(encoded, "Hello%2C%20World%21");
@@ -126,7 +126,7 @@ pub struct UrlEncodingComponent;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, UrlEncodingCustom};
+/// use codec::{BinaryCodec, UrlEncodingCustom};
 /// use percent_encoding::{CONTROLS, AsciiSet};
 ///
 /// const CUSTOM_SET: &AsciiSet = &CONTROLS.add(b' ');
@@ -152,7 +152,7 @@ pub struct UrlEncodingCustom {
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, UrlEncoding};
+/// use codec::{BinaryCodec, UrlEncoding};
 ///
 /// let rfc3986 = UrlEncoding::Rfc3986;
 /// let form = UrlEncoding::Form;
@@ -182,7 +182,7 @@ pub enum UrlEncoding {
 ///
 /// # Example
 /// ```
-/// use kodogu_codec::{UrlEncodingCodec, UrlEncodingRfc3986, UrlEncodingForm, BinaryCodec};
+/// use codec::{UrlEncodingCodec, UrlEncodingRfc3986, UrlEncodingForm, BinaryCodec};
 ///
 /// fn encode_with_url_codec<C: UrlEncodingCodec>(codec: &C, data: &[u8]) -> String {
 ///     codec.encode(data)
@@ -264,11 +264,8 @@ impl BinaryCodec for UrlEncodingRfc3986 {
 /// Reference: <https://url.spec.whatwg.org/#application-x-www-form-urlencoded-percent-encode-set>
 ///
 /// This set encodes all characters except: `A-Z a-z 0-9 * - . _` (and space → +)
-const FORM_URLENCODED: &AsciiSet = &NON_ALPHANUMERIC
-    .remove(b'*')
-    .remove(b'-')
-    .remove(b'.')
-    .remove(b'_');
+const FORM_URLENCODED: &AsciiSet =
+    &NON_ALPHANUMERIC.remove(b'*').remove(b'-').remove(b'.').remove(b'_');
 impl UrlEncodingCodec for UrlEncodingForm {}
 impl BinaryCodec for UrlEncodingForm {
     fn encode(&self, bytes: &[u8]) -> String {
@@ -331,7 +328,7 @@ impl UrlEncoding {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::UrlEncoding;
+    /// use codec::UrlEncoding;
     ///
     /// let encoded = UrlEncoding::encode(b"Hello World");
     /// assert_eq!(encoded, "Hello%20World");
@@ -345,7 +342,7 @@ impl UrlEncoding {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::UrlEncoding;
+    /// use codec::UrlEncoding;
     ///
     /// let encoded = UrlEncoding::encode_rfc3986(b"Hello World");
     /// assert_eq!(encoded, "Hello%20World");
@@ -359,7 +356,7 @@ impl UrlEncoding {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::UrlEncoding;
+    /// use codec::UrlEncoding;
     ///
     /// let encoded = UrlEncoding::encode_form(b"Hello World");
     /// assert_eq!(encoded, "Hello+World");
@@ -373,7 +370,7 @@ impl UrlEncoding {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::UrlEncoding;
+    /// use codec::UrlEncoding;
     ///
     /// let encoded = UrlEncoding::encode_component(b"Hello, World!");
     /// assert_eq!(encoded, "Hello%2C%20World%21");
@@ -387,7 +384,7 @@ impl UrlEncoding {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::UrlEncoding;
+    /// use codec::UrlEncoding;
     ///
     /// let decoded = UrlEncoding::decode("Hello%20World").unwrap();
     /// assert_eq!(decoded, b"Hello World");
@@ -401,7 +398,7 @@ impl UrlEncoding {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::UrlEncoding;
+    /// use codec::UrlEncoding;
     ///
     /// let decoded = UrlEncoding::decode_rfc3986("Hello%20World").unwrap();
     /// assert_eq!(decoded, b"Hello World");
@@ -415,7 +412,7 @@ impl UrlEncoding {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::UrlEncoding;
+    /// use codec::UrlEncoding;
     ///
     /// let decoded = UrlEncoding::decode_form("Hello+World").unwrap();
     /// assert_eq!(decoded, b"Hello World");
@@ -429,7 +426,7 @@ impl UrlEncoding {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::UrlEncoding;
+    /// use codec::UrlEncoding;
     ///
     /// let decoded = UrlEncoding::decode_component("Hello%2C%20World!").unwrap();
     /// assert_eq!(decoded, b"Hello, World!");
@@ -450,23 +447,14 @@ mod tests {
     #[test]
     fn test_url_encode_rfc3986() {
         assert_eq!(UrlEncoding::encode_rfc3986(b"Hello World"), "Hello%20World");
-        assert_eq!(
-            UrlEncoding::encode_rfc3986(b"test@example.com"),
-            "test%40example.com"
-        );
+        assert_eq!(UrlEncoding::encode_rfc3986(b"test@example.com"), "test%40example.com");
         assert_eq!(UrlEncoding::encode_rfc3986(b""), "");
     }
 
     #[test]
     fn test_url_decode_rfc3986() {
-        assert_eq!(
-            UrlEncoding::decode_rfc3986("Hello%20World").unwrap(),
-            b"Hello World"
-        );
-        assert_eq!(
-            UrlEncoding::decode_rfc3986("test%40example.com").unwrap(),
-            b"test@example.com"
-        );
+        assert_eq!(UrlEncoding::decode_rfc3986("Hello%20World").unwrap(), b"Hello World");
+        assert_eq!(UrlEncoding::decode_rfc3986("test%40example.com").unwrap(), b"test@example.com");
         assert_eq!(UrlEncoding::decode_rfc3986("").unwrap(), b"");
     }
 
@@ -478,59 +466,35 @@ mod tests {
 
     #[test]
     fn test_url_decode_form() {
-        assert_eq!(
-            UrlEncoding::decode_form("Hello+World").unwrap(),
-            b"Hello World"
-        );
+        assert_eq!(UrlEncoding::decode_form("Hello+World").unwrap(), b"Hello World");
         assert_eq!(UrlEncoding::decode_form("a%2Bb%3Dc").unwrap(), b"a+b=c");
     }
 
     #[test]
     fn test_url_encode_component() {
-        assert_eq!(
-            UrlEncoding::encode_component(b"Hello, World!"),
-            "Hello%2C%20World%21"
-        );
+        assert_eq!(UrlEncoding::encode_component(b"Hello, World!"), "Hello%2C%20World%21");
         assert_eq!(UrlEncoding::encode_component(b"test/path"), "test%2Fpath");
     }
 
     #[test]
     fn test_url_decode_component() {
-        assert_eq!(
-            UrlEncoding::decode_component("Hello%2C%20World%21").unwrap(),
-            b"Hello, World!"
-        );
-        assert_eq!(
-            UrlEncoding::decode_component("test%2Fpath").unwrap(),
-            b"test/path"
-        );
+        assert_eq!(UrlEncoding::decode_component("Hello%2C%20World%21").unwrap(), b"Hello, World!");
+        assert_eq!(UrlEncoding::decode_component("test%2Fpath").unwrap(), b"test/path");
     }
 
     #[test]
     fn test_url_codec_constants() {
         // RFC 3986
         assert_eq!(UrlEncodingRfc3986.encode(b"Hello World"), "Hello%20World");
-        assert_eq!(
-            UrlEncodingRfc3986.decode("Hello%20World").unwrap(),
-            b"Hello World"
-        );
+        assert_eq!(UrlEncodingRfc3986.decode("Hello%20World").unwrap(), b"Hello World");
 
         // Form URL
         assert_eq!(UrlEncodingForm.encode(b"Hello World"), "Hello+World");
-        assert_eq!(
-            UrlEncodingForm.decode("Hello+World").unwrap(),
-            b"Hello World"
-        );
+        assert_eq!(UrlEncodingForm.decode("Hello+World").unwrap(), b"Hello World");
 
         // Component
-        assert_eq!(
-            UrlEncodingComponent.encode(b"Hello, World!"),
-            "Hello%2C%20World%21"
-        );
-        assert_eq!(
-            UrlEncodingComponent.decode("Hello%2C%20World%21").unwrap(),
-            b"Hello, World!"
-        );
+        assert_eq!(UrlEncodingComponent.encode(b"Hello, World!"), "Hello%2C%20World%21");
+        assert_eq!(UrlEncodingComponent.decode("Hello%2C%20World%21").unwrap(), b"Hello, World!");
     }
 
     #[test]
@@ -620,10 +584,7 @@ mod tests {
     fn test_url_form_plus_handling() {
         // Form encoding should handle + as space
         assert_eq!(UrlEncoding::decode_form("a+b+c").unwrap(), b"a b c");
-        assert_eq!(
-            UrlEncoding::decode_form("test+%2B+value").unwrap(),
-            b"test + value"
-        );
+        assert_eq!(UrlEncoding::decode_form("test+%2B+value").unwrap(), b"test + value");
     }
 
     #[test]

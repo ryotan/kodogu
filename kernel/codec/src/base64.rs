@@ -19,7 +19,7 @@
 //! ## Examples
 //!
 //! ```
-//! use kodogu_codec::{Base64, BinaryCodec};
+//! use codec::{Base64, BinaryCodec};
 //!
 //! // Using the default Standard variant
 //! let encoded = Base64::encode(b"Hello");
@@ -57,7 +57,7 @@ use snafu::{ensure, ResultExt};
 ///
 /// # Example
 /// ```
-/// use kodogu_codec::{Base64Standard, BinaryCodec};
+/// use codec::{Base64Standard, BinaryCodec};
 ///
 /// let encoded = Base64Standard.encode(b"Hello");
 /// assert_eq!(encoded, "SGVsbG8=");
@@ -73,7 +73,7 @@ pub struct Base64Standard;
 ///
 /// # Example
 /// ```
-/// use kodogu_codec::{Base64UrlSafe, BinaryCodec};
+/// use codec::{Base64UrlSafe, BinaryCodec};
 ///
 /// let encoded = Base64UrlSafe.encode(b"\xfb\xff");
 /// assert_eq!(encoded, "-_8=");
@@ -89,7 +89,7 @@ pub struct Base64UrlSafe;
 ///
 /// # Example
 /// ```
-/// use kodogu_codec::{Base64Mime, BinaryCodec};
+/// use codec::{Base64Mime, BinaryCodec};
 ///
 /// let encoded = Base64Mime.encode(b"Hello");
 /// assert!(encoded.starts_with("SGVsbG8="));
@@ -104,7 +104,7 @@ pub struct Base64Mime;
 ///
 /// # Example
 /// ```
-/// use kodogu_codec::{Base64Custom, BinaryCodec};
+/// use codec::{Base64Custom, BinaryCodec};
 ///
 /// let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 /// let codec = Base64Custom::new(alphabet).unwrap();
@@ -122,7 +122,7 @@ pub struct Base64Custom {
 ///
 /// # Example
 /// ```
-/// use kodogu_codec::{Base64, BinaryCodec};
+/// use codec::{Base64, BinaryCodec};
 ///
 /// let codec = Base64::Standard;
 /// assert_eq!(codec.encode(b"Hello"), "SGVsbG8=");
@@ -143,7 +143,7 @@ pub enum Base64 {
 ///
 /// # Example
 /// ```
-/// use kodogu_codec::{Base64Codec, Base64Standard, Base64UrlSafe, BinaryCodec};
+/// use codec::{Base64Codec, Base64Standard, Base64UrlSafe, BinaryCodec};
 ///
 /// fn encode_with_base64<C: Base64Codec>(codec: &C, data: &[u8]) -> String {
 ///     codec.encode(data)
@@ -157,9 +157,7 @@ pub enum Base64 {
 pub trait Base64Codec: BinaryCodec {}
 
 fn decode_internal(encoding: &Encoding, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-    encoding
-        .decode(text.as_bytes())
-        .context(DataEncodingDecodeError)
+    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError)
 }
 
 impl Base64Codec for Base64Standard {}
@@ -219,7 +217,7 @@ impl Base64Custom {
     ///
     /// # Examples
     /// ```
-    /// use kodogu_codec::{Base64Custom, BinaryCodec};
+    /// use codec::{Base64Custom, BinaryCodec};
     ///
     /// let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     /// let codec = Base64Custom::new(alphabet).unwrap();
@@ -246,7 +244,7 @@ impl Base64Custom {
     ///
     /// # Examples
     /// ```
-    /// use kodogu_codec::{Base64Custom, BinaryCodec};
+    /// use codec::{Base64Custom, BinaryCodec};
     ///
     /// let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     /// let codec = Base64Custom::new_with_padding(alphabet, Some('*')).unwrap();
@@ -261,10 +259,7 @@ impl Base64Custom {
             alphabet.len() == 64,
             InvalidCharacterSetError {
                 encoding: BinaryCodecs::Base64,
-                message: format!(
-                    "Base64 alphabet must be 64 characters, got {}",
-                    alphabet.len()
-                ),
+                message: format!("Base64 alphabet must be 64 characters, got {}", alphabet.len()),
             }
         );
 
@@ -340,7 +335,7 @@ impl Base64 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base64;
+    /// use codec::Base64;
     ///
     /// assert_eq!(Base64::encode(b"Hello"), "SGVsbG8=");
     /// ```
@@ -353,7 +348,7 @@ impl Base64 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base64;
+    /// use codec::Base64;
     ///
     /// assert_eq!(Base64::encode_standard(b"Hello"), "SGVsbG8=");
     /// ```
@@ -366,7 +361,7 @@ impl Base64 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base64;
+    /// use codec::Base64;
     ///
     /// assert_eq!(Base64::encode_url_safe(b"Hello"), "SGVsbG8=");
     /// ```
@@ -379,7 +374,7 @@ impl Base64 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base64;
+    /// use codec::Base64;
     ///
     /// let encoded = Base64::encode_mime(b"Hello");
     /// assert!(encoded.starts_with("SGVsbG8="));
@@ -401,7 +396,7 @@ impl Base64 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base64;
+    /// use codec::Base64;
     ///
     /// assert_eq!(Base64::decode("SGVsbG8=").unwrap(), b"Hello");
     /// ```
@@ -422,7 +417,7 @@ impl Base64 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base64;
+    /// use codec::Base64;
     ///
     /// assert_eq!(Base64::decode_standard("SGVsbG8=").unwrap(), b"Hello");
     /// ```
@@ -443,7 +438,7 @@ impl Base64 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base64;
+    /// use codec::Base64;
     ///
     /// assert_eq!(Base64::decode_url_safe("SGVsbG8=").unwrap(), b"Hello");
     /// ```
@@ -466,7 +461,7 @@ impl Base64 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base64;
+    /// use codec::Base64;
     ///
     /// let encoded = Base64::encode_mime(b"Hello");
     /// assert_eq!(Base64::decode_mime(&encoded).unwrap(), b"Hello");
@@ -483,20 +478,14 @@ mod tests {
     #[test]
     fn test_base64_encode() {
         assert_eq!(Base64::encode_standard(b"Hello"), "SGVsbG8=");
-        assert_eq!(
-            Base64::encode_standard(b"Hello, World!"),
-            "SGVsbG8sIFdvcmxkIQ=="
-        );
+        assert_eq!(Base64::encode_standard(b"Hello, World!"), "SGVsbG8sIFdvcmxkIQ==");
         assert_eq!(Base64::encode_standard(b"\x00\xFF"), "AP8=");
     }
 
     #[test]
     fn test_base64_decode() {
         assert_eq!(Base64::decode_standard("SGVsbG8=").unwrap(), b"Hello");
-        assert_eq!(
-            Base64::decode_standard("SGVsbG8sIFdvcmxkIQ==").unwrap(),
-            b"Hello, World!"
-        );
+        assert_eq!(Base64::decode_standard("SGVsbG8sIFdvcmxkIQ==").unwrap(), b"Hello, World!");
         assert_eq!(Base64::decode_standard("AP8=").unwrap(), b"\x00\xFF");
     }
 
@@ -523,10 +512,7 @@ mod tests {
     #[test]
     fn test_base64_decode_invalid() {
         let result = Base64::decode_standard("Invalid!@#");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
@@ -540,10 +526,7 @@ mod tests {
     #[test]
     fn test_base64_invalid_alphabet_length() {
         let result = Base64::new("ABC"); // Only 3 chars
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidCharacterSet { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacterSet { .. })));
     }
 
     #[test]
@@ -628,10 +611,7 @@ mod tests {
         // Alphabet with duplicate character (64 'A's)
         let result =
             Base64::new("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingSpec { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingSpec { .. })));
     }
 
     // === Comprehensive test cases ===
@@ -672,10 +652,7 @@ mod tests {
         let encoded = Base64::encode_mime(&input);
 
         // Should contain line break (CRLF)
-        assert!(
-            encoded.contains("\r\n"),
-            "MIME encoding should contain CRLF"
-        );
+        assert!(encoded.contains("\r\n"), "MIME encoding should contain CRLF");
 
         // First line should be exactly 76 chars (excluding CRLF)
         let first_line = encoded.split("\r\n").next().unwrap();
@@ -739,20 +716,14 @@ mod tests {
     fn test_base64_invalid_padding_missing() {
         // Missing padding (should fail in strict mode)
         let result = Base64::decode_standard("SGVsbG8"); // Missing =
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
     fn test_base64_invalid_padding_wrong_position() {
         // Padding in wrong position
         let result = Base64::decode_standard("SG=sbG8=");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]

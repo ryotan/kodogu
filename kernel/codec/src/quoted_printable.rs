@@ -42,7 +42,7 @@ use snafu::ResultExt;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, QuotedPrintableRobust};
+/// use codec::{BinaryCodec, QuotedPrintableRobust};
 ///
 /// let codec = QuotedPrintableRobust;
 ///
@@ -65,7 +65,7 @@ pub struct QuotedPrintableRobust;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, QuotedPrintableStrict};
+/// use codec::{BinaryCodec, QuotedPrintableStrict};
 ///
 /// let codec = QuotedPrintableStrict;
 ///
@@ -87,7 +87,7 @@ pub struct QuotedPrintableStrict;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, QuotedPrintable};
+/// use codec::{BinaryCodec, QuotedPrintable};
 ///
 /// // Using enum variants
 /// let robust = QuotedPrintable::Robust;
@@ -121,7 +121,7 @@ pub enum QuotedPrintable {
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{QuotedPrintableCodec, QuotedPrintableRobust, QuotedPrintable};
+/// use codec::{QuotedPrintableCodec, QuotedPrintableRobust, QuotedPrintable};
 ///
 /// fn process_qp(codec: &impl QuotedPrintableCodec, data: &[u8]) -> String {
 ///     codec.encode(data)
@@ -137,7 +137,7 @@ pub enum QuotedPrintable {
 /// # Implementing for custom types
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, BinaryCodecError, QuotedPrintableCodec};
+/// use codec::{BinaryCodec, BinaryCodecError, QuotedPrintableCodec};
 ///
 /// struct MyCustomQP;
 ///
@@ -150,7 +150,7 @@ pub enum QuotedPrintable {
 ///     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
 ///         // Custom implementation
 ///         use snafu::ResultExt;
-///         use kodogu_codec::QuotedPrintableDecodeError;
+///         use codec::QuotedPrintableDecodeError;
 ///         quoted_printable::decode(text.as_bytes(), quoted_printable::ParseMode::Robust)
 ///             .context(QuotedPrintableDecodeError)
 ///     }
@@ -205,7 +205,7 @@ impl QuotedPrintable {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::QuotedPrintable;
+    /// use codec::QuotedPrintable;
     /// use quoted_printable::ParseMode;
     ///
     /// let codec = QuotedPrintable::new(ParseMode::Strict);
@@ -230,7 +230,7 @@ impl QuotedPrintable {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::QuotedPrintable;
+    /// use codec::QuotedPrintable;
     ///
     /// assert_eq!(QuotedPrintable::encode(b"Hello=World"), "Hello=3DWorld");
     /// ```
@@ -253,7 +253,7 @@ impl QuotedPrintable {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::QuotedPrintable;
+    /// use codec::QuotedPrintable;
     ///
     /// // Valid input
     /// assert_eq!(QuotedPrintable::decode("Hello=3DWorld").unwrap(), b"Hello=World");
@@ -284,7 +284,7 @@ impl QuotedPrintable {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::QuotedPrintable;
+    /// use codec::QuotedPrintable;
     ///
     /// // Valid input succeeds
     /// assert_eq!(QuotedPrintable::decode_strict("Hello=3DWorld").unwrap(), b"Hello=World");
@@ -311,7 +311,7 @@ impl QuotedPrintable {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::QuotedPrintable;
+    /// use codec::QuotedPrintable;
     ///
     /// // Valid input
     /// assert_eq!(QuotedPrintable::decode_robust("Hello=3DWorld").unwrap(), b"Hello=World");
@@ -332,7 +332,7 @@ impl QuotedPrintable {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::QuotedPrintable;
+    /// use codec::QuotedPrintable;
     ///
     /// assert_eq!(QuotedPrintable::encode_robust(b"Hello=World"), "Hello=3DWorld");
     /// ```
@@ -348,7 +348,7 @@ impl QuotedPrintable {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::QuotedPrintable;
+    /// use codec::QuotedPrintable;
     ///
     /// assert_eq!(QuotedPrintable::encode_strict(b"Hello=World"), "Hello=3DWorld");
     /// ```
@@ -370,15 +370,9 @@ mod tests {
 
     #[test]
     fn test_quoted_printable_decode() {
-        assert_eq!(
-            QuotedPrintable::decode("Hello=3DWorld").unwrap(),
-            b"Hello=World"
-        );
+        assert_eq!(QuotedPrintable::decode("Hello=3DWorld").unwrap(), b"Hello=World");
         assert_eq!(QuotedPrintable::decode("").unwrap(), b"");
-        assert_eq!(
-            QuotedPrintable::decode("Simple text").unwrap(),
-            b"Simple text"
-        );
+        assert_eq!(QuotedPrintable::decode("Simple text").unwrap(), b"Simple text");
     }
 
     #[test]
@@ -391,14 +385,8 @@ mod tests {
 
     #[test]
     fn test_quoted_printable_codec_constant() {
-        assert_eq!(
-            QuotedPrintableRobust.encode(b"Hello=World"),
-            "Hello=3DWorld"
-        );
-        assert_eq!(
-            QuotedPrintableRobust.decode("Hello=3DWorld").unwrap(),
-            b"Hello=World"
-        );
+        assert_eq!(QuotedPrintableRobust.encode(b"Hello=World"), "Hello=3DWorld");
+        assert_eq!(QuotedPrintableRobust.decode("Hello=3DWorld").unwrap(), b"Hello=World");
     }
 
     #[test]
@@ -528,10 +516,7 @@ mod tests {
     #[test]
     fn test_quoted_printable_decode_strict_valid() {
         // Valid input works in strict mode
-        assert_eq!(
-            QuotedPrintable::decode_strict("Hello=3DWorld").unwrap(),
-            b"Hello=World"
-        );
+        assert_eq!(QuotedPrintable::decode_strict("Hello=3DWorld").unwrap(), b"Hello=World");
         assert_eq!(QuotedPrintable::decode_strict("=3D").unwrap(), b"=");
     }
 
@@ -571,17 +556,11 @@ mod tests {
         assert_eq!(QuotedPrintable::decode("=ZZ").unwrap(), b"=ZZ");
 
         // QUOTED_PRINTABLE_STRICT
-        assert_eq!(
-            QuotedPrintableStrict.encode(b"Hello=World"),
-            "Hello=3DWorld"
-        );
+        assert_eq!(QuotedPrintableStrict.encode(b"Hello=World"), "Hello=3DWorld");
         assert!(QuotedPrintableStrict.decode("=ZZ").is_err());
 
         // QUOTED_PRINTABLE_ROBUST
-        assert_eq!(
-            QuotedPrintableRobust.encode(b"Hello=World"),
-            "Hello=3DWorld"
-        );
+        assert_eq!(QuotedPrintableRobust.encode(b"Hello=World"), "Hello=3DWorld");
         assert_eq!(QuotedPrintableRobust.decode("=ZZ").unwrap(), b"=ZZ");
     }
 
@@ -619,17 +598,11 @@ mod tests {
     #[test]
     fn test_quoted_printable_explicit_methods() {
         // decode_robust
-        assert_eq!(
-            QuotedPrintable::decode_robust("Hello=3DWorld").unwrap(),
-            b"Hello=World"
-        );
+        assert_eq!(QuotedPrintable::decode_robust("Hello=3DWorld").unwrap(), b"Hello=World");
         assert_eq!(QuotedPrintable::decode_robust("=ZZ").unwrap(), b"=ZZ");
 
         // decode_strict
-        assert_eq!(
-            QuotedPrintable::decode_strict("Hello=3DWorld").unwrap(),
-            b"Hello=World"
-        );
+        assert_eq!(QuotedPrintable::decode_strict("Hello=3DWorld").unwrap(), b"Hello=World");
         assert!(QuotedPrintable::decode_strict("=ZZ").is_err());
     }
 
@@ -657,10 +630,7 @@ mod tests {
 
         // Strict mode only accepts uppercase
         let input_uppercase = "=3D=3D=3D";
-        assert_eq!(
-            QuotedPrintable::decode_strict(input_uppercase).unwrap(),
-            expected
-        );
+        assert_eq!(QuotedPrintable::decode_strict(input_uppercase).unwrap(), expected);
 
         // Strict mode rejects lowercase
         assert!(QuotedPrintable::decode_strict(input).is_err());
@@ -679,11 +649,7 @@ mod tests {
             let data = vec![byte];
             let encoded = QuotedPrintable::encode(&data);
             let decoded = QuotedPrintable::decode(&encoded).unwrap();
-            assert_eq!(
-                decoded, data,
-                "Control character 0x{:02X} not preserved",
-                byte
-            );
+            assert_eq!(decoded, data, "Control character 0x{:02X} not preserved", byte);
         }
     }
 

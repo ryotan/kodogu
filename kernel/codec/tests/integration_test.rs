@@ -1,10 +1,10 @@
-//! Integration tests for kodogu_codec
+//! Integration tests for codec
 //!
 //! These tests validate the public API from a consumer's perspective,
 //! ensuring that all codec variants work correctly when used through
 //! trait objects and in realistic scenarios.
 
-use kodogu_codec::{
+use codec::{
     Base32, Base32Codec, Base32CrockfordLower, Base32CrockfordUpper, Base32Hex, Base32Standard,
     Base58, Base58Bitcoin, Base58Codec, Base58Flickr, Base64, Base64Codec, Base64Standard,
     Base64UrlSafe, BinaryCodec, Hex, HexCodec, HexLower, HexUpper, QuotedPrintable,
@@ -513,14 +513,8 @@ fn test_base32_custom_padding() {
     // No padding
     let codec_no_pad = Base32::new_with_padding(alphabet, None).unwrap();
     let encoded = codec_no_pad.encode(data);
-    assert!(
-        !encoded.ends_with('='),
-        "Encoded string should not end with '='"
-    );
-    assert!(
-        !encoded.ends_with('*'),
-        "Encoded string should not end with '*'"
-    );
+    assert!(!encoded.ends_with('='), "Encoded string should not end with '='");
+    assert!(!encoded.ends_with('*'), "Encoded string should not end with '*'");
     let decoded = codec_no_pad.decode(&encoded).unwrap();
     assert_eq!(decoded, data);
 }
@@ -544,14 +538,8 @@ fn test_base64_custom_padding() {
     // No padding
     let codec_no_pad = Base64::new_with_padding(alphabet, None).unwrap();
     let encoded = codec_no_pad.encode(data);
-    assert!(
-        !encoded.ends_with('='),
-        "Encoded string should not end with '='"
-    );
-    assert!(
-        !encoded.ends_with('*'),
-        "Encoded string should not end with '*'"
-    );
+    assert!(!encoded.ends_with('='), "Encoded string should not end with '='");
+    assert!(!encoded.ends_with('*'), "Encoded string should not end with '*'");
     let decoded = codec_no_pad.decode(&encoded).unwrap();
     assert_eq!(decoded, data);
 }
@@ -879,10 +867,7 @@ fn test_url_encoding_lenient_decoding() {
 
     // Form encoding handles + as space
     assert_eq!(UrlEncoding::decode_form("a+b+c").unwrap(), b"a b c");
-    assert_eq!(
-        UrlEncoding::decode_form("test+%2B+value").unwrap(),
-        b"test + value"
-    );
+    assert_eq!(UrlEncoding::decode_form("test+%2B+value").unwrap(), b"test + value");
 }
 
 #[test]
@@ -1018,10 +1003,8 @@ fn test_quoted_printable_binary_codec_trait_object() {
     let data = b"Test with special chars: =?!";
 
     // Collection of Quoted-Printable codecs as trait objects
-    let codecs: Vec<Box<dyn BinaryCodec>> = vec![
-        Box::new(QuotedPrintableRobust),
-        Box::new(QuotedPrintableStrict),
-    ];
+    let codecs: Vec<Box<dyn BinaryCodec>> =
+        vec![Box::new(QuotedPrintableRobust), Box::new(QuotedPrintableStrict)];
 
     for codec in codecs {
         let encoded = codec.encode(data);

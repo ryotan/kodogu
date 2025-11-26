@@ -19,7 +19,7 @@
 //! ## Examples
 //!
 //! ```
-//! use kodogu_codec::{Base32, BinaryCodec};
+//! use codec::{Base32, BinaryCodec};
 //!
 //! // Using the default Standard variant
 //! let encoded = Base32::encode(b"Hello");
@@ -57,7 +57,7 @@ use snafu::{ensure, ResultExt};
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base32Standard, BinaryCodec};
+/// use codec::{Base32Standard, BinaryCodec};
 ///
 /// let codec = Base32Standard;
 /// assert_eq!(codec.encode(b"Hello"), "JBSWY3DP");
@@ -74,7 +74,7 @@ pub struct Base32Standard;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base32Hex, BinaryCodec};
+/// use codec::{Base32Hex, BinaryCodec};
 ///
 /// let codec = Base32Hex;
 /// assert_eq!(codec.encode(b"Hello"), "91IMOR3F");
@@ -94,7 +94,7 @@ pub struct Base32Hex;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base32CrockfordUpper, BinaryCodec};
+/// use codec::{Base32CrockfordUpper, BinaryCodec};
 ///
 /// let codec = Base32CrockfordUpper;
 /// assert_eq!(codec.encode(b"Hello"), "91JPRV3F");
@@ -114,7 +114,7 @@ pub struct Base32CrockfordUpper;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base32CrockfordLower, BinaryCodec};
+/// use codec::{Base32CrockfordLower, BinaryCodec};
 ///
 /// let codec = Base32CrockfordLower;
 /// assert_eq!(codec.encode(b"Hello"), "91jprv3f");
@@ -130,7 +130,7 @@ pub struct Base32CrockfordLower;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base32Custom, BinaryCodec};
+/// use codec::{Base32Custom, BinaryCodec};
 ///
 /// let codec = Base32Custom::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567").unwrap();
 /// assert_eq!(codec.encode(b"Hi"), "JBUQ====");
@@ -148,7 +148,7 @@ pub struct Base32Custom {
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base32, BinaryCodec};
+/// use codec::{Base32, BinaryCodec};
 ///
 /// // Using enum variants
 /// let std_codec = Base32::Standard;
@@ -181,7 +181,7 @@ pub enum Base32 {
 ///
 /// # Example
 /// ```
-/// use kodogu_codec::{Base32Codec, Base32Standard, Base32Hex, BinaryCodec};
+/// use codec::{Base32Codec, Base32Standard, Base32Hex, BinaryCodec};
 ///
 /// fn encode_with_base32<C: Base32Codec>(codec: &C, data: &[u8]) -> String {
 ///     codec.encode(data)
@@ -196,9 +196,7 @@ pub enum Base32 {
 pub trait Base32Codec: BinaryCodec {}
 
 fn decode_internal(encoding: &Encoding, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-    encoding
-        .decode(text.as_bytes())
-        .context(DataEncodingDecodeError)
+    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError)
 }
 
 impl Base32Codec for Base32Standard {}
@@ -292,7 +290,7 @@ impl Base32Custom {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::{Base32Custom, BinaryCodec};
+    /// use codec::{Base32Custom, BinaryCodec};
     ///
     /// let codec = Base32Custom::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567").unwrap();
     /// assert_eq!(codec.encode(b"Hi"), "JBUQ====");
@@ -318,7 +316,7 @@ impl Base32Custom {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::{Base32Custom, BinaryCodec};
+    /// use codec::{Base32Custom, BinaryCodec};
     ///
     /// // Without padding
     /// let codec = Base32Custom::new_with_padding("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", None).unwrap();
@@ -337,10 +335,7 @@ impl Base32Custom {
             alphabet.len() == 32,
             InvalidCharacterSetError {
                 encoding: BinaryCodecs::Base32,
-                message: format!(
-                    "Base32 alphabet must be 32 characters, got {}",
-                    alphabet.len()
-                ),
+                message: format!("Base32 alphabet must be 32 characters, got {}", alphabet.len()),
             }
         );
 
@@ -381,7 +376,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::encode(b"Hello"), "JBSWY3DP");
     /// ```
@@ -394,7 +389,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::encode_standard(b"Hello"), "JBSWY3DP");
     /// ```
@@ -407,7 +402,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::encode_hex(b"Hello"), "91IMOR3F");
     /// ```
@@ -420,7 +415,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::encode_crockford(b"Hello"), "91JPRV3F");
     /// ```
@@ -435,7 +430,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::encode_crockford_upper(b"Hello"), "91JPRV3F");
     /// ```
@@ -448,7 +443,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::encode_crockford_lower(b"Hello"), "91jprv3f");
     /// ```
@@ -461,7 +456,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::decode("JBSWY3DP").unwrap(), b"Hello");
     /// ```
@@ -474,7 +469,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::decode_standard("JBSWY3DP").unwrap(), b"Hello");
     /// ```
@@ -487,7 +482,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// assert_eq!(Base32::decode_hex("91IMOR3F").unwrap(), b"Hello");
     /// ```
@@ -503,7 +498,7 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
+    /// use codec::Base32;
     ///
     /// // Accepts uppercase (canonical encoding)
     /// assert_eq!(Base32::decode_crockford("91JPRV3F").unwrap(), b"Hello");
@@ -521,8 +516,8 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
-    /// use kodogu_codec::BinaryCodec;
+    /// use codec::Base32;
+    /// use codec::BinaryCodec;
     ///
     /// let codec = Base32::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567").unwrap();
     /// assert_eq!(codec.encode(b"Hi"), "JBUQ====");
@@ -536,8 +531,8 @@ impl Base32 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base32;
-    /// use kodogu_codec::BinaryCodec;
+    /// use codec::Base32;
+    /// use codec::BinaryCodec;
     ///
     /// // Without padding
     /// let codec = Base32::new_with_padding("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", None).unwrap();
@@ -576,10 +571,7 @@ mod tests {
     #[test]
     fn test_base32_decode_invalid() {
         let result = Base32::decode_standard("invalid!");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
@@ -639,10 +631,7 @@ mod tests {
     #[test]
     fn test_base32_invalid_alphabet_length() {
         let result = Base32::new("ABC");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidCharacterSet { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacterSet { .. })));
     }
 
     #[test]
@@ -672,10 +661,7 @@ mod tests {
     fn test_base32_duplicate_alphabet() {
         // Alphabet with duplicate character
         let result = Base32::new("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingSpec { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingSpec { .. })));
     }
 
     #[test]
@@ -685,10 +671,7 @@ mod tests {
 
         // Rejects hex alphabet (0-9A-V)
         let result = Base32Standard.decode("91IMOR3F");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
@@ -698,10 +681,7 @@ mod tests {
 
         // Rejects standard alphabet (A-Z2-7)
         let result = Base32Hex.decode("JBSWY3DP");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
@@ -728,14 +708,9 @@ mod tests {
         // For O/o→0 test, use a different input that has 0 in encoding
         let bytes_with_zero = b"\x00\x00"; // Should encode with leading 0s
         let encoded = Base32::encode_crockford(bytes_with_zero);
-        assert_eq!(
-            Base32::decode_crockford(&encoded.replace('0', "O")).unwrap(),
-            bytes_with_zero
-        ); // O→0
-        assert_eq!(
-            Base32::decode_crockford(&encoded.replace('0', "o")).unwrap(),
-            bytes_with_zero
-        ); // o→0
+        assert_eq!(Base32::decode_crockford(&encoded.replace('0', "O")).unwrap(), bytes_with_zero); // O→0
+        assert_eq!(Base32::decode_crockford(&encoded.replace('0', "o")).unwrap(), bytes_with_zero);
+        // o→0
     }
 
     #[test]
@@ -755,12 +730,8 @@ mod tests {
 
     #[test]
     fn test_base32_crockford_as_trait_object() {
-        let codecs: Vec<&dyn BinaryCodec> = vec![
-            &Base32Standard,
-            &Base32Hex,
-            &Base32CrockfordUpper,
-            &Base32CrockfordLower,
-        ];
+        let codecs: Vec<&dyn BinaryCodec> =
+            vec![&Base32Standard, &Base32Hex, &Base32CrockfordUpper, &Base32CrockfordLower];
 
         assert_eq!(codecs[0].encode(b"Hello"), "JBSWY3DP");
         assert_eq!(codecs[1].encode(b"Hello"), "91IMOR3F");
@@ -793,10 +764,7 @@ mod tests {
         assert_eq!(Base32::decode_hex(&encoded_hex).unwrap(), data_10);
 
         let encoded_crockford = Base32::encode_crockford(data_10);
-        assert_eq!(
-            Base32::decode_crockford(&encoded_crockford).unwrap(),
-            data_10
-        );
+        assert_eq!(Base32::decode_crockford(&encoded_crockford).unwrap(), data_10);
 
         // Test with 20 bytes
         let data_20 = b"Hello, Base32 World!";
@@ -807,10 +775,7 @@ mod tests {
         assert_eq!(Base32::decode_hex(&encoded_hex).unwrap(), data_20);
 
         let encoded_crockford = Base32::encode_crockford(data_20);
-        assert_eq!(
-            Base32::decode_crockford(&encoded_crockford).unwrap(),
-            data_20
-        );
+        assert_eq!(Base32::decode_crockford(&encoded_crockford).unwrap(), data_20);
     }
 
     // Binary data (non-ASCII)
@@ -826,10 +791,7 @@ mod tests {
         assert_eq!(Base32::decode_hex(&encoded_hex).unwrap(), binary_data);
 
         let encoded_crockford = Base32::encode_crockford(&binary_data);
-        assert_eq!(
-            Base32::decode_crockford(&encoded_crockford).unwrap(),
-            binary_data
-        );
+        assert_eq!(Base32::decode_crockford(&encoded_crockford).unwrap(), binary_data);
     }
 
     // UTF-8 multi-byte characters
@@ -838,22 +800,13 @@ mod tests {
         let utf8_data = "こんにちは世界";
 
         let encoded_std = Base32::encode_standard(utf8_data.as_bytes());
-        assert_eq!(
-            Base32::decode_standard(&encoded_std).unwrap(),
-            utf8_data.as_bytes()
-        );
+        assert_eq!(Base32::decode_standard(&encoded_std).unwrap(), utf8_data.as_bytes());
 
         let encoded_hex = Base32::encode_hex(utf8_data.as_bytes());
-        assert_eq!(
-            Base32::decode_hex(&encoded_hex).unwrap(),
-            utf8_data.as_bytes()
-        );
+        assert_eq!(Base32::decode_hex(&encoded_hex).unwrap(), utf8_data.as_bytes());
 
         let encoded_crockford = Base32::encode_crockford(utf8_data.as_bytes());
-        assert_eq!(
-            Base32::decode_crockford(&encoded_crockford).unwrap(),
-            utf8_data.as_bytes()
-        );
+        assert_eq!(Base32::decode_crockford(&encoded_crockford).unwrap(), utf8_data.as_bytes());
     }
 
     // Base32 enum Default variant
@@ -928,17 +881,11 @@ mod tests {
 
         // Invalid character not in custom alphabet
         let result = codec.decode("INVALID!");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
 
         // Character not in alphabet
         let result = codec.decode("Z1234567"); // '1' is in alphabet, but '0' is not
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     // Round-trip tests for all variants
@@ -956,21 +903,11 @@ mod tests {
 
         // Crockford Upper
         let encoded_crockford_upper = Base32CrockfordUpper.encode(test_data);
-        assert_eq!(
-            Base32CrockfordUpper
-                .decode(&encoded_crockford_upper)
-                .unwrap(),
-            test_data
-        );
+        assert_eq!(Base32CrockfordUpper.decode(&encoded_crockford_upper).unwrap(), test_data);
 
         // Crockford Lower
         let encoded_crockford_lower = Base32CrockfordLower.encode(test_data);
-        assert_eq!(
-            Base32CrockfordLower
-                .decode(&encoded_crockford_lower)
-                .unwrap(),
-            test_data
-        );
+        assert_eq!(Base32CrockfordLower.decode(&encoded_crockford_lower).unwrap(), test_data);
 
         // Custom
         let custom = Base32Custom::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567").unwrap();

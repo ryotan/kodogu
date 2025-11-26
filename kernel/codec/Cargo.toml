@@ -1,12 +1,12 @@
 [package]
-name = "kodogu-codec"
+name = "codec"
 version = "0.1.0"
 edition = "2021"
 description = "Encoding and decoding library for KoDoGu - supports UTF-8, Hex, Base32/58/64, URL encoding, and Quoted-Printable"
 authors = ["ryotan"]
 
 [lib]
-name = "kodogu_codec"
+name = "codec"
 path = "src/lib.rs"
 
 [dependencies]

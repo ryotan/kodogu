@@ -1,9 +1,9 @@
-//! Property-based tests for kodogu_codec
+//! Property-based tests for codec
 //!
 //! These tests verify codec properties with randomly generated inputs,
 //! complementing the specific test cases in unit and integration tests.
 
-use kodogu_codec::{
+use codec::{
     Base32, Base32CrockfordLower, Base32CrockfordUpper, Base32Hex, Base32Standard, Base58,
     Base58Bitcoin, Base58Flickr, Base64, Base64Standard, Base64UrlSafe, BinaryCodec, Hex, HexLower,
     HexUpper, QuotedPrintable, QuotedPrintableRobust, QuotedPrintableStrict, TextCodec,
@@ -966,8 +966,7 @@ proptest! {
         prop_assert!(encoded.contains('='), "Control character should be hex-encoded");
 
         // Convert hex digits to lowercase
-        let encoded_lower = encoded.replace("=0", "=0")
-            .replace("=1", "=1")
+        let encoded_lower = encoded
             .chars()
             .map(|c| if c.is_ascii_uppercase() && c != 'A' { c.to_ascii_lowercase() } else { c })
             .collect::<String>();

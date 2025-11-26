@@ -21,7 +21,7 @@
 //! Use when you need guaranteed success and can tolerate replacement characters:
 //!
 //! ```
-//! use kodogu_codec::{TextCodec, Utf8};
+//! use codec::{TextCodec, Utf8};
 //!
 //! // Always succeeds, even with invalid UTF-8
 //! let text = Utf8.decode(&[0xFF, 0xFE]);
@@ -37,7 +37,7 @@
 //! Use when invalid UTF-8 should be treated as an error:
 //!
 //! ```
-//! use kodogu_codec::{TextCodec, Utf8};
+//! use codec::{TextCodec, Utf8};
 //!
 //! // Valid UTF-8 succeeds
 //! assert_eq!(Utf8.decode_strict(b"Hello").unwrap(), "Hello");
@@ -54,7 +54,7 @@
 //! ## Examples
 //!
 //! ```
-//! use kodogu_codec::{TextCodec, Utf8};
+//! use codec::{TextCodec, Utf8};
 //!
 //! // Encoding (always succeeds - Rust strings are UTF-8)
 //! let bytes = Utf8.encode("Hello 🦀");
@@ -93,7 +93,7 @@ use snafu::ResultExt;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{TextCodec, Utf8};
+/// use codec::{TextCodec, Utf8};
 ///
 /// // Encoding (always succeeds)
 /// let bytes = Utf8.encode("Hello");

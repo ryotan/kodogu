@@ -49,7 +49,7 @@ pub use utf8::Utf8;
 /// Use these when the codec variant is known at compile time:
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, HexLower, HexUpper};
+/// use codec::{BinaryCodec, HexLower, HexUpper};
 ///
 /// // Zero-cost abstraction - no runtime overhead
 /// let encoded = HexLower.encode(b"Hello");
@@ -65,7 +65,7 @@ pub use utf8::Utf8;
 /// Use this when the codec variant is determined at runtime:
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, Hex};
+/// use codec::{BinaryCodec, Hex};
 ///
 /// // Runtime selection
 /// let codec = match std::env::var("HEX_FORMAT").as_deref() {
@@ -82,7 +82,7 @@ pub use utf8::Utf8;
 /// Use these for one-off encoding/decoding operations:
 ///
 /// ```
-/// use kodogu_codec::Hex;
+/// use codec::Hex;
 ///
 /// // Convenient static methods
 /// let encoded = Hex::encode(b"Hello");
@@ -97,7 +97,7 @@ pub use utf8::Utf8;
 /// Use this to accept any variant of a specific codec family:
 ///
 /// ```
-/// use kodogu_codec::{HexCodec, HexLower, Hex};
+/// use codec::{HexCodec, HexLower, Hex};
 ///
 /// fn process_with_hex(codec: &impl HexCodec, data: &[u8]) -> String {
 ///     codec.encode(data)
@@ -174,26 +174,16 @@ pub enum BinaryCodecs {
 pub enum BinaryCodecError {
     // Common errors across encodings
     #[snafu(display("Invalid {encoding:?} character '{char}' at position {position}"))]
-    InvalidCharacter {
-        encoding: BinaryCodecs,
-        char: char,
-        position: usize,
-    },
+    InvalidCharacter { encoding: BinaryCodecs, char: char, position: usize },
 
     #[snafu(display("Invalid {encoding:?} length: {length}"))]
-    InvalidLength {
-        encoding: BinaryCodecs,
-        length: usize,
-    },
+    InvalidLength { encoding: BinaryCodecs, length: usize },
 
     #[snafu(display("Invalid {encoding:?} padding"))]
     InvalidPadding { encoding: BinaryCodecs },
 
     #[snafu(display("Invalid {encoding:?} character set: {message}"))]
-    InvalidCharacterSet {
-        encoding: BinaryCodecs,
-        message: String,
-    },
+    InvalidCharacterSet { encoding: BinaryCodecs, message: String },
 
     // Hex specific
     #[snafu(display("Odd length hex string: {length}"))]
@@ -222,9 +212,7 @@ pub enum BinaryCodecError {
 
     // Quoted-Printable specific
     #[snafu(display("Quoted-Printable decode error: {source}"))]
-    QuotedPrintableDecode {
-        source: ::quoted_printable::QuotedPrintableError,
-    },
+    QuotedPrintableDecode { source: ::quoted_printable::QuotedPrintableError },
 }
 
 /// Trait for text encoding codecs (UTF-8, Shift-JIS, EUC-JP, etc.)
@@ -280,16 +268,9 @@ pub enum TextCodecError {
 
     // Invalid byte sequence in text encoding
     #[snafu(display("Invalid byte sequence for {encoding:?} at position {position}"))]
-    InvalidSequence {
-        encoding: TextCodecs,
-        position: usize,
-    },
+    InvalidSequence { encoding: TextCodecs, position: usize },
 
     // Unmappable character in encoding
-    #[snafu(display("Character '{char}' cannot be encoded as {encoding:?} (Unicode code point U+{code_point:04x}"))]
-    UnmappableCharacter {
-        encoding: TextCodecs,
-        char: char,
-        code_point: u32,
-    },
+    #[snafu(display("Character '{char}' cannot be encoded as {encoding:?} (Unicode code point U+{code_point:04X})"))]
+    UnmappableCharacter { encoding: TextCodecs, char: char, code_point: u32 },
 }

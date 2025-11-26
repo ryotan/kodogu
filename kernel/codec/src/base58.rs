@@ -19,7 +19,7 @@
 //! ## Examples
 //!
 //! ```
-//! use kodogu_codec::{Base58, BinaryCodec};
+//! use codec::{Base58, BinaryCodec};
 //!
 //! // Using the default Bitcoin variant
 //! let encoded = Base58::encode(b"Hello");
@@ -57,7 +57,7 @@ use snafu::{ensure, ResultExt};
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base58Bitcoin, BinaryCodec};
+/// use codec::{Base58Bitcoin, BinaryCodec};
 ///
 /// let codec = Base58Bitcoin;
 ///
@@ -80,7 +80,7 @@ pub struct Base58Bitcoin;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base58Flickr, BinaryCodec};
+/// use codec::{Base58Flickr, BinaryCodec};
 ///
 /// let codec = Base58Flickr;
 ///
@@ -101,7 +101,7 @@ pub struct Base58Flickr;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base58Custom, BinaryCodec};
+/// use codec::{Base58Custom, BinaryCodec};
 ///
 /// // Ripple alphabet (well-known Base58 variant)
 /// let alphabet = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
@@ -124,7 +124,7 @@ pub struct Base58Custom {
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, Base58};
+/// use codec::{BinaryCodec, Base58};
 ///
 /// // Using enum variants
 /// let bitcoin = Base58::Bitcoind;
@@ -156,7 +156,7 @@ pub enum Base58 {
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{Base58Codec, Base58Bitcoin, Base58};
+/// use codec::{Base58Codec, Base58Bitcoin, Base58};
 ///
 /// fn process_base58(codec: &impl Base58Codec, data: &[u8]) -> String {
 ///     codec.encode(data)
@@ -225,7 +225,7 @@ impl Base58Custom {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::{Base58Custom, BinaryCodec};
+    /// use codec::{Base58Custom, BinaryCodec};
     ///
     /// // Ripple alphabet (well-known Base58 variant)
     /// let alphabet = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
@@ -263,7 +263,7 @@ impl Base58 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base58;
+    /// use codec::Base58;
     ///
     /// assert_eq!(Base58::encode(b"Hello"), "9Ajdvzr");
     /// ```
@@ -276,7 +276,7 @@ impl Base58 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base58;
+    /// use codec::Base58;
     ///
     /// assert_eq!(Base58::encode_bitcoin(b"Hello"), "9Ajdvzr");
     /// ```
@@ -289,7 +289,7 @@ impl Base58 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base58;
+    /// use codec::Base58;
     ///
     /// assert_eq!(Base58::encode_flickr(b"Hello"), "9aJCVZR");
     /// ```
@@ -302,7 +302,7 @@ impl Base58 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base58;
+    /// use codec::Base58;
     ///
     /// assert_eq!(Base58::decode("9Ajdvzr").unwrap(), b"Hello");
     /// ```
@@ -315,7 +315,7 @@ impl Base58 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base58;
+    /// use codec::Base58;
     ///
     /// assert_eq!(Base58::decode_bitcoin("9Ajdvzr").unwrap(), b"Hello");
     /// ```
@@ -328,7 +328,7 @@ impl Base58 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base58;
+    /// use codec::Base58;
     ///
     /// assert_eq!(Base58::decode_flickr("9aJCVZR").unwrap(), b"Hello");
     /// ```
@@ -347,7 +347,7 @@ impl Base58 {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Base58;
+    /// use codec::Base58;
     ///
     /// // Custom alphabet (Ripple)
     /// let alphabet = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
@@ -392,10 +392,7 @@ mod tests {
     fn test_base58_bitcoin_decode() {
         assert_eq!(Base58::decode_bitcoin("9Ajdvzr").unwrap(), b"Hello");
         assert_eq!(Base58::decode_bitcoin("").unwrap(), b"");
-        assert_eq!(
-            Base58::decode_bitcoin("2NEpo7TZRRrLZSi2U").unwrap(),
-            b"Hello World!"
-        );
+        assert_eq!(Base58::decode_bitcoin("2NEpo7TZRRrLZSi2U").unwrap(), b"Hello World!");
     }
 
     #[test]
@@ -468,10 +465,7 @@ mod tests {
         // Alphabet with wrong length
         let alphabet = "ABC"; // Only 3 chars
         let result = Base58::new(alphabet);
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidCharacterSet { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacterSet { .. })));
     }
 
     #[test]
@@ -479,10 +473,7 @@ mod tests {
         // Alphabet with duplicate character
         let alphabet = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1";
         let result = Base58::new(alphabet);
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::Base58Alphabet { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::Base58Alphabet { .. })));
     }
 
     #[test]
@@ -511,9 +502,6 @@ mod tests {
         // Flickr alphabet uses '1' for leading zeros too
         let encoded_flickr = Base58::encode_flickr(data_with_leading_zeros);
         assert!(encoded_flickr.starts_with("11"));
-        assert_eq!(
-            Base58::decode_flickr(&encoded_flickr).unwrap(),
-            data_with_leading_zeros
-        );
+        assert_eq!(Base58::decode_flickr(&encoded_flickr).unwrap(), data_with_leading_zeros);
     }
 }

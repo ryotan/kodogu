@@ -37,7 +37,7 @@ use snafu::{ensure, ResultExt};
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, HexCaseInsensitive};
+/// use codec::{BinaryCodec, HexCaseInsensitive};
 ///
 /// let codec = HexCaseInsensitive;
 ///
@@ -60,7 +60,7 @@ pub struct HexCaseInsensitive;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, HexLower};
+/// use codec::{BinaryCodec, HexLower};
 ///
 /// let codec = HexLower;
 ///
@@ -82,7 +82,7 @@ pub struct HexLower;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, HexUpper};
+/// use codec::{BinaryCodec, HexUpper};
 ///
 /// let codec = HexUpper;
 ///
@@ -103,7 +103,7 @@ pub struct HexUpper;
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, HexCustom};
+/// use codec::{BinaryCodec, HexCustom};
 ///
 /// let codec = HexCustom::new("0123456789ABCDEF").unwrap();
 /// assert_eq!(codec.encode(b"Hi"), "4869");
@@ -125,7 +125,7 @@ pub struct HexCustom {
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{BinaryCodec, Hex};
+/// use codec::{BinaryCodec, Hex};
 ///
 /// // Runtime selection
 /// let use_uppercase = true;
@@ -161,7 +161,7 @@ pub enum Hex {
 /// # Examples
 ///
 /// ```
-/// use kodogu_codec::{HexCodec, HexLower, Hex};
+/// use codec::{HexCodec, HexLower, Hex};
 ///
 /// fn process_hex(codec: &impl HexCodec, data: &[u8]) -> String {
 ///     codec.encode(data)
@@ -177,7 +177,7 @@ pub enum Hex {
 /// # Implementing for custom types
 ///
 /// ```ignore
-/// use kodogu_codec::{BinaryCodec, BinaryCodecError, HexCodec};
+/// use codec::{BinaryCodec, BinaryCodecError, HexCodec};
 ///
 /// struct MyCustomHex;
 ///
@@ -198,13 +198,8 @@ pub enum Hex {
 pub trait HexCodec: BinaryCodec {}
 
 fn decode_internal(encoding: &Encoding, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-    ensure!(
-        text.len() % 2 == 0,
-        HexOddLengthError { length: text.len() }
-    );
-    encoding
-        .decode(text.as_bytes())
-        .context(DataEncodingDecodeError)
+    ensure!(text.len() % 2 == 0, HexOddLengthError { length: text.len() });
+    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError)
 }
 
 impl HexCodec for HexCaseInsensitive {}
@@ -264,7 +259,7 @@ impl HexCustom {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::{BinaryCodec, HexCustom};
+    /// use codec::{BinaryCodec, HexCustom};
     ///
     /// // Standard alphabet
     /// let codec = HexCustom::new("0123456789ABCDEF").unwrap();
@@ -328,7 +323,7 @@ impl Hex {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::{BinaryCodec, Hex};
+    /// use codec::{BinaryCodec, Hex};
     ///
     /// let codec = Hex::new("0123456789ABCDEF").unwrap();
     /// assert_eq!(codec.encode(b"Hi"), "4869");
@@ -345,7 +340,7 @@ impl Hex {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Hex;
+    /// use codec::Hex;
     ///
     /// assert_eq!(Hex::encode(b"Hello"), "48656c6c6f");
     /// ```
@@ -358,7 +353,7 @@ impl Hex {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Hex;
+    /// use codec::Hex;
     ///
     /// assert_eq!(Hex::encode_lower(b"Hello"), "48656c6c6f");
     /// ```
@@ -371,7 +366,7 @@ impl Hex {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Hex;
+    /// use codec::Hex;
     ///
     /// assert_eq!(Hex::encode_upper(b"Hello"), "48656C6C6F");
     /// ```
@@ -395,7 +390,7 @@ impl Hex {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Hex;
+    /// use codec::Hex;
     ///
     /// assert_eq!(Hex::decode("48656c6c6f").unwrap(), b"Hello");
     /// assert_eq!(Hex::decode("48656C6C6F").unwrap(), b"Hello");
@@ -418,7 +413,7 @@ impl Hex {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Hex;
+    /// use codec::Hex;
     ///
     /// assert_eq!(Hex::decode_lower("48656c6c6f").unwrap(), b"Hello");
     /// ```
@@ -440,7 +435,7 @@ impl Hex {
     /// # Examples
     ///
     /// ```
-    /// use kodogu_codec::Hex;
+    /// use codec::Hex;
     ///
     /// assert_eq!(Hex::decode_upper("48656C6C6F").unwrap(), b"Hello");
     /// ```
@@ -604,41 +599,26 @@ mod tests {
     #[test]
     fn test_hex_decode_odd_length_enum() {
         let result = Hex::decode("123");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::HexOddLength { length: 3, .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::HexOddLength { length: 3, .. })));
     }
 
     #[test]
     fn test_hex_decode_odd_length_zst() {
         // ZST types should also return HexOddLength error
         let result = HexLower.decode("123");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::HexOddLength { length: 3, .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::HexOddLength { length: 3, .. })));
 
         let result = HexUpper.decode("123");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::HexOddLength { length: 3, .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::HexOddLength { length: 3, .. })));
 
         let result = HexCaseInsensitive.decode("123");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::HexOddLength { length: 3, .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::HexOddLength { length: 3, .. })));
     }
 
     #[test]
     fn test_hex_decode_invalid_char() {
         let result = Hex::decode("12GH");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
@@ -659,26 +639,17 @@ mod tests {
     #[test]
     fn test_hex_invalid_alphabet_length() {
         let result = Hex::new("0123456789ABC"); // Only 13 chars
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidCharacterSet { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacterSet { .. })));
 
         // Test HexCustom directly
         let result = HexCustom::new("0123456789ABC");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidCharacterSet { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacterSet { .. })));
     }
 
     #[test]
     fn test_hex_duplicate_characters() {
         let result = Hex::new("0123456789ABCDEA"); // 'A' appears twice
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingSpec { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingSpec { .. })));
     }
 
     #[test]
@@ -705,17 +676,11 @@ mod tests {
 
         // Rejects uppercase
         let result = HexLower.decode("48656C6C6F");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
 
         // Rejects mixed case
         let result = HexLower.decode("48656C6c6F");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
@@ -725,17 +690,11 @@ mod tests {
 
         // Rejects lowercase
         let result = HexUpper.decode("48656c6c6f");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
 
         // Rejects mixed case
         let result = HexUpper.decode("48656C6c6F");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
@@ -745,10 +704,7 @@ mod tests {
 
         // Rejects uppercase
         let result = Hex::Lower.decode("48656C6C6F");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 
     #[test]
@@ -758,9 +714,6 @@ mod tests {
 
         // Rejects lowercase
         let result = Hex::Upper.decode("48656c6c6f");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::DataEncodingDecode { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 }
