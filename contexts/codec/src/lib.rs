@@ -6,6 +6,7 @@
 //! - Base32 (RFC 4648, Crockford) with custom alphabets
 //! - Base58 (Bitcoin, Flickr) with custom alphabets
 //! - Base64 (Standard, URL-safe, MIME) with custom alphabets
+//! - Quoted-Printable (MIME)
 //! - URL Encoding (RFC 3986, Form URL Encoded, Component)
 
 use data_encoding::{DecodeError, SpecificationError};
@@ -16,6 +17,7 @@ mod base32;
 mod base58;
 mod base64;
 mod hex;
+mod quoted_printable;
 mod url_encoding;
 mod utf8;
 
@@ -26,6 +28,9 @@ pub use base32::{
 pub use base58::{Base58, Base58Bitcoin, Base58Codec, Base58Custom, Base58Flickr};
 pub use base64::{Base64, Base64Codec, Base64Custom, Base64Mime, Base64Standard, Base64UrlSafe};
 pub use hex::{Hex, HexCaseInsensitive, HexCodec, HexCustom, HexLower, HexUpper};
+pub use quoted_printable::{
+    QuotedPrintable, QuotedPrintableCodec, QuotedPrintableRobust, QuotedPrintableStrict,
+};
 pub use url_encoding::{
     UrlEncoding, UrlEncodingCodec, UrlEncodingComponent, UrlEncodingCustom, UrlEncodingForm,
     UrlEncodingRfc3986,
@@ -214,6 +219,12 @@ pub enum BinaryCodecError {
 
     #[snafu(display("Base58 alphabet error: {source}"))]
     Base58Alphabet { source: bs58::alphabet::Error },
+
+    // Quoted-Printable specific
+    #[snafu(display("Quoted-Printable decode error: {source}"))]
+    QuotedPrintableDecode {
+        source: ::quoted_printable::QuotedPrintableError,
+    },
 }
 
 /// Trait for text encoding codecs (UTF-8, Shift-JIS, EUC-JP, etc.)
