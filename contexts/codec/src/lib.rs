@@ -6,6 +6,7 @@
 //! - Base32 (RFC 4648, Crockford) with custom alphabets
 //! - Base58 (Bitcoin, Flickr) with custom alphabets
 //! - Base64 (Standard, URL-safe, MIME) with custom alphabets
+//! - URL Encoding (RFC 3986, Form URL Encoded, Component)
 
 use data_encoding::{DecodeError, SpecificationError};
 use std::string::FromUtf8Error;
@@ -15,6 +16,7 @@ mod base32;
 mod base58;
 mod base64;
 mod hex;
+mod url_encoding;
 mod utf8;
 
 pub use base32::{
@@ -24,6 +26,10 @@ pub use base32::{
 pub use base58::{Base58, Base58Bitcoin, Base58Codec, Base58Custom, Base58Flickr};
 pub use base64::{Base64, Base64Codec, Base64Custom, Base64Mime, Base64Standard, Base64UrlSafe};
 pub use hex::{Hex, HexCaseInsensitive, HexCodec, HexCustom, HexLower, HexUpper};
+pub use url_encoding::{
+    UrlEncoding, UrlEncodingCodec, UrlEncodingComponent, UrlEncodingCustom, UrlEncodingForm,
+    UrlEncodingRfc3986,
+};
 pub use utf8::Utf8;
 
 /// # Codec Architecture

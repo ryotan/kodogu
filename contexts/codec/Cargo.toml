@@ -19,4 +19,7 @@ data-encoding = "2.6"       # Base16, 32, 64
 data-encoding-macro = "0.1" # Compile-time encoding definitions
 bs58 = "0.5"                # Base58
 
+# URL and MIME encodings
+percent-encoding = "2.3"    # URL Encoding
+
 [dev-dependencies]
