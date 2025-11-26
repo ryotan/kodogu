@@ -24,3 +24,5 @@ percent-encoding = "2.3"    # URL Encoding
 quoted_printable = "0.5"    # Quoted-Printable
 
 [dev-dependencies]
+# Property-based testing
+proptest = "1.9"
