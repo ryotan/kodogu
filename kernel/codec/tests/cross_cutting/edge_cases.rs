@@ -2,7 +2,7 @@
 //!
 //! Tests boundary conditions like empty data, single byte, and all byte values.
 
-use codec::{Base32, Base58, Base64, BinaryCodec, Hex, QuotedPrintable, UrlEncoding, Utf8, TextCodec};
+use codec::{Base32, Base58, Base64, Hex, QuotedPrintable, TextCodec, UrlEncoding, Utf8};
 
 #[test]
 fn test_empty_data() {

@@ -195,8 +195,12 @@ pub enum Base32 {
 /// ```
 pub trait Base32Codec: BinaryCodec {}
 
-fn decode_internal(encoding: &Encoding, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError)
+fn decode_internal(
+    encoding: &Encoding,
+    text: &str,
+    variant: &str,
+) -> Result<Vec<u8>, BinaryCodecError> {
+    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError { variant })
 }
 
 impl Base32Codec for Base32Standard {}
@@ -205,7 +209,7 @@ impl BinaryCodec for Base32Standard {
         BASE32.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&BASE32, text)
+        decode_internal(&BASE32, text, "Base32 Standard")
     }
 }
 
@@ -215,7 +219,7 @@ impl BinaryCodec for Base32Hex {
         BASE32HEX.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&BASE32HEX, text)
+        decode_internal(&BASE32HEX, text, "Base32 Hex")
     }
 }
 
@@ -238,7 +242,7 @@ impl BinaryCodec for Base32CrockfordUpper {
         CROCKFORD_UPPER.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&CROCKFORD_UPPER, text)
+        decode_internal(&CROCKFORD_UPPER, text, "Base32 Crockford")
     }
 }
 
@@ -261,7 +265,7 @@ impl BinaryCodec for Base32CrockfordLower {
         CROCKFORD_LOWER.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&CROCKFORD_LOWER, text)
+        decode_internal(&CROCKFORD_LOWER, text, "Base32 Crockford")
     }
 }
 
@@ -271,7 +275,7 @@ impl BinaryCodec for Base32Custom {
         self.encoding.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&self.encoding, text)
+        decode_internal(&self.encoding, text, "Base32 Custom")
     }
 }
 impl Base32Custom {
@@ -336,6 +340,14 @@ impl Base32Custom {
             InvalidCharacterSetError {
                 encoding: BinaryCodecs::Base32,
                 message: format!("Base32 alphabet must be 32 characters, got {}", alphabet.len()),
+            }
+        );
+
+        ensure!(
+            alphabet.is_ascii(),
+            InvalidCharacterSetError {
+                encoding: BinaryCodecs::Base32,
+                message: "Base32 alphabet must contain only ASCII characters",
             }
         );
 

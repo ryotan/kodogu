@@ -55,11 +55,8 @@ fn test_runtime_codec_selection() {
 fn test_codec_in_vec() {
     // Codecs can be stored in collections
     let data = b"Collection test";
-    let codecs: Vec<Box<dyn BinaryCodec>> = vec![
-        Box::new(HexLower),
-        Box::new(Base64Standard),
-        Box::new(Base32Standard),
-    ];
+    let codecs: Vec<Box<dyn BinaryCodec>> =
+        vec![Box::new(HexLower), Box::new(Base64Standard), Box::new(Base32Standard)];
 
     for codec in &codecs {
         let encoded = codec.encode(data);

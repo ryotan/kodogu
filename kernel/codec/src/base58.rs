@@ -247,6 +247,15 @@ impl Base58Custom {
             }
         );
 
+        // Validate ASCII
+        ensure!(
+            alphabet.is_ascii(),
+            InvalidCharacterSetError {
+                encoding: BinaryCodecs::Base58,
+                message: "Base58 alphabet must contain only ASCII characters",
+            }
+        );
+
         // Convert to fixed-size array
         let mut alphabet_array = [0u8; 58];
         alphabet_array.copy_from_slice(bytes);

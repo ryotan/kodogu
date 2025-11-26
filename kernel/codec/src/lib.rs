@@ -193,25 +193,25 @@ pub enum BinaryCodecError {
     #[snafu(display("Invalid percent encoding at position {position}"))]
     UrlInvalidPercent { position: usize },
 
-    #[snafu(display("Invalid UTF-8 in decoded URL: {source}"))]
+    #[snafu(display("Invalid UTF-8 in decoded URL"))]
     UrlInvalidUtf8 { source: FromUtf8Error },
 
     // data-encoding library errors
-    #[snafu(display("Data encoding specification error: {source}"))]
+    #[snafu(display("Data encoding specification error"))]
     DataEncodingSpec { source: SpecificationError },
 
-    #[snafu(display("Data encoding decode error: {source}"))]
-    DataEncodingDecode { source: DecodeError },
+    #[snafu(display("Data encoding decode error for {variant}"))]
+    DataEncodingDecode { source: DecodeError, variant: String },
 
     // bs58 library errors
-    #[snafu(display("Base58 decode error: {source}"))]
+    #[snafu(display("Base58 decode error"))]
     Base58Decode { source: bs58::decode::Error },
 
-    #[snafu(display("Base58 alphabet error: {source}"))]
+    #[snafu(display("Base58 alphabet error"))]
     Base58Alphabet { source: bs58::alphabet::Error },
 
     // Quoted-Printable specific
-    #[snafu(display("Quoted-Printable decode error: {source}"))]
+    #[snafu(display("Quoted-Printable decode error"))]
     QuotedPrintableDecode { source: ::quoted_printable::QuotedPrintableError },
 }
 
@@ -263,7 +263,7 @@ pub enum TextCodecs {
 #[snafu(visibility(pub), context(suffix(Error)))]
 pub enum TextCodecError {
     // UTF-8 specific
-    #[snafu(display("Invalid UTF-8 sequence: {source}"))]
+    #[snafu(display("Invalid UTF-8 sequence"))]
     Utf8Invalid { source: FromUtf8Error },
 
     // Invalid byte sequence in text encoding

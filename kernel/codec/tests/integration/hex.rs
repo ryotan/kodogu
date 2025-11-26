@@ -34,11 +34,7 @@ fn test_hex_codec_trait_object() {
     let data = b"test data";
 
     // HexCodec trait (specific to Hex)
-    let codecs: Vec<&dyn HexCodec> = vec![
-        &HexLower,
-        &HexUpper,
-        &Hex::Lower,
-    ];
+    let codecs: Vec<&dyn HexCodec> = vec![&HexLower, &HexUpper, &Hex::Lower];
 
     for codec in codecs {
         let encoded = codec.encode(data);

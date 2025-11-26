@@ -197,9 +197,13 @@ pub enum Hex {
 /// ```
 pub trait HexCodec: BinaryCodec {}
 
-fn decode_internal(encoding: &Encoding, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
+fn decode_internal(
+    encoding: &Encoding,
+    text: &str,
+    variant: &str,
+) -> Result<Vec<u8>, BinaryCodecError> {
     ensure!(text.len() % 2 == 0, HexOddLengthError { length: text.len() });
-    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError)
+    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError { variant })
 }
 
 impl HexCodec for HexCaseInsensitive {}
@@ -208,7 +212,7 @@ impl BinaryCodec for HexCaseInsensitive {
         HEXLOWER.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&HEXLOWER_PERMISSIVE, text)
+        decode_internal(&HEXLOWER_PERMISSIVE, text, "Hex")
     }
 }
 
@@ -218,7 +222,7 @@ impl BinaryCodec for HexLower {
         HEXLOWER.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&HEXLOWER, text)
+        decode_internal(&HEXLOWER, text, "Hex Lower")
     }
 }
 
@@ -228,7 +232,7 @@ impl BinaryCodec for HexUpper {
         HEXUPPER.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&HEXUPPER, text)
+        decode_internal(&HEXUPPER, text, "Hex Upper")
     }
 }
 
@@ -238,7 +242,7 @@ impl BinaryCodec for HexCustom {
         self.encoding.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&self.encoding, text)
+        decode_internal(&self.encoding, text, "Hex Custom")
     }
 }
 impl HexCustom {
@@ -275,6 +279,14 @@ impl HexCustom {
             InvalidCharacterSetError {
                 encoding: BinaryCodecs::Hex,
                 message: format!("Hex alphabet must be 16 characters, got {}", alphabet.len()),
+            }
+        );
+
+        ensure!(
+            alphabet.is_ascii(),
+            InvalidCharacterSetError {
+                encoding: BinaryCodecs::Hex,
+                message: "Hex alphabet must contain only ASCII characters",
             }
         );
 

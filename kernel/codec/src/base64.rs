@@ -156,8 +156,12 @@ pub enum Base64 {
 /// ```
 pub trait Base64Codec: BinaryCodec {}
 
-fn decode_internal(encoding: &Encoding, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError)
+fn decode_internal(
+    encoding: &Encoding,
+    text: &str,
+    variant: &str,
+) -> Result<Vec<u8>, BinaryCodecError> {
+    encoding.decode(text.as_bytes()).context(DataEncodingDecodeError { variant })
 }
 
 impl Base64Codec for Base64Standard {}
@@ -166,7 +170,7 @@ impl BinaryCodec for Base64Standard {
         BASE64.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&BASE64, text)
+        decode_internal(&BASE64, text, "Base64 Standard")
     }
 }
 
@@ -176,7 +180,7 @@ impl BinaryCodec for Base64UrlSafe {
         BASE64URL.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&BASE64URL, text)
+        decode_internal(&BASE64URL, text, "Base64 URL-safe")
     }
 }
 
@@ -188,7 +192,7 @@ impl BinaryCodec for Base64Mime {
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
         // Use PERMISSIVE for decoding (accepts line breaks: LF and CRLF)
-        decode_internal(&BASE64_MIME_PERMISSIVE, text)
+        decode_internal(&BASE64_MIME_PERMISSIVE, text, "Base64 MIME")
     }
 }
 
@@ -198,7 +202,7 @@ impl BinaryCodec for Base64Custom {
         self.encoding.encode(bytes)
     }
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        decode_internal(&self.encoding, text)
+        decode_internal(&self.encoding, text, "Base64 Custom")
     }
 }
 impl Base64Custom {
@@ -260,6 +264,14 @@ impl Base64Custom {
             InvalidCharacterSetError {
                 encoding: BinaryCodecs::Base64,
                 message: format!("Base64 alphabet must be 64 characters, got {}", alphabet.len()),
+            }
+        );
+
+        ensure!(
+            alphabet.is_ascii(),
+            InvalidCharacterSetError {
+                encoding: BinaryCodecs::Base64,
+                message: "Base64 alphabet must contain only ASCII characters",
             }
         );
 

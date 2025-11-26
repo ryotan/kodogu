@@ -2,7 +2,7 @@
 //!
 //! Tests that validate codec layering and combinations work correctly.
 
-use codec::{Base32, Base58, Base64, BinaryCodec, Hex, UrlEncoding};
+use codec::{Base32, Base58, Base64, Hex, UrlEncoding};
 
 #[test]
 fn test_multiple_encoding_layers() {
