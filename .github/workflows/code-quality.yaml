@@ -85,14 +85,12 @@ jobs:
 
       - id: rustfmt
         name: Rust Format
-        working-directory: app
-        run: bun run lint:cargo:fmt
+        run: cargo fmt --check
         continue-on-error: true  # Run all checks, then fail at the end
 
       - id: clippy
         name: Clippy
-        working-directory: app
-        run: bun run lint:cargo:clippy
+        run: cargo clippy --locked --no-deps --all-features --all-targets --release
         continue-on-error: true  # Run all checks, then fail at the end
 
       - id: frontend-test
@@ -103,16 +101,15 @@ jobs:
 
       - id: backend-test
         name: Backend Tests & Coverage
-        working-directory: app
         # WORKAROUND: wayland-client 0.31.8 uses not stable feature (`coverage_attribute`) of Rust 1.85.1 for coverage
-        run: bun run test:cargo:coverage -- --no-cfg-coverage
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: app/coverage/clover.xml,app/lcov.info
+          files: app/coverage/clover.xml,lcov.info
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false  # Don't fail on Codecov service issues

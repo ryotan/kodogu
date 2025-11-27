@@ -2,7 +2,7 @@
 # See: https://rust-lang.github.io/rustfmt/
 # Note: Only stable features are used to avoid requiring nightly
 
-edition = "2021"
+edition = "2024"
 
 # Line width
 max_width = 100

@@ -1,0 +1,49 @@
+[workspace]
+resolver = "3"
+members = [
+  'kernel/codec',
+  'cli-app/anflug',
+  'app/src-tauri',
+]
+
+[workspace.dependencies]
+bs58 = "0.5"
+chrono = "0.4.42"
+clap = "4.5.48"
+confy = "1.0.0"
+data-encoding = "2.6"
+data-encoding-macro = "0.1"
+futures = "0.3"
+openidconnect = "4.0.0"
+percent-encoding = "2.3"
+proptest = "1.9"
+quoted_printable = "0.5"
+regex = "1.11.2"
+serde = "1"
+serde_json = "1"
+snafu = "0.8"
+suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
+tauri = "2"
+tauri-build = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-deep-link = "2"
+tauri-plugin-http = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-single-instance = "2"
+tauri-plugin-stronghold = "2"
+tauri-plugin-window-state = "2"
+thiserror = "2"
+time = "0.3.41"
+tokio = "1.0"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
+validator = "0.18"
+
+
+[workspace.package]
+description = "ちょっとした小道具たち"
+version = '0.1.0'
+edition = '2024'
+repository = 'https://github.com/ryotan/kodogu'
+license = 'MIT OR Apache-2.0'
+authors = ['ryotan']
