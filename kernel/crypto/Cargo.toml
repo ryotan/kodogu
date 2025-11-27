@@ -1,18 +1,17 @@
 [package]
-name = "kodogu-crypto"
+name = "crypto"
 version = "0.1.0"
 edition = "2021"
 description = "Cryptographic operations library for KoDoGu"
 authors = ["ryotan"]
 
 [lib]
-name = "kodogu_crypto"
+name = "crypto"
 path = "src/lib.rs"
 
 [dependencies]
 # Error handling (project standard)
 suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
-suzunari-error-macro-impl = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
 snafu = "0.8"
 
 # Cryptography (adapter layer only)

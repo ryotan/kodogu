@@ -102,6 +102,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "crypto"
+version = "0.1.0"
+dependencies = [
+ "aes-gcm",
+ "ed25519-dalek",
+ "p256",
+ "p384",
+ "pbkdf2",
+ "pkcs8",
+ "rand",
+ "rsa",
+ "sha2",
+ "snafu",
+ "suzunari-error",
+ "tempfile",
+ "zeroize",
+]
+
+[[package]]
 name = "crypto-bigint"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -382,26 +401,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "879f10e63c20629ecabbb64a8010319738c66a5cd0c29b02d63d272b03751d01"
 dependencies = [
  "generic-array",
-]
-
-[[package]]
-name = "kodogu-crypto"
-version = "0.1.0"
-dependencies = [
- "aes-gcm",
- "ed25519-dalek",
- "p256",
- "p384",
- "pbkdf2",
- "pkcs8",
- "rand",
- "rsa",
- "sha2",
- "snafu",
- "suzunari-error",
- "suzunari-error-macro-impl",
- "tempfile",
- "zeroize",
 ]
 
 [[package]]
