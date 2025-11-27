@@ -26,18 +26,12 @@ fn bench_regex_cache_performance(c: &mut Criterion) {
             .build();
 
         // First call to populate cache
-        processor
-            .process_file(&file_path, "test", &options)
-            .unwrap();
+        processor.process_file(&file_path, "test", &options).unwrap();
 
         b.iter(|| {
             // Subsequent calls should hit cache
             processor
-                .process_file(
-                    black_box(&file_path),
-                    black_box("New content"),
-                    black_box(&options),
-                )
+                .process_file(black_box(&file_path), black_box("New content"), black_box(&options))
                 .unwrap();
         });
     });
@@ -48,16 +42,12 @@ fn bench_regex_cache_performance(c: &mut Criterion) {
         b.iter(|| {
             counter += 1;
             let options = ProcessFileOptions::builder()
-                .pattern(&format!("## Section {}", counter % 1000))
+                .pattern(format!("## Section {}", counter % 1000))
                 .match_mode(MatchMode::First)
                 .build();
 
             processor
-                .process_file(
-                    black_box(&file_path),
-                    black_box("New content"),
-                    black_box(&options),
-                )
+                .process_file(black_box(&file_path), black_box("New content"), black_box(&options))
                 .unwrap();
         });
     });
@@ -80,9 +70,7 @@ fn bench_regex_cache_performance(c: &mut Criterion) {
                             .match_mode(MatchMode::First)
                             .build();
 
-                        processor
-                            .process_file(&file_path, "content", &options)
-                            .unwrap();
+                        processor.process_file(&file_path, "content", &options).unwrap();
                     })
                 })
                 .collect();

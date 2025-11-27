@@ -11,9 +11,7 @@ fn bench_template_processing(c: &mut Criterion) {
     group.bench_function("simple_template", |b| {
         let template = "Hello {message}!";
         b.iter(|| {
-            processor
-                .process(black_box(template), black_box("World"))
-                .unwrap();
+            processor.process(black_box(template), black_box("World")).unwrap();
         });
     });
 
@@ -21,9 +19,7 @@ fn bench_template_processing(c: &mut Criterion) {
     group.bench_function("date_template", |b| {
         let template = "Entry for {date}: {message}";
         b.iter(|| {
-            processor
-                .process(black_box(template), black_box("Task completed"))
-                .unwrap();
+            processor.process(black_box(template), black_box("Task completed")).unwrap();
         });
     });
 
@@ -31,9 +27,7 @@ fn bench_template_processing(c: &mut Criterion) {
     group.bench_function("complex_template", |b| {
         let template = "[{date}] [{time}] {message} - Timestamp: {timestamp}";
         b.iter(|| {
-            processor
-                .process(black_box(template), black_box("Complex log entry"))
-                .unwrap();
+            processor.process(black_box(template), black_box("Complex log entry")).unwrap();
         });
     });
 
@@ -41,9 +35,7 @@ fn bench_template_processing(c: &mut Criterion) {
     group.bench_function("multiline_template", |b| {
         let template = "  Task: {message}\n  Date: {date}\n  Time: {time}\n  Status: pending";
         b.iter(|| {
-            processor
-                .process(black_box(template), black_box("Important task"))
-                .unwrap();
+            processor.process(black_box(template), black_box("Important task")).unwrap();
         });
     });
 
@@ -55,9 +47,7 @@ fn bench_template_processing(c: &mut Criterion) {
             .join("\n");
 
         b.iter(|| {
-            processor
-                .process(black_box(&template), black_box("Repeated content"))
-                .unwrap();
+            processor.process(black_box(&template), black_box("Repeated content")).unwrap();
         });
     });
 

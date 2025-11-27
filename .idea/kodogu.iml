@@ -9,19 +9,12 @@
       <sourceFolder url="file://$MODULE_DIR$/cli-app/anflug/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/kernel/codec/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/kernel/codec/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/kernel/crypto/rust/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/kernel/crypto/rust/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/kernel/crypto/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/kernel/crypto/tests" isTestSource="true" />
-      <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/gen" />
-      <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/target" />
-      <excludeFolder url="file://$MODULE_DIR$/app/gen" />
-      <excludeFolder url="file://$MODULE_DIR$/cli-app/anflug/target" />
-      <excludeFolder url="file://$MODULE_DIR$/app/test-results" />
       <excludeFolder url="file://$MODULE_DIR$/app/coverage" />
+      <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/target" />
+      <excludeFolder url="file://$MODULE_DIR$/cli-app/anflug/target" />
       <excludeFolder url="file://$MODULE_DIR$/kernel/codec/target" />
-      <excludeFolder url="file://$MODULE_DIR$/kernel/crypto/rust/target" />
-      <excludeFolder url="file://$MODULE_DIR$/kernel/crypto/target" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/app/test-results" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

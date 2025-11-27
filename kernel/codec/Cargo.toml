@@ -1,9 +1,11 @@
 [package]
 name = "codec"
-version = "0.1.0"
-edition = "2021"
 description = "Encoding and decoding library for KoDoGu - supports UTF-8, Hex, Base32/58/64, URL encoding, and Quoted-Printable"
-authors = ["ryotan"]
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
 
 [lib]
 name = "codec"
@@ -11,18 +13,18 @@ path = "src/lib.rs"
 
 [dependencies]
 # Error handling
-suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
-snafu = "0.8"
+suzunari-error = { workspace = true }
+snafu = { workspace = true }
 
 # Base encodings
-data-encoding = "2.6"       # Base16, 32, 64
-data-encoding-macro = "0.1" # Compile-time encoding definitions
-bs58 = "0.5"                # Base58
+data-encoding = { workspace = true }       # Base16, 32, 64
+data-encoding-macro = { workspace = true } # Compile-time encoding definitions
+bs58 = { workspace = true }                # Base58
 
 # URL and MIME encodings
-percent-encoding = "2.3"    # URL Encoding
-quoted_printable = "0.5"    # Quoted-Printable
+percent-encoding = { workspace = true }    # URL Encoding
+quoted_printable = { workspace = true }    # Quoted-Printable
 
 [dev-dependencies]
 # Property-based testing
-proptest = "1.9"
+proptest = { workspace = true }

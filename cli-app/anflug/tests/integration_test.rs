@@ -8,13 +8,7 @@ fn test_cli_basic_functionality() {
 
     // Test basic message append
     let exit_code = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "--",
-            "-f",
-            output_file.to_str().unwrap(),
-            "Hello, integration test!",
-        ])
+        .args(["run", "--", "-f", output_file.to_str().unwrap(), "Hello, integration test!"])
         .status()
         .unwrap();
 
@@ -117,14 +111,7 @@ fn test_cli_backup_functionality() {
     fs::write(&test_file, "Original content").unwrap();
 
     let exit_code = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "--",
-            "-f",
-            test_file.to_str().unwrap(),
-            "--backup",
-            "New content",
-        ])
+        .args(["run", "--", "-f", test_file.to_str().unwrap(), "--backup", "New content"])
         .status()
         .unwrap();
 
@@ -148,14 +135,7 @@ fn test_cli_dry_run() {
     fs::write(&test_file, "Original content").unwrap();
 
     let output = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "--",
-            "-f",
-            test_file.to_str().unwrap(),
-            "--dry-run",
-            "New content",
-        ])
+        .args(["run", "--", "-f", test_file.to_str().unwrap(), "--dry-run", "New content"])
         .output()
         .unwrap();
 
@@ -175,10 +155,7 @@ fn test_cli_dry_run() {
 #[test]
 fn test_cli_validation_errors() {
     // Test no message and no input file
-    let output = std::process::Command::new("cargo")
-        .args(["run", "--"])
-        .output()
-        .unwrap();
+    let output = std::process::Command::new("cargo").args(["run", "--"]).output().unwrap();
 
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -220,13 +197,7 @@ match_mode = "first"
     fs::write(&config_file, config_content).unwrap();
 
     let exit_code = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "--",
-            "-c",
-            config_file.to_str().unwrap(),
-            "test message",
-        ])
+        .args(["run", "--", "-c", config_file.to_str().unwrap(), "test message"])
         .status()
         .unwrap();
 

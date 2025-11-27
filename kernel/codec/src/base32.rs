@@ -44,9 +44,9 @@ use crate::{
     BinaryCodec, BinaryCodecError, BinaryCodecs, DataEncodingDecodeError, DataEncodingSpecError,
     InvalidCharacterSetError,
 };
-use data_encoding::{Encoding, Specification, BASE32, BASE32HEX};
+use data_encoding::{BASE32, BASE32HEX, Encoding, Specification};
 use data_encoding_macro::new_encoding;
-use snafu::{ensure, ResultExt};
+use snafu::{ResultExt, ensure};
 
 /// RFC 4648 Base32 encoding with alphabet A-Z2-7.
 ///

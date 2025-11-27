@@ -76,25 +76,13 @@ pub enum MatchMode {
 
 impl Cli {
     pub fn validate(&self) -> Result<(), CliError> {
-        ensure!(
-            !(self.message.is_none() && self.input_file.is_none()),
-            NoMessageOrInputSnafu
-        );
+        ensure!(!(self.message.is_none() && self.input_file.is_none()), NoMessageOrInputSnafu);
 
-        ensure!(
-            !(self.message.is_some() && self.input_file.is_some()),
-            BothMessageAndInputSnafu
-        );
+        ensure!(!(self.message.is_some() && self.input_file.is_some()), BothMessageAndInputSnafu);
 
-        ensure!(
-            !(self.append_mode && self.pattern.is_some()),
-            AppendModeWithPatternSnafu
-        );
+        ensure!(!(self.append_mode && self.pattern.is_some()), AppendModeWithPatternSnafu);
 
-        ensure!(
-            !(self.insert_before && self.pattern.is_none()),
-            InsertBeforeWithoutPatternSnafu
-        );
+        ensure!(!(self.insert_before && self.pattern.is_none()), InsertBeforeWithoutPatternSnafu);
 
         Ok(())
     }

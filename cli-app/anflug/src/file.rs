@@ -10,35 +10,17 @@ use crate::config::Config;
 #[suzunari_error]
 pub enum FileError {
     #[snafu(display("Failed to read file: {}", path.display()))]
-    ReadFile {
-        source: std::io::Error,
-        path: std::path::PathBuf,
-    },
+    ReadFile { source: std::io::Error, path: std::path::PathBuf },
     #[snafu(display("Failed to read input file: {}", path.display()))]
-    ReadInputFile {
-        source: std::io::Error,
-        path: std::path::PathBuf,
-    },
+    ReadInputFile { source: std::io::Error, path: std::path::PathBuf },
     #[snafu(display("Failed to write to file: {}", path.display()))]
-    WriteFile {
-        source: std::io::Error,
-        path: std::path::PathBuf,
-    },
+    WriteFile { source: std::io::Error, path: std::path::PathBuf },
     #[snafu(display("Failed to create backup: {}", path.display()))]
-    CreateBackup {
-        source: std::io::Error,
-        path: std::path::PathBuf,
-    },
+    CreateBackup { source: std::io::Error, path: std::path::PathBuf },
     #[snafu(display("Failed to create directory: {}", path.display()))]
-    CreateDirectory {
-        source: std::io::Error,
-        path: std::path::PathBuf,
-    },
+    CreateDirectory { source: std::io::Error, path: std::path::PathBuf },
     #[snafu(display("Invalid regex pattern: {}", pattern))]
-    InvalidRegex {
-        source: regex::Error,
-        pattern: String,
-    },
+    InvalidRegex { source: regex::Error, pattern: String },
     #[snafu(display("Directory does not exist: {}", path.display()))]
     DirectoryNotExists { path: std::path::PathBuf },
     #[snafu(display("Pattern not found"))]
@@ -173,9 +155,7 @@ pub struct FileProcessor {
 impl FileProcessor {
     /// Create a new FileProcessor with the given configuration
     pub fn new(config: &Config) -> Self {
-        Self {
-            config: config.clone(),
-        }
+        Self { config: config.clone() }
     }
 
     /// Process a file with the given content and options
@@ -192,9 +172,8 @@ impl FileProcessor {
 
         // Read existing file content or create empty if doesn't exist
         let existing_content = if file_path.exists() {
-            fs::read_to_string(file_path).context(ReadFileSnafu {
-                path: file_path.to_path_buf(),
-            })?
+            fs::read_to_string(file_path)
+                .context(ReadFileSnafu { path: file_path.to_path_buf() })?
         } else {
             self.ensure_parent_directory(file_path)?;
             String::new()
@@ -225,9 +204,7 @@ impl FileProcessor {
 
     /// Read content from an input file
     pub fn read_input_file(&self, path: &Path) -> Result<String, FileError> {
-        fs::read_to_string(path).context(ReadInputFileSnafu {
-            path: path.to_path_buf(),
-        })
+        fs::read_to_string(path).context(ReadInputFileSnafu { path: path.to_path_buf() })
     }
 
     /// Append content to existing content with proper newline handling
@@ -251,17 +228,14 @@ impl FileProcessor {
 
     /// Write content to file
     fn write_file(&self, file_path: &Path, content: &str) -> Result<(), FileError> {
-        fs::write(file_path, content).context(WriteFileSnafu {
-            path: file_path.to_path_buf(),
-        })
+        fs::write(file_path, content).context(WriteFileSnafu { path: file_path.to_path_buf() })
     }
 
     /// Create a backup of the file
     fn create_backup(&self, file_path: &Path) -> Result<(), FileError> {
         let backup_path = self.get_backup_path(file_path);
-        fs::copy(file_path, &backup_path).context(CreateBackupSnafu {
-            path: backup_path.clone(),
-        })?;
+        fs::copy(file_path, &backup_path)
+            .context(CreateBackupSnafu { path: backup_path.clone() })?;
         Ok(())
     }
 
@@ -302,21 +276,14 @@ impl FileProcessor {
     fn handle_missing_directory(&self, parent: &Path, action: &str) -> Result<(), FileError> {
         match action {
             "create" => {
-                fs::create_dir_all(parent).context(CreateDirectorySnafu {
-                    path: parent.to_path_buf(),
-                })?;
+                fs::create_dir_all(parent)
+                    .context(CreateDirectorySnafu { path: parent.to_path_buf() })?;
             }
             "error" => {
-                return DirectoryNotExistsSnafu {
-                    path: parent.to_path_buf(),
-                }
-                .fail();
+                return DirectoryNotExistsSnafu { path: parent.to_path_buf() }.fail();
             }
             _ => {
-                return InvalidNoDirectorySettingSnafu {
-                    setting: action.to_string(),
-                }
-                .fail();
+                return InvalidNoDirectorySettingSnafu { setting: action.to_string() }.fail();
             }
         }
         Ok(())
@@ -353,18 +320,12 @@ impl FileProcessor {
 
     /// Compile regex pattern
     fn compile_regex(&self, pattern: &str) -> Result<Regex, FileError> {
-        Regex::new(pattern).context(InvalidRegexSnafu {
-            pattern: pattern.to_string(),
-        })
+        Regex::new(pattern).context(InvalidRegexSnafu { pattern: pattern.to_string() })
     }
 
     /// Split content preserving line endings
     fn split_content_preserving_line_endings<'a>(&self, content: &'a str) -> Vec<&'a str> {
-        if content.is_empty() {
-            Vec::new()
-        } else {
-            content.split_inclusive('\n').collect()
-        }
+        if content.is_empty() { Vec::new() } else { content.split_inclusive('\n').collect() }
     }
 
     /// Find segments that match the pattern
@@ -402,10 +363,7 @@ impl FileProcessor {
         match no_match_action.as_str() {
             "append_end" => Ok(self.append_content(existing_content, new_content)),
             "error" => PatternNotFoundSnafu.fail(),
-            _ => InvalidNoMatchSettingSnafu {
-                setting: no_match_action,
-            }
-            .fail(),
+            _ => InvalidNoMatchSettingSnafu { setting: no_match_action }.fail(),
         }
     }
 
@@ -431,11 +389,7 @@ impl FileProcessor {
 
     /// Detect the end-of-line sequence used in the content
     fn detect_eol_sequence(&self, content: &str) -> &'static str {
-        if content.contains("\r\n") {
-            "\r\n"
-        } else {
-            "\n"
-        }
+        if content.contains("\r\n") { "\r\n" } else { "\n" }
     }
 
     /// Build the result by inserting content at target indices
@@ -493,6 +447,7 @@ impl FileProcessor {
     }
 
     /// Insert content after a segment
+    #[allow(clippy::too_many_arguments)]
     fn insert_after_segment(
         &self,
         result: &mut String,
@@ -608,9 +563,7 @@ mod tests {
 
         let options = ProcessFileOptionsBuilder::new().append_mode(true).build();
 
-        processor
-            .process_file(temp_file.path(), "new content", &options)
-            .unwrap();
+        processor.process_file(temp_file.path(), "new content", &options).unwrap();
 
         let content = fs::read_to_string(temp_file.path()).unwrap();
         assert!(content.contains("existing content"));
@@ -627,9 +580,7 @@ mod tests {
 
         let options = create_default_options();
 
-        processor
-            .process_file(&file_path, "test content", &options)
-            .unwrap();
+        processor.process_file(&file_path, "test content", &options).unwrap();
 
         let content = fs::read_to_string(&file_path).unwrap();
         assert_eq!(content, "test content");
@@ -645,13 +596,9 @@ mod tests {
         writeln!(temp_file, "## Section").unwrap();
         writeln!(temp_file, "content").unwrap();
 
-        let options = ProcessFileOptionsBuilder::new()
-            .pattern("## Section")
-            .build();
+        let options = ProcessFileOptionsBuilder::new().pattern("## Section").build();
 
-        processor
-            .process_file(temp_file.path(), "new content", &options)
-            .unwrap();
+        processor.process_file(temp_file.path(), "new content", &options).unwrap();
 
         let content = fs::read_to_string(temp_file.path()).unwrap();
         let lines: Vec<&str> = content.lines().collect();
@@ -676,9 +623,7 @@ mod tests {
             .insert_before(true)
             .build();
 
-        processor
-            .process_file(temp_file.path(), "new content", &options)
-            .unwrap();
+        processor.process_file(temp_file.path(), "new content", &options).unwrap();
 
         let content = fs::read_to_string(temp_file.path()).unwrap();
         let lines: Vec<&str> = content.lines().collect();
@@ -704,9 +649,7 @@ mod tests {
             .match_mode(MatchMode::Last)
             .build();
 
-        processor
-            .process_file(temp_file.path(), "new content", &options)
-            .unwrap();
+        processor.process_file(temp_file.path(), "new content", &options).unwrap();
 
         let content = fs::read_to_string(temp_file.path()).unwrap();
         let lines: Vec<&str> = content.lines().collect();
@@ -725,9 +668,7 @@ mod tests {
 
         let options = ProcessFileOptionsBuilder::new().dry_run(true).build();
 
-        processor
-            .process_file(temp_file.path(), "new content", &options)
-            .unwrap();
+        processor.process_file(temp_file.path(), "new content", &options).unwrap();
 
         let content = fs::read_to_string(temp_file.path()).unwrap();
         assert_eq!(content.trim(), "original content"); // File should be unchanged
@@ -825,9 +766,7 @@ mod tests {
             .match_mode(MatchMode::All)
             .build();
 
-        processor
-            .process_file(temp_file.path(), "new content", &options)
-            .unwrap();
+        processor.process_file(temp_file.path(), "new content", &options).unwrap();
 
         let content = fs::read_to_string(temp_file.path()).unwrap();
         let lines: Vec<&str> = content.lines().collect();
@@ -925,9 +864,7 @@ mod tests {
 
         let options = ProcessFileOptionsBuilder::new().backup(true).build();
 
-        processor
-            .process_file(temp_file.path(), "new content", &options)
-            .unwrap();
+        processor.process_file(temp_file.path(), "new content", &options).unwrap();
 
         let backup_path = processor.get_backup_path(temp_file.path());
         assert!(backup_path.exists());

@@ -31,10 +31,7 @@ pub(crate) fn setup(
         use std::{fs::File, sync::Mutex};
         use tauri::Manager;
         let log_file = File::create(
-            app.path()
-                .app_log_dir()
-                .map_err(LogDirectoryNotFoundError)?
-                .join("kodogu.log"),
+            app.path().app_log_dir().map_err(LogDirectoryNotFoundError)?.join("kodogu.log"),
         )
         .map_err(LogFileCreationError)?;
         Mutex::new(log_file)
