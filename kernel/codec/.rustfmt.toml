@@ -1,0 +1,22 @@
+# Rustfmt configuration for codec crate
+# See: https://rust-lang.github.io/rustfmt/
+# Note: Only stable features are used to avoid requiring nightly
+
+edition = "2021"
+
+# Line width
+max_width = 100
+
+# Formatting style
+use_small_heuristics = "Max"
+fn_call_width = 80
+attr_fn_like_width = 80
+struct_lit_width = 80
+struct_variant_width = 80
+array_width = 80
+chain_width = 80
+
+# Other
+reorder_imports = true
+reorder_modules = true
+remove_nested_parens = true
