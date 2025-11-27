@@ -1,9 +1,11 @@
 [package]
 name = "crypto"
-version = "0.1.0"
-edition = "2021"
 description = "Cryptographic operations library for KoDoGu"
-authors = ["ryotan"]
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
 
 [lib]
 name = "crypto"
@@ -11,20 +13,19 @@ path = "src/lib.rs"
 
 [dependencies]
 # Error handling (project standard)
-suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
-snafu = "0.8"
+suzunari-error = { workspace = true }
+snafu = { workspace = true }
 
 # Cryptography (adapter layer only)
-rsa = "0.9"
-p256 = "0.13"
-p384 = "0.13"
-ed25519-dalek = { version = "2.1", features = ["pkcs8", "pem"] }
-pkcs8 = { version = "0.10", features = ["pem"] }
-aes-gcm = { version = "0.10", features = ["std"] }
-pbkdf2 = "0.12"
-sha2 = "0.10"
-rand = "0.8"
-zeroize = { version = "1.7", features = ["derive"] }
+aes-gcm = { workspace = true, features = ["std"] }
+ed25519-dalek = { workspace = true, features = ["pkcs8", "pem"] }
+p256 = { workspace = true }
+p384 = { workspace = true }
+pbkdf2 = { workspace = true }
+pkcs8 = { workspace = true, features = ["pem"] }
+rand = { workspace = true }
+rsa = { workspace = true }
+sha2 = { workspace = true }
+zeroize = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
-tempfile = "3.22.0"

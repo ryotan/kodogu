@@ -9,6 +9,8 @@
       <sourceFolder url="file://$MODULE_DIR$/cli-app/anflug/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/kernel/codec/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/kernel/codec/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/kernel/crypto/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/kernel/crypto/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/app/coverage" />
       <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/target" />
       <excludeFolder url="file://$MODULE_DIR$/cli-app/anflug/target" />
