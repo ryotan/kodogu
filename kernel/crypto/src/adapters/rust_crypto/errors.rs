@@ -6,7 +6,7 @@ use suzunari_error::{suzunari_error, BoxedStackError};
 ///
 /// Each variant wraps the concrete library error type to preserve the full error chain.
 #[suzunari_error]
-#[snafu(visibility(pub(crate)))]
+#[snafu(visibility(pub), context(suffix(Error)))]
 pub enum RustCryptoError {
     #[snafu(display("AES cipher creation failed"))]
     AesCipherCreation {

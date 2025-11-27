@@ -8,8 +8,8 @@ use rsa::{Pkcs1v15Encrypt, RsaPublicKey};
 use snafu::ResultExt;
 
 use super::errors::{
-    AesCipherCreationSnafu, AesEncryptionSnafu, InvalidUtf8Snafu, RsaEncryptionSnafu,
-    RsaPublicKeyParsingSnafu,
+    AesCipherCreationError, AesEncryptionError, InvalidUtf8Error, RsaEncryptionError,
+    RsaPublicKeyParsingError,
 };
 use crate::domain::{
     ciphertext::Ciphertext,
@@ -48,17 +48,17 @@ impl Encryptor for RustCryptoEncryptor {
         let encrypted = match key {
             SymmetricKey::Aes128(key_bytes) => {
                 let cipher = Aes128Gcm::new_from_slice(key_bytes.as_slice())
-                    .context(AesCipherCreationSnafu)?;
+                    .context(AesCipherCreationError)?;
                 cipher
                     .encrypt(nonce, plaintext.as_bytes())
-                    .context(AesEncryptionSnafu)?
+                    .context(AesEncryptionError)?
             }
             SymmetricKey::Aes256(key_bytes) => {
                 let cipher = Aes256Gcm::new_from_slice(key_bytes.as_slice())
-                    .context(AesCipherCreationSnafu)?;
+                    .context(AesCipherCreationError)?;
                 cipher
                     .encrypt(nonce, plaintext.as_bytes())
-                    .context(AesEncryptionSnafu)?
+                    .context(AesEncryptionError)?
             }
         };
 
@@ -80,9 +80,9 @@ impl Encryptor for RustCryptoEncryptor {
 
         // 1. Parse RSA public key from PEM
         let pem_string =
-            String::from_utf8(public_key.as_bytes().to_vec()).context(InvalidUtf8Snafu)?;
+            String::from_utf8(public_key.as_bytes().to_vec()).context(InvalidUtf8Error)?;
         let rsa_public_key =
-            RsaPublicKey::from_public_key_pem(&pem_string).context(RsaPublicKeyParsingSnafu)?;
+            RsaPublicKey::from_public_key_pem(&pem_string).context(RsaPublicKeyParsingError)?;
 
         // 2. Generate random AES-256 key
         let mut aes_key_bytes = [0u8; 32];
@@ -95,7 +95,7 @@ impl Encryptor for RustCryptoEncryptor {
         // 4. Encrypt AES key with RSA public key
         let encrypted_key = rsa_public_key
             .encrypt(&mut OsRng, Pkcs1v15Encrypt, aes_key.as_bytes())
-            .context(RsaEncryptionSnafu)?;
+            .context(RsaEncryptionError)?;
 
         // 5. Pack result: [key_len (2 bytes) | encrypted_key | ciphertext]
         let key_len = encrypted_key.len() as u16;

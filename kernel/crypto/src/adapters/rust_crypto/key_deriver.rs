@@ -2,7 +2,7 @@ use pbkdf2::pbkdf2_hmac;
 use rand::RngCore;
 use sha2::Sha256;
 
-use super::errors::Pbkdf2DerivationSnafu;
+use super::errors::Pbkdf2DerivationError;
 use crate::domain::{keys::SymmetricKey, providers::KeyDeriver, CryptoError};
 
 /// PBKDF2-based key deriver using RustCrypto
@@ -48,7 +48,7 @@ impl KeyDeriver for RustCryptoKeyDeriver {
                 pbkdf2_hmac::<Sha256>(password.as_bytes(), salt, self.iterations, &mut key_bytes);
                 SymmetricKey::aes256(key_bytes)
             }
-            _ => Pbkdf2DerivationSnafu {
+            _ => Pbkdf2DerivationError {
                 reason: format!("Invalid key size: {} bytes (expected 16 or 32)", key_size),
             }
             .fail()?,

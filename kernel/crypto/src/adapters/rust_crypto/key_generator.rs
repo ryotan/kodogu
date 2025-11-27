@@ -3,8 +3,8 @@ use rand::Rng;
 use snafu::ResultExt;
 
 use super::errors::{
-    EcdsaPkcs8EncodingSnafu, EcdsaSpkiEncodingSnafu, Ed25519Pkcs8EncodingSnafu,
-    Ed25519SpkiEncodingSnafu, RsaKeyGenerationSnafu, RsaPkcs8EncodingSnafu, RsaSpkiEncodingSnafu,
+    EcdsaPkcs8EncodingError, EcdsaSpkiEncodingError, Ed25519Pkcs8EncodingError,
+    Ed25519SpkiEncodingError, RsaKeyGenerationError, RsaPkcs8EncodingError, RsaSpkiEncodingError,
 };
 use crate::domain::{
     algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
@@ -26,16 +26,16 @@ impl RustCryptoKeyGenerator {
         use rsa::RsaPrivateKey;
 
         let bits = key_size.bits();
-        let private_key = RsaPrivateKey::new(&mut OsRng, bits).context(RsaKeyGenerationSnafu)?;
+        let private_key = RsaPrivateKey::new(&mut OsRng, bits).context(RsaKeyGenerationError)?;
 
         let private_pem = private_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .context(RsaPkcs8EncodingSnafu)?;
+            .context(RsaPkcs8EncodingError)?;
 
         let public_key = private_key.to_public_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(&public_key, pkcs8::LineEnding::LF)
-                .context(RsaSpkiEncodingSnafu)?;
+                .context(RsaSpkiEncodingError)?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Rsa(key_size),
@@ -59,12 +59,12 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .context(EcdsaPkcs8EncodingSnafu)?;
+            .context(EcdsaPkcs8EncodingError)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(verifying_key, pkcs8::LineEnding::LF)
-                .context(EcdsaSpkiEncodingSnafu)?;
+                .context(EcdsaSpkiEncodingError)?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ecdsa(EcdsaCurve::P256),
@@ -81,12 +81,12 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .context(EcdsaPkcs8EncodingSnafu)?;
+            .context(EcdsaPkcs8EncodingError)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(verifying_key, pkcs8::LineEnding::LF)
-                .context(EcdsaSpkiEncodingSnafu)?;
+                .context(EcdsaSpkiEncodingError)?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ecdsa(EcdsaCurve::P384),
@@ -105,12 +105,12 @@ impl RustCryptoKeyGenerator {
 
         let private_pem = signing_key
             .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .context(Ed25519Pkcs8EncodingSnafu)?;
+            .context(Ed25519Pkcs8EncodingError)?;
 
         let verifying_key = signing_key.verifying_key();
         let public_pem =
             pkcs8::EncodePublicKey::to_public_key_pem(&verifying_key, pkcs8::LineEnding::LF)
-                .context(Ed25519SpkiEncodingSnafu)?;
+                .context(Ed25519SpkiEncodingError)?;
 
         Ok(KeyPair::new(
             AsymmetricAlgorithm::Ed25519,

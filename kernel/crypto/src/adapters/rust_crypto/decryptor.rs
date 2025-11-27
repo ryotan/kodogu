@@ -1,6 +1,6 @@
 use super::errors::{
-    AesCipherCreationSnafu, AesDecryptionSnafu, CiphertextTooShortSnafu,
-    InvalidDecryptedKeySizeSnafu, InvalidUtf8Snafu, RsaDecryptionSnafu, RsaPrivateKeyParsingSnafu,
+    AesCipherCreationError, AesDecryptionError, CiphertextTooShortError,
+    InvalidDecryptedKeySizeError, InvalidUtf8Error, RsaDecryptionError, RsaPrivateKeyParsingError,
 };
 use crate::domain::{
     ciphertext::Ciphertext,
@@ -40,7 +40,7 @@ impl Decryptor for RustCryptoDecryptor {
         // Extract nonce and ciphertext: [nonce (12 bytes) | ciphertext]
         ensure!(
             data.len() >= 12,
-            CiphertextTooShortSnafu { size: data.len() }
+            CiphertextTooShortError { size: data.len() }
         );
 
         let (nonce_bytes, encrypted) = data.split_at(12);
@@ -49,17 +49,17 @@ impl Decryptor for RustCryptoDecryptor {
         let decrypted = match key {
             SymmetricKey::Aes128(key_bytes) => {
                 let cipher = Aes128Gcm::new_from_slice(key_bytes.as_slice())
-                    .context(AesCipherCreationSnafu)?;
+                    .context(AesCipherCreationError)?;
                 cipher
                     .decrypt(nonce, encrypted)
-                    .context(AesDecryptionSnafu)?
+                    .context(AesDecryptionError)?
             }
             SymmetricKey::Aes256(key_bytes) => {
                 let cipher = Aes256Gcm::new_from_slice(key_bytes.as_slice())
-                    .context(AesCipherCreationSnafu)?;
+                    .context(AesCipherCreationError)?;
                 cipher
                     .decrypt(nonce, encrypted)
-                    .context(AesDecryptionSnafu)?
+                    .context(AesDecryptionError)?
             }
         };
 
@@ -79,33 +79,33 @@ impl Decryptor for RustCryptoDecryptor {
         // 1. Extract encrypted key length
         ensure!(
             data.len() >= 2,
-            CiphertextTooShortSnafu { size: data.len() }
+            CiphertextTooShortError { size: data.len() }
         );
         let key_len = u16::from_be_bytes([data[0], data[1]]) as usize;
 
         // 2. Extract encrypted key and AES ciphertext
         ensure!(
             data.len() >= 2 + key_len,
-            CiphertextTooShortSnafu { size: data.len() }
+            CiphertextTooShortError { size: data.len() }
         );
         let encrypted_key = &data[2..2 + key_len];
         let aes_ciphertext_bytes = &data[2 + key_len..];
 
         // 3. Parse RSA private key from PEM
         let pem_string =
-            String::from_utf8(private_key.as_bytes().to_vec()).context(InvalidUtf8Snafu)?;
+            String::from_utf8(private_key.as_bytes().to_vec()).context(InvalidUtf8Error)?;
         let rsa_private_key =
-            RsaPrivateKey::from_pkcs8_pem(&pem_string).context(RsaPrivateKeyParsingSnafu)?;
+            RsaPrivateKey::from_pkcs8_pem(&pem_string).context(RsaPrivateKeyParsingError)?;
 
         // 4. Decrypt AES key with RSA private key
         let aes_key_bytes = rsa_private_key
             .decrypt(Pkcs1v15Encrypt, encrypted_key)
-            .context(RsaDecryptionSnafu)?;
+            .context(RsaDecryptionError)?;
 
         // 5. Convert to fixed-size array (AES-256 key)
         ensure!(
             aes_key_bytes.len() == 32,
-            InvalidDecryptedKeySizeSnafu {
+            InvalidDecryptedKeySizeError {
                 size: aes_key_bytes.len()
             }
         );
