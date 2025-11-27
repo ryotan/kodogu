@@ -27,8 +27,8 @@ use crate::{
     BinaryCodec, BinaryCodecError, BinaryCodecs, DataEncodingDecodeError, DataEncodingSpecError,
     HexOddLengthError, InvalidCharacterSetError,
 };
-use data_encoding::{Encoding, Specification, HEXLOWER, HEXLOWER_PERMISSIVE, HEXUPPER};
-use snafu::{ensure, ResultExt};
+use data_encoding::{Encoding, HEXLOWER, HEXLOWER_PERMISSIVE, HEXUPPER, Specification};
+use snafu::{ResultExt, ensure};
 
 /// Hex codec that encodes as lowercase and accepts any case when decoding
 ///

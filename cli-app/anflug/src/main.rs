@@ -46,12 +46,11 @@ fn main() -> Result<(), MainError> {
 
     // Get message content
     let message = if let Some(input_file) = &args.input_file {
-        file_processor
-            .read_input_file(input_file)
-            .context(InputFileSnafu)?
+        file_processor.read_input_file(input_file).context(InputFileSnafu)?
     } else {
         // Validation ensures message is Some when input_file is None
-        args.message.expect("Message should be present when input_file is None - validation failed")
+        args.message
+            .expect("Message should be present when input_file is None - validation failed")
     };
 
     // Determine template
@@ -61,9 +60,8 @@ fn main() -> Result<(), MainError> {
         .unwrap_or_else(|| DEFAULT_TEMPLATE.to_string());
 
     // Process template
-    let processed_content = template_processor
-        .process(&template, &message)
-        .context(TemplateSnafu)?;
+    let processed_content =
+        template_processor.process(&template, &message).context(TemplateSnafu)?;
 
     // Determine output file
     let file_pattern = args
@@ -71,9 +69,7 @@ fn main() -> Result<(), MainError> {
         .or_else(|| config.file.clone())
         .unwrap_or_else(|| DEFAULT_FILE_PATTERN.to_string());
 
-    let output_file = template_processor
-        .process_filename(&file_pattern)
-        .context(TemplateSnafu)?;
+    let output_file = template_processor.process_filename(&file_pattern).context(TemplateSnafu)?;
 
     let output_path = PathBuf::from(output_file);
 
@@ -84,16 +80,14 @@ fn main() -> Result<(), MainError> {
     let match_mode = args
         .match_mode
         .or_else(|| {
-            config
-                .execution
-                .as_ref()
-                .and_then(|e| e.match_mode.as_ref())
-                .and_then(|mode| match mode.as_str() {
+            config.execution.as_ref().and_then(|e| e.match_mode.as_ref()).and_then(
+                |mode| match mode.as_str() {
                     "first" => Some(cli::MatchMode::First),
                     "last" => Some(cli::MatchMode::Last),
                     "all" => Some(cli::MatchMode::All),
                     _ => None,
-                })
+                },
+            )
         })
         .unwrap_or(cli::MatchMode::First);
 
@@ -105,12 +99,8 @@ fn main() -> Result<(), MainError> {
             .map(|pos| pos == "before")
             .unwrap_or(false);
 
-    let backup = args.backup
-        || config
-            .execution
-            .as_ref()
-            .and_then(|e| e.backup_enabled)
-            .unwrap_or(false);
+    let backup =
+        args.backup || config.execution.as_ref().and_then(|e| e.backup_enabled).unwrap_or(false);
 
     // Process file
     let options = ProcessFileOptions {
@@ -201,9 +191,7 @@ template = "Config test: {{message}}"
             backup: false,
             dry_run: false,
         };
-        file_processor
-            .process_file(&output_path, &processed_content, &options)
-            .unwrap();
+        file_processor.process_file(&output_path, &processed_content, &options).unwrap();
 
         let content = fs::read_to_string(&output_path).unwrap();
         assert_eq!(content, "Config test: test message");
@@ -254,16 +242,14 @@ backup_enabled = true
         let match_mode = cli
             .match_mode
             .or_else(|| {
-                config
-                    .execution
-                    .as_ref()
-                    .and_then(|e| e.match_mode.as_ref())
-                    .and_then(|mode| match mode.as_str() {
+                config.execution.as_ref().and_then(|e| e.match_mode.as_ref()).and_then(|mode| {
+                    match mode.as_str() {
                         "first" => Some(cli::MatchMode::First),
                         "last" => Some(cli::MatchMode::Last),
                         "all" => Some(cli::MatchMode::All),
                         _ => None,
-                    })
+                    }
+                })
             })
             .unwrap_or(cli::MatchMode::First);
 
@@ -279,12 +265,8 @@ backup_enabled = true
 
         assert!(insert_before);
 
-        let backup = cli.backup
-            || config
-                .execution
-                .as_ref()
-                .and_then(|e| e.backup_enabled)
-                .unwrap_or(false);
+        let backup =
+            cli.backup || config.execution.as_ref().and_then(|e| e.backup_enabled).unwrap_or(false);
 
         assert!(backup);
     }

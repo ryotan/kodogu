@@ -271,6 +271,8 @@ pub enum TextCodecError {
     InvalidSequence { encoding: TextCodecs, position: usize },
 
     // Unmappable character in encoding
-    #[snafu(display("Character '{char}' cannot be encoded as {encoding:?} (Unicode code point U+{code_point:04X})"))]
+    #[snafu(display(
+        "Character '{char}' cannot be encoded as {encoding:?} (Unicode code point U+{code_point:04X})"
+    ))]
     UnmappableCharacter { encoding: TextCodecs, char: char, code_point: u32 },
 }
