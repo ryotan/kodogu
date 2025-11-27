@@ -15,9 +15,7 @@ pub struct TemplateProcessor {
 
 impl TemplateProcessor {
     pub fn new(config: &Config) -> Self {
-        Self {
-            date_formats: config.date_formats.clone().unwrap_or_default(),
-        }
+        Self { date_formats: config.date_formats.clone().unwrap_or_default() }
     }
 
     pub fn process(&self, template: &str, message: &str) -> Result<String, TemplateError> {
@@ -96,10 +94,7 @@ impl TemplateProcessor {
 
         // Find the base indentation from the first line
         let first_line = lines[0];
-        let base_indent = first_line
-            .chars()
-            .take_while(|c| c.is_whitespace())
-            .collect::<String>();
+        let base_indent = first_line.chars().take_while(|c| c.is_whitespace()).collect::<String>();
 
         // Apply base indentation to subsequent lines
         lines

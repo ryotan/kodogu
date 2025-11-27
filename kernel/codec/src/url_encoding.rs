@@ -56,7 +56,7 @@
 //! - [WHATWG URL Standard - application/x-www-form-urlencoded](https://url.spec.whatwg.org/#application/x-www-form-urlencoded)
 
 use crate::{BinaryCodec, BinaryCodecError};
-use percent_encoding::{percent_decode_str, percent_encode, AsciiSet, CONTROLS, NON_ALPHANUMERIC};
+use percent_encoding::{AsciiSet, CONTROLS, NON_ALPHANUMERIC, percent_decode_str, percent_encode};
 
 /// RFC 3986 URL encoding codec (space → %20).
 ///

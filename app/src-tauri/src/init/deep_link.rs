@@ -16,9 +16,7 @@ pub(crate) fn setup(
         use tracing::info;
         info!("Registering deep link handler");
         use tauri_plugin_deep_link::DeepLinkExt;
-        app.deep_link()
-            .register_all()
-            .map_err(PluginInitializationError)?;
+        app.deep_link().register_all().map_err(PluginInitializationError)?;
     }
     Ok(())
 }

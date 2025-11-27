@@ -13,7 +13,7 @@ depends = [
 run = "cargo fmt --all"
 
 [tasks."cargo:fix:clippy"]
-run = "cargo clippy--locked --fix --all-features --all-targets --allow-dirty --allow-staged"
+run = "cargo clippy --locked --fix --all-features --all-targets --allow-dirty --allow-staged"
 
 [tasks."cargo:lint"]
 depends = [

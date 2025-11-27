@@ -45,9 +45,9 @@ use crate::{
     InvalidCharacterSetError,
 };
 use data_encoding::{
-    Encoding, Specification, BASE64, BASE64URL, BASE64_MIME, BASE64_MIME_PERMISSIVE,
+    BASE64, BASE64_MIME, BASE64_MIME_PERMISSIVE, BASE64URL, Encoding, Specification,
 };
-use snafu::{ensure, ResultExt};
+use snafu::{ResultExt, ensure};
 
 /// Standard Base64 encoding (RFC 4648)
 ///
