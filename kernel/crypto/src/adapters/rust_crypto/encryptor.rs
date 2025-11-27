@@ -1,6 +1,6 @@
 use aes_gcm::{
-    aead::{Aead, OsRng},
     Aes128Gcm, Aes256Gcm, KeyInit, Nonce,
+    aead::{Aead, OsRng},
 };
 use pkcs8::DecodePublicKey;
 use rand::RngCore;
@@ -12,11 +12,11 @@ use super::errors::{
     RsaPublicKeyParsingError,
 };
 use crate::domain::{
+    CryptoError,
     ciphertext::Ciphertext,
     keys::{PublicKey, SymmetricKey},
     plaintext::Plaintext,
     providers::Encryptor,
-    CryptoError,
 };
 
 /// AES-GCM based encryptor using RustCrypto
@@ -49,16 +49,12 @@ impl Encryptor for RustCryptoEncryptor {
             SymmetricKey::Aes128(key_bytes) => {
                 let cipher = Aes128Gcm::new_from_slice(key_bytes.as_slice())
                     .context(AesCipherCreationError)?;
-                cipher
-                    .encrypt(nonce, plaintext.as_bytes())
-                    .context(AesEncryptionError)?
+                cipher.encrypt(nonce, plaintext.as_bytes()).context(AesEncryptionError)?
             }
             SymmetricKey::Aes256(key_bytes) => {
                 let cipher = Aes256Gcm::new_from_slice(key_bytes.as_slice())
                     .context(AesCipherCreationError)?;
-                cipher
-                    .encrypt(nonce, plaintext.as_bytes())
-                    .context(AesEncryptionError)?
+                cipher.encrypt(nonce, plaintext.as_bytes()).context(AesEncryptionError)?
             }
         };
 

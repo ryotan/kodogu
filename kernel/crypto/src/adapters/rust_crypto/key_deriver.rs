@@ -3,7 +3,7 @@ use rand::RngCore;
 use sha2::Sha256;
 
 use super::errors::Pbkdf2DerivationError;
-use crate::domain::{keys::SymmetricKey, providers::KeyDeriver, CryptoError};
+use crate::domain::{CryptoError, keys::SymmetricKey, providers::KeyDeriver};
 
 /// PBKDF2-based key deriver using RustCrypto
 pub struct RustCryptoKeyDeriver {
@@ -13,9 +13,7 @@ pub struct RustCryptoKeyDeriver {
 impl RustCryptoKeyDeriver {
     /// Create key deriver with default iterations (100,000)
     pub fn new() -> Self {
-        Self {
-            iterations: 100_000,
-        }
+        Self { iterations: 100_000 }
     }
 
     /// Create key deriver with custom iteration count

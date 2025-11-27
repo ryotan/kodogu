@@ -11,10 +11,10 @@ mod domain;
 
 // Re-export public API at crate root
 pub use domain::{
+    CryptoError,
     algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
     ciphertext::Ciphertext,
     keys::{KeyPair, PrivateKey, PublicKey, SymmetricKey},
     plaintext::Plaintext,
     providers::{Decryptor, Encryptor, KeyDeriver, KeyGenerator},
-    CryptoError,
 };

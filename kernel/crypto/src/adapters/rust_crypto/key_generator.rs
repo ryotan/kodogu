@@ -1,5 +1,5 @@
-use rand::rngs::OsRng;
 use rand::Rng;
+use rand::rngs::OsRng;
 use snafu::ResultExt;
 
 use super::errors::{
@@ -7,10 +7,10 @@ use super::errors::{
     Ed25519SpkiEncodingError, RsaKeyGenerationError, RsaPkcs8EncodingError, RsaSpkiEncodingError,
 };
 use crate::domain::{
+    CryptoError, KeyPair,
     algorithms::{AsymmetricAlgorithm, EcdsaCurve, RsaKeySize, SymmetricAlgorithm},
     keys::{PrivateKey, PublicKey, SymmetricKey},
     providers::KeyGenerator,
-    CryptoError, KeyPair,
 };
 
 /// RustCrypto-based key generator implementation
@@ -28,9 +28,8 @@ impl RustCryptoKeyGenerator {
         let bits = key_size.bits();
         let private_key = RsaPrivateKey::new(&mut OsRng, bits).context(RsaKeyGenerationError)?;
 
-        let private_pem = private_key
-            .to_pkcs8_pem(pkcs8::LineEnding::LF)
-            .context(RsaPkcs8EncodingError)?;
+        let private_pem =
+            private_key.to_pkcs8_pem(pkcs8::LineEnding::LF).context(RsaPkcs8EncodingError)?;
 
         let public_key = private_key.to_public_key();
         let public_pem =

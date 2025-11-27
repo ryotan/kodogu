@@ -1,11 +1,11 @@
 //! Integration tests for crypto functionality
 
 use crypto::{
+    AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,
+    RsaKeySize, SymmetricAlgorithm, SymmetricKey,
     adapters::rust_crypto::{
         RustCryptoDecryptor, RustCryptoEncryptor, RustCryptoKeyDeriver, RustCryptoKeyGenerator,
     },
-    AsymmetricAlgorithm, Decryptor, EcdsaCurve, Encryptor, KeyDeriver, KeyGenerator, Plaintext,
-    RsaKeySize, SymmetricAlgorithm, SymmetricKey,
 };
 
 mod key_generation {
@@ -101,9 +101,7 @@ mod key_generation {
     #[test]
     fn password_string_generation() {
         let generator = RustCryptoKeyGenerator::new();
-        let password = generator
-            .generate_password_string(32)
-            .expect("Password generation failed");
+        let password = generator.generate_password_string(32).expect("Password generation failed");
 
         assert_eq!(password.len(), 32);
         // Should contain only alphanumeric characters
@@ -154,9 +152,7 @@ mod symmetric_key_management {
         let password = "my-secure-password";
         let salt = b"random-salt-value";
 
-        let key = deriver
-            .derive_key(password, salt, 32)
-            .expect("Key derivation failed");
+        let key = deriver.derive_key(password, salt, 32).expect("Key derivation failed");
 
         assert_eq!(key.len(), 32);
     }
@@ -208,17 +204,11 @@ mod symmetric_encryption {
         let encryptor = RustCryptoEncryptor::new();
         let decryptor = RustCryptoDecryptor::new();
 
-        let key = generator
-            .generate_symmetric_key(SymmetricAlgorithm::Aes128)
-            .unwrap();
+        let key = generator.generate_symmetric_key(SymmetricAlgorithm::Aes128).unwrap();
         let plaintext = Plaintext::from("Hello, AES-128!");
 
-        let ciphertext = encryptor
-            .encrypt_symmetric(&plaintext, &key)
-            .expect("Encryption failed");
-        let decrypted = decryptor
-            .decrypt_symmetric(&ciphertext, &key)
-            .expect("Decryption failed");
+        let ciphertext = encryptor.encrypt_symmetric(&plaintext, &key).expect("Encryption failed");
+        let decrypted = decryptor.decrypt_symmetric(&ciphertext, &key).expect("Decryption failed");
 
         assert_eq!(plaintext.as_bytes(), decrypted.as_bytes());
     }
@@ -229,9 +219,7 @@ mod symmetric_encryption {
         let encryptor = RustCryptoEncryptor::new();
         let decryptor = RustCryptoDecryptor::new();
 
-        let key = generator
-            .generate_symmetric_key(SymmetricAlgorithm::Aes256)
-            .unwrap();
+        let key = generator.generate_symmetric_key(SymmetricAlgorithm::Aes256).unwrap();
         let plaintext = Plaintext::from("Hello, AES-256!");
 
         let ciphertext = encryptor.encrypt_symmetric(&plaintext, &key).unwrap();
@@ -246,12 +234,8 @@ mod symmetric_encryption {
         let encryptor = RustCryptoEncryptor::new();
         let decryptor = RustCryptoDecryptor::new();
 
-        let key1 = generator
-            .generate_symmetric_key(SymmetricAlgorithm::Aes256)
-            .unwrap();
-        let key2 = generator
-            .generate_symmetric_key(SymmetricAlgorithm::Aes256)
-            .unwrap();
+        let key1 = generator.generate_symmetric_key(SymmetricAlgorithm::Aes256).unwrap();
+        let key2 = generator.generate_symmetric_key(SymmetricAlgorithm::Aes256).unwrap();
 
         let plaintext = Plaintext::from("Secret message");
         let ciphertext = encryptor.encrypt_symmetric(&plaintext, &key1).unwrap();
@@ -266,9 +250,7 @@ mod symmetric_encryption {
         let generator = RustCryptoKeyGenerator::new();
         let encryptor = RustCryptoEncryptor::new();
 
-        let key = generator
-            .generate_symmetric_key(SymmetricAlgorithm::Aes256)
-            .unwrap();
+        let key = generator.generate_symmetric_key(SymmetricAlgorithm::Aes256).unwrap();
         let plaintext = Plaintext::from("Test");
 
         let ciphertext = encryptor.encrypt_symmetric(&plaintext, &key).unwrap();
@@ -282,9 +264,7 @@ mod symmetric_encryption {
         let generator = RustCryptoKeyGenerator::new();
         let encryptor = RustCryptoEncryptor::new();
 
-        let key = generator
-            .generate_symmetric_key(SymmetricAlgorithm::Aes256)
-            .unwrap();
+        let key = generator.generate_symmetric_key(SymmetricAlgorithm::Aes256).unwrap();
         let plaintext = Plaintext::from("Same message");
 
         let ciphertext1 = encryptor.encrypt_symmetric(&plaintext, &key).unwrap();
@@ -335,12 +315,8 @@ mod asymmetric_encryption {
         let large_data = vec![0x42u8; 10000];
         let plaintext = Plaintext::new(large_data.clone());
 
-        let ciphertext = encryptor
-            .encrypt_asymmetric(&plaintext, key_pair.public_key())
-            .unwrap();
-        let decrypted = decryptor
-            .decrypt_asymmetric(&ciphertext, key_pair.private_key())
-            .unwrap();
+        let ciphertext = encryptor.encrypt_asymmetric(&plaintext, key_pair.public_key()).unwrap();
+        let decrypted = decryptor.decrypt_asymmetric(&ciphertext, key_pair.private_key()).unwrap();
 
         assert_eq!(large_data, decrypted.as_bytes());
     }
@@ -360,9 +336,7 @@ mod asymmetric_encryption {
 
         let plaintext = Plaintext::from("Secret");
 
-        let ciphertext = encryptor
-            .encrypt_asymmetric(&plaintext, key_pair1.public_key())
-            .unwrap();
+        let ciphertext = encryptor.encrypt_asymmetric(&plaintext, key_pair1.public_key()).unwrap();
 
         // Decryption with wrong private key should fail
         let result = decryptor.decrypt_asymmetric(&ciphertext, key_pair2.private_key());

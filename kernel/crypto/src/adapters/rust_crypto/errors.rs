@@ -1,6 +1,6 @@
-use crate::domain::CryptoError;
 use crate::CryptoError::{Decryption, Encryption, KeyDerivation, KeyGeneration};
-use suzunari_error::{suzunari_error, BoxedStackError};
+use crate::domain::CryptoError;
+use suzunari_error::{BoxedStackError, suzunari_error};
 
 /// RustCrypto adapter layer errors
 ///
@@ -9,9 +9,7 @@ use suzunari_error::{suzunari_error, BoxedStackError};
 #[snafu(visibility(pub), context(suffix(Error)))]
 pub enum RustCryptoError {
     #[snafu(display("AES cipher creation failed"))]
-    AesCipherCreation {
-        source: aes_gcm::aes::cipher::InvalidLength,
-    },
+    AesCipherCreation { source: aes_gcm::aes::cipher::InvalidLength },
 
     #[snafu(display("AES encryption failed"))]
     AesEncryption { source: aes_gcm::Error },
@@ -77,27 +75,25 @@ impl From<RustCryptoError> for CryptoError {
             | RustCryptoError::EcdsaPkcs8Encoding { .. }
             | RustCryptoError::EcdsaSpkiEncoding { .. }
             | RustCryptoError::Ed25519Pkcs8Encoding { .. }
-            | RustCryptoError::Ed25519SpkiEncoding { .. } => KeyGeneration {
-                source: BoxedStackError::new(e),
-            },
+            | RustCryptoError::Ed25519SpkiEncoding { .. } => {
+                KeyGeneration { source: BoxedStackError::new(e) }
+            }
             RustCryptoError::AesCipherCreation { .. }
             | RustCryptoError::AesEncryption { .. }
             | RustCryptoError::RsaEncryption { .. }
             | RustCryptoError::RsaPublicKeyParsing { .. }
-            | RustCryptoError::InvalidUtf8 { .. } => Encryption {
-                source: BoxedStackError::new(e),
-            },
+            | RustCryptoError::InvalidUtf8 { .. } => Encryption { source: BoxedStackError::new(e) },
             RustCryptoError::AesDecryption { .. }
             | RustCryptoError::RsaDecryption { .. }
             | RustCryptoError::InvalidPemEncoding { .. }
             | RustCryptoError::RsaPrivateKeyParsing { .. }
             | RustCryptoError::CiphertextTooShort { .. }
-            | RustCryptoError::InvalidDecryptedKeySize { .. } => Decryption {
-                source: BoxedStackError::new(e),
-            },
-            RustCryptoError::Pbkdf2Derivation { .. } => KeyDerivation {
-                source: BoxedStackError::new(e),
-            },
+            | RustCryptoError::InvalidDecryptedKeySize { .. } => {
+                Decryption { source: BoxedStackError::new(e) }
+            }
+            RustCryptoError::Pbkdf2Derivation { .. } => {
+                KeyDerivation { source: BoxedStackError::new(e) }
+            }
         }
     }
 }

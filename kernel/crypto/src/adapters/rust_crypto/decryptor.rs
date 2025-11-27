@@ -3,16 +3,16 @@ use super::errors::{
     InvalidDecryptedKeySizeError, InvalidUtf8Error, RsaDecryptionError, RsaPrivateKeyParsingError,
 };
 use crate::domain::{
+    CryptoError,
     ciphertext::Ciphertext,
     keys::{PrivateKey, SymmetricKey},
     plaintext::Plaintext,
     providers::Decryptor,
-    CryptoError,
 };
-use aes_gcm::{aead::Aead, Aes128Gcm, Aes256Gcm, KeyInit, Nonce};
+use aes_gcm::{Aes128Gcm, Aes256Gcm, KeyInit, Nonce, aead::Aead};
 use pkcs8::DecodePrivateKey;
 use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
-use snafu::{ensure, ResultExt};
+use snafu::{ResultExt, ensure};
 
 /// AES-GCM based decryptor using RustCrypto
 pub struct RustCryptoDecryptor;
@@ -38,10 +38,7 @@ impl Decryptor for RustCryptoDecryptor {
         let data = ciphertext.as_bytes();
 
         // Extract nonce and ciphertext: [nonce (12 bytes) | ciphertext]
-        ensure!(
-            data.len() >= 12,
-            CiphertextTooShortError { size: data.len() }
-        );
+        ensure!(data.len() >= 12, CiphertextTooShortError { size: data.len() });
 
         let (nonce_bytes, encrypted) = data.split_at(12);
         let nonce = Nonce::from_slice(nonce_bytes);
@@ -50,16 +47,12 @@ impl Decryptor for RustCryptoDecryptor {
             SymmetricKey::Aes128(key_bytes) => {
                 let cipher = Aes128Gcm::new_from_slice(key_bytes.as_slice())
                     .context(AesCipherCreationError)?;
-                cipher
-                    .decrypt(nonce, encrypted)
-                    .context(AesDecryptionError)?
+                cipher.decrypt(nonce, encrypted).context(AesDecryptionError)?
             }
             SymmetricKey::Aes256(key_bytes) => {
                 let cipher = Aes256Gcm::new_from_slice(key_bytes.as_slice())
                     .context(AesCipherCreationError)?;
-                cipher
-                    .decrypt(nonce, encrypted)
-                    .context(AesDecryptionError)?
+                cipher.decrypt(nonce, encrypted).context(AesDecryptionError)?
             }
         };
 
@@ -77,17 +70,11 @@ impl Decryptor for RustCryptoDecryptor {
         let data = ciphertext.as_bytes();
 
         // 1. Extract encrypted key length
-        ensure!(
-            data.len() >= 2,
-            CiphertextTooShortError { size: data.len() }
-        );
+        ensure!(data.len() >= 2, CiphertextTooShortError { size: data.len() });
         let key_len = u16::from_be_bytes([data[0], data[1]]) as usize;
 
         // 2. Extract encrypted key and AES ciphertext
-        ensure!(
-            data.len() >= 2 + key_len,
-            CiphertextTooShortError { size: data.len() }
-        );
+        ensure!(data.len() >= 2 + key_len, CiphertextTooShortError { size: data.len() });
         let encrypted_key = &data[2..2 + key_len];
         let aes_ciphertext_bytes = &data[2 + key_len..];
 
@@ -105,13 +92,10 @@ impl Decryptor for RustCryptoDecryptor {
         // 5. Convert to fixed-size array (AES-256 key)
         ensure!(
             aes_key_bytes.len() == 32,
-            InvalidDecryptedKeySizeError {
-                size: aes_key_bytes.len()
-            }
+            InvalidDecryptedKeySizeError { size: aes_key_bytes.len() }
         );
-        let aes_key_array: [u8; 32] = aes_key_bytes
-            .try_into()
-            .expect("Length already verified to be 32");
+        let aes_key_array: [u8; 32] =
+            aes_key_bytes.try_into().expect("Length already verified to be 32");
         let aes_key = SymmetricKey::aes256(aes_key_array);
 
         // 6. Decrypt ciphertext with AES key

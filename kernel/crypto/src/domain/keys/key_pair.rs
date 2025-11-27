@@ -15,11 +15,7 @@ impl KeyPair {
         public_key: PublicKey,
         private_key: PrivateKey,
     ) -> Self {
-        Self {
-            algorithm,
-            public_key,
-            private_key,
-        }
+        Self { algorithm, public_key, private_key }
     }
 
     pub fn algorithm(&self) -> AsymmetricAlgorithm {
