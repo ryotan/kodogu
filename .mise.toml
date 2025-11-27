@@ -2,3 +2,33 @@
 node = "22"
 bun = "1.2.5"
 java = "microsoft-17.35.1"
+
+[tasks."cargo:fix"]
+depends = [
+  "cargo:fix:fmt",
+  "cargo:fix:clippy",
+]
+
+[tasks."cargo:fix:fmt"]
+run = "cargo fmt --all"
+
+[tasks."cargo:fix:clippy"]
+run = "cargo clippy--locked --fix --all-features --all-targets --allow-dirty --allow-staged"
+
+[tasks."cargo:lint"]
+depends = [
+  "cargo:lint:fmt",
+  "cargo:lint:clippy",
+]
+
+[tasks."cargo:lint:fmt"]
+run = "cargo fmt --all --check"
+
+[tasks."cargo:lint:clippy"]
+run = "cargo clippy --locked --no-deps --all-features --all-targets --release"
+
+[tasks."cargo:test"]
+run = "cargo test --all-features --workspace"
+
+[tasks."cargo:coverage"]
+run = "cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info"

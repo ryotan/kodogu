@@ -85,12 +85,12 @@ jobs:
 
       - id: rustfmt
         name: Rust Format
-        run: cargo fmt --check
+        run: mise run cargo:lint:fmt
         continue-on-error: true  # Run all checks, then fail at the end
 
       - id: clippy
         name: Clippy
-        run: cargo clippy --locked --no-deps --all-features --all-targets --release
+        run: mise run cargo:lint:clippy
         continue-on-error: true  # Run all checks, then fail at the end
 
       - id: frontend-test
@@ -102,7 +102,7 @@ jobs:
       - id: backend-test
         name: Backend Tests & Coverage
         # WORKAROUND: wayland-client 0.31.8 uses not stable feature (`coverage_attribute`) of Rust 1.85.1 for coverage
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        run: mise run cargo:coverage -- --no-cfg-coverage
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
