@@ -11,6 +11,8 @@
       <sourceFolder url="file://$MODULE_DIR$/contexts/crypto/rust/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/contexts/crypto/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/contexts/crypto/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/kernel/codec/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/kernel/codec/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/gen" />
       <excludeFolder url="file://$MODULE_DIR$/app/src-tauri/target" />
       <excludeFolder url="file://$MODULE_DIR$/app/gen" />
@@ -19,6 +21,7 @@
       <excludeFolder url="file://$MODULE_DIR$/contexts/crypto/rust/target" />
       <excludeFolder url="file://$MODULE_DIR$/app/coverage" />
       <excludeFolder url="file://$MODULE_DIR$/contexts/crypto/target" />
+      <excludeFolder url="file://$MODULE_DIR$/kernel/codec/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

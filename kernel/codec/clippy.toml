@@ -1,0 +1,5 @@
+# Clippy configuration for codec crate
+# See: https://doc.rust-lang.org/clippy/lint_configuration.html
+
+# Allow slightly more arguments for codec construction
+too-many-arguments-threshold = 6
