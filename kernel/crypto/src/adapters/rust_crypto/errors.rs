@@ -97,3 +97,50 @@ impl From<RustCryptoError> for CryptoError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ciphertext_too_short_converts_to_decryption_error() {
+        let rust_error = CiphertextTooShortError { size: 5usize }.build();
+        let domain_error: CryptoError = rust_error.into();
+        assert!(matches!(domain_error, Decryption { .. }));
+    }
+
+    #[test]
+    fn invalid_decrypted_key_size_converts_to_decryption_error() {
+        let rust_error = InvalidDecryptedKeySizeError { size: 16usize }.build();
+        let domain_error: CryptoError = rust_error.into();
+        assert!(matches!(domain_error, Decryption { .. }));
+    }
+
+    #[test]
+    fn pbkdf2_derivation_converts_to_key_derivation_error() {
+        let rust_error = Pbkdf2DerivationError { reason: "test".to_string() }.build();
+        let domain_error: CryptoError = rust_error.into();
+        assert!(matches!(domain_error, KeyDerivation { .. }));
+    }
+
+    #[test]
+    fn ciphertext_too_short_display() {
+        let err = CiphertextTooShortError { size: 10usize }.build();
+        let display = format!("{}", err);
+        assert!(display.contains("10"));
+    }
+
+    #[test]
+    fn invalid_decrypted_key_size_display() {
+        let err = InvalidDecryptedKeySizeError { size: 20usize }.build();
+        let display = format!("{}", err);
+        assert!(display.contains("20"));
+    }
+
+    #[test]
+    fn pbkdf2_derivation_display() {
+        let err = Pbkdf2DerivationError { reason: "invalid salt".to_string() }.build();
+        let display = format!("{}", err);
+        assert!(display.contains("invalid salt"));
+    }
+}

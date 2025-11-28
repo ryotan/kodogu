@@ -5,7 +5,7 @@ use crate::domain::{
 };
 
 /// Key generation abstraction
-pub trait KeyGenerator: Send + Sync {
+pub trait KeyGenerator {
     /// Generate asymmetric key pair
     fn generate_key_pair(&self, algorithm: AsymmetricAlgorithm) -> Result<KeyPair, CryptoError>;
 

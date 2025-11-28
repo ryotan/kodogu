@@ -103,3 +103,19 @@ impl Decryptor for RustCryptoDecryptor {
         self.decrypt_symmetric(&aes_ciphertext, &aes_key)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_creates_instance() {
+        let _decryptor = RustCryptoDecryptor::new();
+    }
+
+    #[test]
+    fn default_creates_instance() {
+        #[allow(clippy::default_constructed_unit_structs)]
+        let _decryptor = RustCryptoDecryptor::default();
+    }
+}

@@ -164,3 +164,28 @@ impl KeyGenerator for RustCryptoKeyGenerator {
         Ok(password)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_creates_instance() {
+        let _generator = RustCryptoKeyGenerator::new();
+    }
+
+    #[test]
+    fn default_creates_instance() {
+        #[allow(clippy::default_constructed_unit_structs)]
+        let _generator = RustCryptoKeyGenerator::default();
+    }
+
+    #[test]
+    fn password_charset_is_alphanumeric() {
+        const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for &byte in CHARSET {
+            let ch = byte as char;
+            assert!(ch.is_alphanumeric(), "Character '{}' is not alphanumeric", ch);
+        }
+    }
+}

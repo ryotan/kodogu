@@ -43,6 +43,7 @@
       <w>nygard</w>
       <w>patchelf</w>
       <w>pqrst</w>
+      <w>priv</w>
       <w>rpshnaf</w>
       <w>rustfmt</w>
       <w>spki</w>
@@ -53,6 +54,7 @@
       <w>zabcdefghijklmnopqrstuvwxyz</w>
       <w>zabcdefghijkmnopqrstu</w>
       <w>zabcdefghijkmnopqrstuvwxyz</w>
+      <w>zeroize</w>
       <w>zstd</w>
     </words>
   </dictionary>

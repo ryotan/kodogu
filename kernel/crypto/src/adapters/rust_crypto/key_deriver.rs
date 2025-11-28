@@ -67,3 +67,33 @@ impl KeyDeriver for RustCryptoKeyDeriver {
         Ok((key, salt))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_creates_deriver_with_default_iterations() {
+        let deriver = RustCryptoKeyDeriver::new();
+        assert_eq!(deriver.iterations, 100_000);
+    }
+
+    #[test]
+    fn default_creates_deriver_with_100k_iterations() {
+        let deriver = RustCryptoKeyDeriver::default();
+        assert_eq!(deriver.iterations, 100_000);
+    }
+
+    #[test]
+    fn with_iterations_creates_custom_deriver() {
+        let deriver = RustCryptoKeyDeriver::with_iterations(50_000);
+        assert_eq!(deriver.iterations, 50_000);
+    }
+
+    #[test]
+    fn derive_key_rejects_invalid_key_size() {
+        let deriver = RustCryptoKeyDeriver::new();
+        let result = deriver.derive_key("password", b"salt", 24);
+        assert!(result.is_err());
+    }
+}

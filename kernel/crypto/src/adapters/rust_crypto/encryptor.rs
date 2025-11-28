@@ -104,3 +104,19 @@ impl Encryptor for RustCryptoEncryptor {
         Ok(Ciphertext::new(result))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_creates_instance() {
+        let _encryptor = RustCryptoEncryptor::new();
+    }
+
+    #[test]
+    fn default_creates_instance() {
+        #[allow(clippy::default_constructed_unit_structs)]
+        let _encryptor = RustCryptoEncryptor::default();
+    }
+}

@@ -21,3 +21,39 @@ impl Display for CryptoError {
 }
 
 impl std::error::Error for CryptoError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn crypto_error_implements_error_trait() {
+        // CryptoError variants are tested through integration tests
+        // Here we just verify that CryptoError implements the Error trait
+        fn assert_error<T: std::error::Error>() {}
+        assert_error::<CryptoError>();
+    }
+
+    #[test]
+    fn crypto_error_implements_display() {
+        // Verify CryptoError implements Display trait
+        fn assert_display<T: Display>() {}
+        assert_display::<CryptoError>();
+    }
+
+    #[test]
+    fn crypto_error_has_four_variants() {
+        // This test documents that CryptoError has exactly 4 variants
+        // If a variant is added or removed, this test will fail at compile time
+        fn check_exhaustiveness(err: &CryptoError) {
+            match err {
+                CryptoError::KeyGeneration { .. } => {}
+                CryptoError::Encryption { .. } => {}
+                CryptoError::Decryption { .. } => {}
+                CryptoError::KeyDerivation { .. } => {}
+            }
+        }
+        // Just to avoid unused function warning
+        let _ = check_exhaustiveness;
+    }
+}
