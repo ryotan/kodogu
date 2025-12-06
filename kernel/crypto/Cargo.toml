@@ -1,0 +1,32 @@
+[package]
+name = "crypto"
+description = "Cryptographic operations library for KoDoGu"
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+
+[lib]
+name = "crypto"
+path = "src/lib.rs"
+
+[dependencies]
+# Error handling (project standard)
+suzunari-error = { workspace = true }
+snafu = { workspace = true }
+
+# Cryptography (adapter layer only)
+aes-gcm = { workspace = true, features = ["std"] }
+ed25519-dalek = { workspace = true, features = ["pkcs8", "pem"] }
+p256 = { workspace = true }
+p384 = { workspace = true }
+pbkdf2 = { workspace = true }
+pkcs8 = { workspace = true, features = ["pem"] }
+rand = { workspace = true }
+rsa = { workspace = true }
+sha2 = { workspace = true }
+subtle = { workspace = true }
+zeroize = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
