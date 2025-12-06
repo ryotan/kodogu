@@ -1,10 +1,9 @@
 //! KoDoGu Crypto - Cryptographic operations library
 //!
 //! This library provides cryptographic functionality following a simple,
-//! codec-inspired API design with three complementary APIs:
+//! codec-inspired API design with two complementary APIs:
 //! - ZST types: `Aes256Gcm`, `Rsa2048`, etc. (compile-time dispatch)
 //! - Enums: `AesGcm`, `RsaKeyGenerator`, etc. (runtime selection)
-//! - Static methods: `AesGcm::aes256()`, `RsaKeyGenerator::rsa2048()`, etc.
 //!
 //! ## Supported Operations
 //!
@@ -25,20 +24,20 @@
 
 use aes_gcm::Error;
 use aes_gcm::aes::cipher::InvalidLength;
+use subtle::ConstantTimeEq;
 use suzunari_error::suzunari_error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-// Implementation modules
-pub mod aes;
-pub mod keygen;
-pub mod pbkdf2;
-pub mod rsa;
+mod aes;
+mod keygen;
+mod pbkdf2;
+mod rsa;
 
 // Re-exports
-pub use aes::{Aes128Gcm, Aes256Gcm, AesGcm};
+pub use aes::{Aes128Gcm, Aes128Key, Aes256Gcm, Aes256Key, AesGcm, AesKey};
 pub use keygen::{
-    EcdsaKeyGenerator, EcdsaP256, EcdsaP384, Ed25519KeyGen, KeyGenerationError, RandomAes128,
-    RandomAes256, RandomKeyGenerator, Rsa2048, Rsa4096, RsaKeyGenerator,
+    EcdsaKeyGenerator, EcdsaP256, EcdsaP384, Ed25519KeyGen, KeyGenerationError, RandomAes128Key,
+    RandomAes256Key, RandomAesKey, Rsa2048, Rsa4096, RsaKeyGenerator,
 };
 pub use pbkdf2::{KeyDerivationError, Pbkdf2, Pbkdf2Aes128, Pbkdf2Aes256};
 pub use rsa::{RsaHybrid, RsaHybrid2048, RsaHybrid4096, RsaHybridError};
@@ -52,16 +51,6 @@ pub use rsa::{RsaHybrid, RsaHybrid2048, RsaHybrid4096, RsaHybridError};
 pub struct Plaintext(Vec<u8>);
 
 impl Plaintext {
-    /// Create plaintext from bytes
-    pub fn from_bytes(bytes: Vec<u8>) -> Self {
-        Self(bytes)
-    }
-
-    /// Create plaintext from string
-    pub fn from_string(s: String) -> Self {
-        Self(s.into_bytes())
-    }
-
     /// Get plaintext as bytes
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
@@ -85,16 +74,17 @@ impl From<String> for Plaintext {
     }
 }
 
+impl From<&str> for Plaintext {
+    fn from(s: &str) -> Self {
+        Self(s.as_bytes().to_vec())
+    }
+}
+
 /// Encrypted ciphertext
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Ciphertext(Vec<u8>);
 
 impl Ciphertext {
-    /// Create ciphertext from bytes
-    pub fn from_bytes(bytes: Vec<u8>) -> Self {
-        Self(bytes)
-    }
-
     /// Get ciphertext as bytes
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
@@ -112,83 +102,100 @@ impl From<Vec<u8>> for Ciphertext {
     }
 }
 
-/// Symmetric encryption key
-#[derive(Clone, Zeroize, ZeroizeOnDrop)]
-pub enum SymmetricKey {
-    /// AES-128 key (16 bytes)
-    Aes128(Box<[u8; 16]>),
-    /// AES-256 key (32 bytes)
-    Aes256(Box<[u8; 32]>),
-}
-
-impl SymmetricKey {
-    /// Create AES-128 key from bytes
-    pub fn aes128(key: [u8; 16]) -> Self {
-        Self::Aes128(Box::new(key))
-    }
-
-    /// Create AES-256 key from bytes
-    pub fn aes256(key: [u8; 32]) -> Self {
-        Self::Aes256(Box::new(key))
-    }
-}
-
-impl std::fmt::Debug for SymmetricKey {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Aes128(_) => f.debug_tuple("Aes128").field(&"[REDACTED]").finish(),
-            Self::Aes256(_) => f.debug_tuple("Aes256").field(&"[REDACTED]").finish(),
-        }
-    }
-}
-
 /// Public key for asymmetric encryption
-#[derive(Clone, PartialEq, Eq)]
-pub struct PublicKey(Vec<u8>);
+///
+/// PEM format is a text-based encoding defined in RFC 7468.
+/// It consists of Base64-encoded binary data with header/footer lines.
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct PublicKey(String);
 
 impl PublicKey {
-    /// Create public key from PEM bytes
-    pub fn from_pem(pem: Vec<u8>) -> Self {
+    /// Create public key from PEM string
+    ///
+    /// PEM format example:
+    /// ```text
+    /// -----BEGIN PUBLIC KEY-----
+    /// MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+    /// -----END PUBLIC KEY-----
+    /// ```
+    pub fn from_pem(pem: String) -> Self {
         Self(pem)
     }
 
-    /// Get public key as PEM bytes
-    pub fn as_pem(&self) -> &[u8] {
+    /// Get public key as PEM string slice
+    pub fn as_pem(&self) -> &str {
         &self.0
     }
+}
 
-    /// Convert to PEM bytes
-    pub fn into_pem(self) -> Vec<u8> {
-        self.0
+impl From<String> for PublicKey {
+    fn from(pem: String) -> Self {
+        Self(pem)
+    }
+}
+
+impl From<&str> for PublicKey {
+    fn from(pem: &str) -> Self {
+        Self(pem.to_string())
     }
 }
 
 impl std::fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "PublicKey([{} bytes])", self.0.len())
+        write!(f, "PublicKey([{} chars])", self.0.len())
     }
 }
 
 /// Private key for asymmetric encryption
-#[derive(Clone, Zeroize, ZeroizeOnDrop, PartialEq, Eq)]
-pub struct PrivateKey(Vec<u8>);
+///
+/// PEM format is a text-based encoding defined in RFC 7468.
+/// The private key data is automatically zeroized when dropped for security.
+///
+/// # Security
+///
+/// - Uses constant-time comparison to prevent timing attacks
+/// - Automatically zeroized on drop
+#[derive(Zeroize, ZeroizeOnDrop)]
+pub struct PrivateKey(String);
 
 impl PrivateKey {
-    /// Create private key from PEM bytes
-    pub fn from_pem(pem: Vec<u8>) -> Self {
+    /// Create private key from PEM string
+    ///
+    /// PEM format example:
+    /// ```text
+    /// -----BEGIN PRIVATE KEY-----
+    /// MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
+    /// -----END PRIVATE KEY-----
+    /// ```
+    pub fn from_pem(pem: String) -> Self {
         Self(pem)
     }
 
-    /// Get private key as PEM bytes
-    pub fn as_pem(&self) -> &[u8] {
+    /// Get private key as PEM string slice
+    pub fn as_pem(&self) -> &str {
         &self.0
     }
+}
 
-    /// Convert to PEM bytes
-    pub fn into_pem(self) -> Vec<u8> {
-        self.0.clone()
+impl From<String> for PrivateKey {
+    fn from(pem: String) -> Self {
+        Self(pem)
     }
 }
+
+impl From<&str> for PrivateKey {
+    fn from(pem: &str) -> Self {
+        Self(pem.to_string())
+    }
+}
+
+impl PartialEq for PrivateKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.as_bytes().ct_eq(other.0.as_bytes()).into()
+    }
+}
+
+impl Eq for PrivateKey {}
 
 impl std::fmt::Debug for PrivateKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -197,7 +204,7 @@ impl std::fmt::Debug for PrivateKey {
 }
 
 /// Asymmetric key pair (public + private)
-#[derive(Clone, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub struct KeyPair {
     /// Public key
     pub public_key: PublicKey,
@@ -229,10 +236,6 @@ impl std::fmt::Debug for KeyPair {
 #[suzunari_error]
 #[snafu(visibility(pub))]
 pub enum CipherError {
-    /// Wrong key type for the cipher
-    #[snafu(display("Wrong key type: expected {expected}, got {got}"))]
-    WrongKeyType { expected: String, got: String },
-
     /// AES cipher creation failed
     #[snafu(display("AES cipher creation failed"))]
     AesCipherCreation { source: InvalidLength },

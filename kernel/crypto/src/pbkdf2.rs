@@ -5,7 +5,7 @@
 //! ## Usage
 //!
 //! ```rust,ignore
-//! use crypto::{Pbkdf2Aes256, Pbkdf2, SymmetricKey};
+//! use crypto::{Pbkdf2Aes256, Pbkdf2, Aes256Key};
 //!
 //! let password = "my_secure_password";
 //! let salt = b"random_salt_16by"; // Should be random in practice
@@ -15,16 +15,13 @@
 //! let key = Pbkdf2Aes256.derive_key(password, salt, iterations)?;
 //!
 //! // Enum (runtime selection)
-//! let deriver = Pbkdf2::aes256();
-//! let key = deriver.derive_key(password, salt, iterations)?;
+//! let key = Pbkdf2::Aes256.derive_key(password, salt, iterations)?;
 //! ```
 
+use crate::{Aes128Key, Aes256Key, AesKey};
 use pbkdf2::pbkdf2_hmac;
 use sha2::Sha256;
 use suzunari_error::suzunari_error;
-
-use crate::SymmetricKey;
-
 //
 // Error Types
 //
@@ -67,10 +64,10 @@ impl Pbkdf2Aes256 {
         password: &str,
         salt: &[u8],
         iterations: u32,
-    ) -> Result<SymmetricKey, KeyDerivationError> {
+    ) -> Result<Aes256Key, KeyDerivationError> {
         let mut key = [0u8; 32];
         pbkdf2_hmac::<Sha256>(password.as_bytes(), salt, iterations, &mut key);
-        Ok(SymmetricKey::aes256(key))
+        Ok(Aes256Key::from(key))
     }
 }
 
@@ -93,10 +90,10 @@ impl Pbkdf2Aes128 {
         password: &str,
         salt: &[u8],
         iterations: u32,
-    ) -> Result<SymmetricKey, KeyDerivationError> {
+    ) -> Result<Aes128Key, KeyDerivationError> {
         let mut key = [0u8; 16];
         pbkdf2_hmac::<Sha256>(password.as_bytes(), salt, iterations, &mut key);
-        Ok(SymmetricKey::aes128(key))
+        Ok(Aes128Key::from(key))
     }
 }
 
@@ -116,16 +113,6 @@ pub enum Pbkdf2 {
 }
 
 impl Pbkdf2 {
-    /// Create AES-128 key deriver (static factory method)
-    pub fn aes128() -> Self {
-        Self::Aes128
-    }
-
-    /// Create AES-256 key deriver (static factory method)
-    pub fn aes256() -> Self {
-        Self::Aes256
-    }
-
     /// Derive a symmetric key from password
     ///
     /// Delegates to the appropriate ZST implementation based on enum variant.
@@ -134,10 +121,14 @@ impl Pbkdf2 {
         password: &str,
         salt: &[u8],
         iterations: u32,
-    ) -> Result<SymmetricKey, KeyDerivationError> {
+    ) -> Result<AesKey, KeyDerivationError> {
         match self {
-            Pbkdf2::Aes128 => Pbkdf2Aes128.derive_key(password, salt, iterations),
-            Pbkdf2::Aes256 => Pbkdf2Aes256.derive_key(password, salt, iterations),
+            Pbkdf2::Aes128 => {
+                Pbkdf2Aes128.derive_key(password, salt, iterations).map(AesKey::Aes128)
+            }
+            Pbkdf2::Aes256 => {
+                Pbkdf2Aes256.derive_key(password, salt, iterations).map(AesKey::Aes256)
+            }
         }
     }
 }
@@ -151,43 +142,15 @@ mod tests {
     const TEST_ITERATIONS: u32 = 10_000; // Lower for faster tests
 
     #[test]
-    fn test_pbkdf2_aes256_derives_key() {
-        let key = Pbkdf2Aes256
-            .derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS)
-            .unwrap();
-
-        match key {
-            SymmetricKey::Aes256(_) => (), // Success
-            _ => panic!("Expected Aes256 key"),
-        }
-    }
-
-    #[test]
-    fn test_pbkdf2_aes128_derives_key() {
-        let key = Pbkdf2Aes128
-            .derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS)
-            .unwrap();
-
-        match key {
-            SymmetricKey::Aes128(_) => (), // Success
-            _ => panic!("Expected Aes128 key"),
-        }
-    }
-
-    #[test]
     fn test_same_inputs_produce_same_key() {
-        let key1 = Pbkdf2Aes256
-            .derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS)
-            .unwrap();
-        let key2 = Pbkdf2Aes256
-            .derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS)
-            .unwrap();
+        let key1 = Pbkdf2Aes256.derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS).unwrap();
+        let key2 = Pbkdf2Aes256.derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS).unwrap();
 
         // Same password + salt + iterations should produce same key
         // Verify by encrypting with both keys and cross-decrypting
         use crate::{Aes256Gcm, Plaintext};
 
-        let plaintext = Plaintext::from_string("test".to_string());
+        let plaintext = Plaintext::from("test");
         let cipher = Aes256Gcm;
 
         let ciphertext1 = cipher.encrypt(&plaintext, &key1).unwrap();
@@ -198,17 +161,13 @@ mod tests {
 
     #[test]
     fn test_different_passwords_produce_different_keys() {
-        let key1 = Pbkdf2Aes256
-            .derive_key("password1", TEST_SALT, TEST_ITERATIONS)
-            .unwrap();
-        let key2 = Pbkdf2Aes256
-            .derive_key("password2", TEST_SALT, TEST_ITERATIONS)
-            .unwrap();
+        let key1 = Pbkdf2Aes256.derive_key("password1", TEST_SALT, TEST_ITERATIONS).unwrap();
+        let key2 = Pbkdf2Aes256.derive_key("password2", TEST_SALT, TEST_ITERATIONS).unwrap();
 
         // Different passwords should produce different keys
         use crate::{Aes256Gcm, Plaintext};
 
-        let plaintext = Plaintext::from_string("test".to_string());
+        let plaintext = Plaintext::from("test");
         let cipher = Aes256Gcm;
 
         let ciphertext1 = cipher.encrypt(&plaintext, &key1).unwrap();
@@ -229,7 +188,7 @@ mod tests {
         // Different salts should produce different keys
         use crate::{Aes256Gcm, Plaintext};
 
-        let plaintext = Plaintext::from_string("test".to_string());
+        let plaintext = Plaintext::from("test");
         let cipher = Aes256Gcm;
 
         let ciphertext1 = cipher.encrypt(&plaintext, &key1).unwrap();
@@ -240,26 +199,22 @@ mod tests {
 
     #[test]
     fn test_enum_aes256() {
-        let deriver = Pbkdf2::aes256();
-        let key = deriver
-            .derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS)
-            .unwrap();
+        let deriver = Pbkdf2::Aes256;
+        let key = deriver.derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS).unwrap();
 
         match key {
-            SymmetricKey::Aes256(_) => (), // Success
+            AesKey::Aes256(_) => (), // Success
             _ => panic!("Expected Aes256 key"),
         }
     }
 
     #[test]
     fn test_enum_aes128() {
-        let deriver = Pbkdf2::aes128();
-        let key = deriver
-            .derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS)
-            .unwrap();
+        let deriver = Pbkdf2::Aes128;
+        let key = deriver.derive_key(TEST_PASSWORD, TEST_SALT, TEST_ITERATIONS).unwrap();
 
         match key {
-            SymmetricKey::Aes128(_) => (), // Success
+            AesKey::Aes128(_) => (), // Success
             _ => panic!("Expected Aes128 key"),
         }
     }
@@ -272,14 +227,12 @@ mod tests {
         let iterations = 10_000;
 
         // Derive key from password
-        let key = Pbkdf2Aes256
-            .derive_key(password, salt, iterations)
-            .unwrap();
+        let key = Pbkdf2Aes256.derive_key(password, salt, iterations).unwrap();
 
         // Use key for encryption
         use crate::{Aes256Gcm, Plaintext};
 
-        let plaintext = Plaintext::from_string("Secret message".to_string());
+        let plaintext = Plaintext::from("Secret message");
         let cipher = Aes256Gcm;
 
         let ciphertext = cipher.encrypt(&plaintext, &key).unwrap();

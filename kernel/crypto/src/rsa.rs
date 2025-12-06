@@ -23,7 +23,7 @@
 //!
 //! // ZST type
 //! let keypair = crypto::Rsa2048.generate()?;
-//! let plaintext = Plaintext::from_string("Secret message".to_string());
+//! let plaintext = Plaintext::from("Secret message");
 //!
 //! let ciphertext = RsaHybrid2048.encrypt(&plaintext, &keypair.public_key)?;
 //! let decrypted = RsaHybrid2048.decrypt(&ciphertext, &keypair.private_key)?;
@@ -39,8 +39,7 @@ use sha2::Sha256;
 use snafu::ResultExt;
 use suzunari_error::suzunari_error;
 
-use crate::{Aes256Gcm, Ciphertext, Plaintext, PrivateKey, PublicKey, RandomAes256, SymmetricKey};
-
+use crate::{Aes256Gcm, Aes256Key, Ciphertext, Plaintext, PrivateKey, PublicKey, RandomAes256Key};
 //
 // Error Types
 //
@@ -51,9 +50,7 @@ use crate::{Aes256Gcm, Ciphertext, Plaintext, PrivateKey, PublicKey, RandomAes25
 pub enum RsaHybridError {
     /// AES key generation failed
     #[snafu(display("AES key generation failed"))]
-    AesKeyGeneration {
-        source: crate::KeyGenerationError,
-    },
+    AesKeyGeneration { source: crate::KeyGenerationError },
 
     /// AES encryption failed
     #[snafu(display("AES encryption failed"))]
@@ -105,30 +102,23 @@ impl RsaHybrid2048 {
         public_key: &PublicKey,
     ) -> Result<Ciphertext, RsaHybridError> {
         // 1. Generate random AES-256 key
-        let aes_key = RandomAes256.generate().context(AesKeyGenerationSnafu)?;
+        let aes_key = RandomAes256Key.generate().context(AesKeyGenerationSnafu)?;
 
         // 2. Encrypt plaintext with AES-256-GCM
-        let aes_ciphertext = Aes256Gcm
-            .encrypt(plaintext, &aes_key)
-            .context(AesEncryptionSnafu)?;
+        let aes_ciphertext = Aes256Gcm.encrypt(plaintext, &aes_key).context(AesEncryptionSnafu)?;
 
         // 3. Extract AES key bytes
-        let aes_key_bytes = match &aes_key {
-            SymmetricKey::Aes256(key) => key.as_ref(),
-            _ => unreachable!("RandomAes256 always generates Aes256 key"),
-        };
+        let aes_key_bytes = aes_key.into_bytes();
 
         // 4. Parse RSA public key
-        let rsa_public_key = RsaPublicKey::from_public_key_pem(
-            std::str::from_utf8(public_key.as_pem()).unwrap(),
-        )
-        .context(RsaPublicKeyParsingSnafu)?;
+        let rsa_public_key = RsaPublicKey::from_public_key_pem(public_key.as_pem())
+            .context(RsaPublicKeyParsingSnafu)?;
 
         // 5. Encrypt AES key with RSA
         let padding = Oaep::new::<Sha256>();
         let mut rng = rand::rngs::OsRng;
         let encrypted_key = rsa_public_key
-            .encrypt(&mut rng, padding, aes_key_bytes)
+            .encrypt(&mut rng, padding, &*aes_key_bytes)
             .context(RsaEncryptionSnafu)?;
 
         // 6. Combine: [encrypted_key_length (4 bytes) | encrypted_key | aes_ciphertext]
@@ -138,7 +128,7 @@ impl RsaHybrid2048 {
         result.extend_from_slice(&encrypted_key);
         result.extend_from_slice(aes_ciphertext.as_bytes());
 
-        Ok(Ciphertext::from_bytes(result))
+        Ok(Ciphertext::from(result))
     }
 
     /// Decrypt ciphertext using RSA-2048 hybrid decryption
@@ -154,49 +144,40 @@ impl RsaHybrid2048 {
 
         // 1. Extract encrypted key length
         if data.len() < 4 {
-            return InvalidCiphertextFormatSnafu {
-                reason: "too short to contain key length",
-            }
-            .fail();
+            return InvalidCiphertextFormatSnafu { reason: "too short to contain key length" }
+                .fail();
         }
         let encrypted_key_len = u32::from_be_bytes([data[0], data[1], data[2], data[3]]) as usize;
 
         // 2. Extract encrypted key and AES ciphertext
         if data.len() < 4 + encrypted_key_len {
-            return InvalidCiphertextFormatSnafu {
-                reason: "too short to contain encrypted key",
-            }
-            .fail();
+            return InvalidCiphertextFormatSnafu { reason: "too short to contain encrypted key" }
+                .fail();
         }
         let encrypted_key = &data[4..4 + encrypted_key_len];
         let aes_ciphertext = &data[4 + encrypted_key_len..];
 
         // 3. Parse RSA private key
-        let rsa_private_key = RsaPrivateKey::from_pkcs8_pem(
-            std::str::from_utf8(private_key.as_pem()).unwrap(),
-        )
-        .context(RsaPrivateKeyParsingSnafu)?;
+        let rsa_private_key = RsaPrivateKey::from_pkcs8_pem(private_key.as_pem())
+            .context(RsaPrivateKeyParsingSnafu)?;
 
         // 4. Decrypt AES key with RSA
         let padding = Oaep::new::<Sha256>();
-        let aes_key_bytes = rsa_private_key
-            .decrypt(padding, encrypted_key)
-            .context(RsaDecryptionSnafu)?;
+        let aes_key_bytes =
+            rsa_private_key.decrypt(padding, encrypted_key).context(RsaDecryptionSnafu)?;
 
         // 5. Reconstruct AES key
         if aes_key_bytes.len() != 32 {
-            return InvalidCiphertextFormatSnafu {
-                reason: "decrypted AES key is not 32 bytes",
-            }
-            .fail();
+            return InvalidCiphertextFormatSnafu { reason: "decrypted AES key is not 32 bytes" }
+                .fail();
         }
         let mut key_array = [0u8; 32];
         key_array.copy_from_slice(&aes_key_bytes);
-        let aes_key = SymmetricKey::aes256(key_array);
+        let aes_key = Aes256Key::from(key_array);
 
         // 6. Decrypt with AES-256-GCM
         let plaintext = Aes256Gcm
-            .decrypt(&Ciphertext::from_bytes(aes_ciphertext.to_vec()), &aes_key)
+            .decrypt(&Ciphertext::from(aes_ciphertext.to_vec()), &aes_key)
             .context(AesDecryptionSnafu)?;
 
         Ok(plaintext)
@@ -297,13 +278,9 @@ mod tests {
         let keypair = Rsa2048.generate().unwrap();
 
         // Encrypt and decrypt
-        let plaintext = Plaintext::from_string("Secret message".to_string());
-        let ciphertext = RsaHybrid2048
-            .encrypt(&plaintext, &keypair.public_key)
-            .unwrap();
-        let decrypted = RsaHybrid2048
-            .decrypt(&ciphertext, &keypair.private_key)
-            .unwrap();
+        let plaintext = Plaintext::from("Secret message");
+        let ciphertext = RsaHybrid2048.encrypt(&plaintext, &keypair.public_key).unwrap();
+        let decrypted = RsaHybrid2048.decrypt(&ciphertext, &keypair.private_key).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
@@ -314,46 +291,34 @@ mod tests {
         let keypair = Rsa4096.generate().unwrap();
 
         // Encrypt and decrypt
-        let plaintext = Plaintext::from_string("Secret message".to_string());
-        let ciphertext = RsaHybrid4096
-            .encrypt(&plaintext, &keypair.public_key)
-            .unwrap();
-        let decrypted = RsaHybrid4096
-            .decrypt(&ciphertext, &keypair.private_key)
-            .unwrap();
+        let plaintext = Plaintext::from("Secret message");
+        let ciphertext = RsaHybrid4096.encrypt(&plaintext, &keypair.public_key).unwrap();
+        let decrypted = RsaHybrid4096.decrypt(&ciphertext, &keypair.private_key).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
 
     #[test]
     fn test_wrong_private_key_fails() {
-        // Generate two different keypairs
+        // Generate two different key pairs
         let keypair1 = Rsa2048.generate().unwrap();
         let keypair2 = Rsa2048.generate().unwrap();
 
         // Encrypt with keypair1
-        let plaintext = Plaintext::from_string("Secret".to_string());
-        let ciphertext = RsaHybrid2048
-            .encrypt(&plaintext, &keypair1.public_key)
-            .unwrap();
+        let plaintext = Plaintext::from("Secret");
+        let ciphertext = RsaHybrid2048.encrypt(&plaintext, &keypair1.public_key).unwrap();
 
         // Decrypt with keypair2 should fail
-        assert!(RsaHybrid2048
-            .decrypt(&ciphertext, &keypair2.private_key)
-            .is_err());
+        assert!(RsaHybrid2048.decrypt(&ciphertext, &keypair2.private_key).is_err());
     }
 
     #[test]
     fn test_ciphertext_randomness() {
         let keypair = Rsa2048.generate().unwrap();
-        let plaintext = Plaintext::from_string("Same plaintext".to_string());
+        let plaintext = Plaintext::from("Same plaintext");
 
-        let ciphertext1 = RsaHybrid2048
-            .encrypt(&plaintext, &keypair.public_key)
-            .unwrap();
-        let ciphertext2 = RsaHybrid2048
-            .encrypt(&plaintext, &keypair.public_key)
-            .unwrap();
+        let ciphertext1 = RsaHybrid2048.encrypt(&plaintext, &keypair.public_key).unwrap();
+        let ciphertext2 = RsaHybrid2048.encrypt(&plaintext, &keypair.public_key).unwrap();
 
         // Same plaintext should produce different ciphertexts (random AES key + nonce)
         assert_ne!(ciphertext1.as_bytes(), ciphertext2.as_bytes());
@@ -364,7 +329,7 @@ mod tests {
         let keypair = Rsa2048.generate().unwrap();
         let cipher = RsaHybrid::rsa2048();
 
-        let plaintext = Plaintext::from_string("Test".to_string());
+        let plaintext = Plaintext::from("Test");
         let ciphertext = cipher.encrypt(&plaintext, &keypair.public_key).unwrap();
         let decrypted = cipher.decrypt(&ciphertext, &keypair.private_key).unwrap();
 
@@ -376,7 +341,7 @@ mod tests {
         let keypair = Rsa4096.generate().unwrap();
         let cipher = RsaHybrid::rsa4096();
 
-        let plaintext = Plaintext::from_string("Test".to_string());
+        let plaintext = Plaintext::from("Test");
         let ciphertext = cipher.encrypt(&plaintext, &keypair.public_key).unwrap();
         let decrypted = cipher.decrypt(&ciphertext, &keypair.private_key).unwrap();
 
@@ -389,14 +354,10 @@ mod tests {
 
         // Test with large data (RSA alone would fail, but hybrid works)
         let large_text = "A".repeat(10000);
-        let plaintext = Plaintext::from_string(large_text);
+        let plaintext = Plaintext::from(large_text.as_str());
 
-        let ciphertext = RsaHybrid2048
-            .encrypt(&plaintext, &keypair.public_key)
-            .unwrap();
-        let decrypted = RsaHybrid2048
-            .decrypt(&ciphertext, &keypair.private_key)
-            .unwrap();
+        let ciphertext = RsaHybrid2048.encrypt(&plaintext, &keypair.public_key).unwrap();
+        let decrypted = RsaHybrid2048.decrypt(&ciphertext, &keypair.private_key).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
@@ -406,7 +367,7 @@ mod tests {
         let keypair = Rsa2048.generate().unwrap();
 
         // Ciphertext with less than 4 bytes (key length size)
-        let short_ciphertext = Ciphertext::from_bytes(vec![1, 2, 3]);
+        let short_ciphertext = Ciphertext::from(vec![1, 2, 3]);
 
         let result = RsaHybrid2048.decrypt(&short_ciphertext, &keypair.private_key);
 
@@ -425,7 +386,7 @@ mod tests {
         malformed.extend_from_slice(&1000u32.to_be_bytes()); // Claim 1000 bytes
         malformed.extend_from_slice(&[0u8; 6]); // But only provide 6 bytes
 
-        let malformed_ciphertext = Ciphertext::from_bytes(malformed);
+        let malformed_ciphertext = Ciphertext::from(malformed);
 
         let result = RsaHybrid2048.decrypt(&malformed_ciphertext, &keypair.private_key);
 
@@ -438,17 +399,15 @@ mod tests {
     fn test_corrupted_ciphertext_fails() {
         let keypair = Rsa2048.generate().unwrap();
 
-        let plaintext = Plaintext::from_string("Test".to_string());
-        let ciphertext = RsaHybrid2048
-            .encrypt(&plaintext, &keypair.public_key)
-            .unwrap();
+        let plaintext = Plaintext::from("Test");
+        let ciphertext = RsaHybrid2048.encrypt(&plaintext, &keypair.public_key).unwrap();
 
         // Corrupt the ciphertext by flipping a byte in the middle
         let mut corrupted_bytes = ciphertext.as_bytes().to_vec();
         if corrupted_bytes.len() > 10 {
             corrupted_bytes[10] ^= 0xFF;
         }
-        let corrupted_ciphertext = Ciphertext::from_bytes(corrupted_bytes);
+        let corrupted_ciphertext = Ciphertext::from(corrupted_bytes);
 
         // Decryption should fail
         let result = RsaHybrid2048.decrypt(&corrupted_ciphertext, &keypair.private_key);

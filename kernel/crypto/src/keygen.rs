@@ -5,14 +5,13 @@
 //! ## Symmetric Keys
 //!
 //! ```rust,ignore
-//! use crypto::{RandomAes256, RandomKeyGenerator};
+//! use crypto::{RandomAes256Key, RandomAesKey};
 //!
 //! // ZST type
-//! let key = RandomAes256.generate()?;
+//! let key = RandomAes256Key.generate()?;
 //!
 //! // Enum
-//! let generator = RandomKeyGenerator::aes256();
-//! let key = generator.generate()?;
+//! let key = RandomAesKey::Aes256.generate()?;
 //! ```
 //!
 //! ## Asymmetric Keys (RSA)
@@ -36,8 +35,7 @@ use rsa::{RsaPrivateKey, RsaPublicKey};
 use snafu::ResultExt;
 use suzunari_error::suzunari_error;
 
-use crate::{KeyPair, PrivateKey, PublicKey, SymmetricKey};
-
+use crate::{Aes128Key, Aes256Key, AesKey, KeyPair, PrivateKey, PublicKey};
 //
 // Error Types
 //
@@ -87,16 +85,16 @@ pub enum KeyGenerationError {
 ///
 /// Zero-sized type for compile-time dispatch.
 #[derive(Debug, Clone, Copy)]
-pub struct RandomAes256;
+pub struct RandomAes256Key;
 
-impl RandomAes256 {
+impl RandomAes256Key {
     /// Generate a random AES-256 key (32 bytes)
     ///
     /// Uses `OsRng` for cryptographically secure randomness.
-    pub fn generate(&self) -> Result<SymmetricKey, KeyGenerationError> {
+    pub fn generate(&self) -> Result<Aes256Key, KeyGenerationError> {
         let mut key = [0u8; 32];
         rand::rngs::OsRng.fill_bytes(&mut key);
-        Ok(SymmetricKey::aes256(key))
+        Ok(Aes256Key::from(key))
     }
 }
 
@@ -104,16 +102,16 @@ impl RandomAes256 {
 ///
 /// Zero-sized type for compile-time dispatch.
 #[derive(Debug, Clone, Copy)]
-pub struct RandomAes128;
+pub struct RandomAes128Key;
 
-impl RandomAes128 {
+impl RandomAes128Key {
     /// Generate a random AES-128 key (16 bytes)
     ///
     /// Uses `OsRng` for cryptographically secure randomness.
-    pub fn generate(&self) -> Result<SymmetricKey, KeyGenerationError> {
+    pub fn generate(&self) -> Result<Aes128Key, KeyGenerationError> {
         let mut key = [0u8; 16];
         rand::rngs::OsRng.fill_bytes(&mut key);
-        Ok(SymmetricKey::aes128(key))
+        Ok(Aes128Key::from(key))
     }
 }
 
@@ -125,31 +123,35 @@ impl RandomAes128 {
 ///
 /// Enum wrapper for runtime dispatch between AES-128 and AES-256 key generation.
 #[derive(Debug, Clone, Copy)]
-pub enum RandomKeyGenerator {
+pub enum RandomAesKey {
     /// AES-128 key generation
     Aes128,
     /// AES-256 key generation
     Aes256,
 }
 
-impl RandomKeyGenerator {
-    /// Create AES-128 key generator (static factory method)
-    pub fn aes128() -> Self {
-        Self::Aes128
+impl RandomAesKey {
+    /// Generate a random AES-256 key
+    ///
+    /// Convenience method for generating an AES-256 key wrapped in AesKey enum.
+    pub fn aes256() -> Result<AesKey, KeyGenerationError> {
+        RandomAes256Key.generate().map(AesKey::Aes256)
     }
 
-    /// Create AES-256 key generator (static factory method)
-    pub fn aes256() -> Self {
-        Self::Aes256
+    /// Generate a random AES-128 key
+    ///
+    /// Convenience method for generating an AES-128 key wrapped in AesKey enum.
+    pub fn aes128() -> Result<AesKey, KeyGenerationError> {
+        RandomAes128Key.generate().map(AesKey::Aes128)
     }
 
     /// Generate a random symmetric key
     ///
     /// Delegates to the appropriate ZST implementation based on enum variant.
-    pub fn generate(&self) -> Result<SymmetricKey, KeyGenerationError> {
+    pub fn generate(&self) -> Result<AesKey, KeyGenerationError> {
         match self {
-            RandomKeyGenerator::Aes128 => RandomAes128.generate(),
-            RandomKeyGenerator::Aes256 => RandomAes256.generate(),
+            RandomAesKey::Aes256 => Self::aes256(),
+            RandomAesKey::Aes128 => Self::aes128(),
         }
     }
 }
@@ -159,33 +161,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_random_aes256_generates_key() {
-        let key = RandomAes256.generate().unwrap();
-        match key {
-            SymmetricKey::Aes256(_) => (), // Success
-            _ => panic!("Expected Aes256 key"),
-        }
-    }
-
-    #[test]
-    fn test_random_aes128_generates_key() {
-        let key = RandomAes128.generate().unwrap();
-        match key {
-            SymmetricKey::Aes128(_) => (), // Success
-            _ => panic!("Expected Aes128 key"),
-        }
-    }
-
-    #[test]
     fn test_keys_are_different() {
         use crate::Plaintext;
 
-        let key1 = RandomAes256.generate().unwrap();
-        let key2 = RandomAes256.generate().unwrap();
+        let key1 = RandomAes256Key.generate().unwrap();
+        let key2 = RandomAes256Key.generate().unwrap();
 
         // Two random keys should produce different results
         // Verify by trying to decrypt with wrong key (should fail)
-        let plaintext = Plaintext::from_string("test".to_string());
+        let plaintext = Plaintext::from("test");
         let cipher = crate::Aes256Gcm;
 
         let ciphertext1 = cipher.encrypt(&plaintext, &key1).unwrap();
@@ -196,20 +180,20 @@ mod tests {
 
     #[test]
     fn test_enum_aes256() {
-        let generator = RandomKeyGenerator::aes256();
+        let generator = RandomAesKey::Aes256;
         let key = generator.generate().unwrap();
         match key {
-            SymmetricKey::Aes256(_) => (), // Success
+            AesKey::Aes256(_) => (), // Success
             _ => panic!("Expected Aes256 key"),
         }
     }
 
     #[test]
     fn test_enum_aes128() {
-        let generator = RandomKeyGenerator::aes128();
+        let generator = RandomAesKey::Aes128;
         let key = generator.generate().unwrap();
         match key {
-            SymmetricKey::Aes128(_) => (), // Success
+            AesKey::Aes128(_) => (), // Success
             _ => panic!("Expected Aes128 key"),
         }
     }
@@ -219,14 +203,32 @@ mod tests {
         use crate::{Aes256Gcm, Plaintext};
 
         // Generate key
-        let key = RandomAes256.generate().unwrap();
+        let key = RandomAes256Key.generate().unwrap();
 
         // Use key for encryption
-        let plaintext = Plaintext::from_string("Test message".to_string());
+        let plaintext = Plaintext::from("Test message");
         let ciphertext = Aes256Gcm.encrypt(&plaintext, &key).unwrap();
         let decrypted = Aes256Gcm.decrypt(&ciphertext, &key).unwrap();
 
         assert_eq!(plaintext, decrypted);
+    }
+
+    #[test]
+    fn test_static_aes256() {
+        let key = RandomAesKey::aes256().unwrap();
+        match key {
+            AesKey::Aes256(_) => (), // Success
+            _ => panic!("Expected Aes256 key"),
+        }
+    }
+
+    #[test]
+    fn test_static_aes128() {
+        let key = RandomAesKey::aes128().unwrap();
+        match key {
+            AesKey::Aes128(_) => (), // Success
+            _ => panic!("Expected Aes128 key"),
+        }
     }
 }
 
@@ -249,8 +251,7 @@ impl Rsa2048 {
         let mut rng = rand::rngs::OsRng;
 
         // Generate RSA private key
-        let private_key =
-            RsaPrivateKey::new(&mut rng, 2048).context(RsaKeyGenerationSnafu)?;
+        let private_key = RsaPrivateKey::new(&mut rng, 2048).context(RsaKeyGenerationSnafu)?;
 
         // Extract public key
         let public_key = RsaPublicKey::from(&private_key);
@@ -264,8 +265,8 @@ impl Rsa2048 {
             .context(RsaPublicKeyPemEncodingSnafu)?;
 
         Ok(KeyPair::new(
-            PublicKey::from_pem(public_pem.as_bytes().to_vec()),
-            PrivateKey::from_pem(private_pem.as_bytes().to_vec()),
+            PublicKey::from(public_pem),
+            PrivateKey::from(private_pem.to_string()),
         ))
     }
 }
@@ -285,8 +286,7 @@ impl Rsa4096 {
         let mut rng = rand::rngs::OsRng;
 
         // Generate RSA private key
-        let private_key =
-            RsaPrivateKey::new(&mut rng, 4096).context(RsaKeyGenerationSnafu)?;
+        let private_key = RsaPrivateKey::new(&mut rng, 4096).context(RsaKeyGenerationSnafu)?;
 
         // Extract public key
         let public_key = RsaPublicKey::from(&private_key);
@@ -300,8 +300,8 @@ impl Rsa4096 {
             .context(RsaPublicKeyPemEncodingSnafu)?;
 
         Ok(KeyPair::new(
-            PublicKey::from_pem(public_pem.as_bytes().to_vec()),
-            PrivateKey::from_pem(private_pem.as_bytes().to_vec()),
+            PublicKey::from(public_pem),
+            PrivateKey::from(private_pem.to_string()),
         ))
     }
 }
@@ -356,11 +356,11 @@ mod rsa_tests {
         assert!(!keypair.private_key.as_pem().is_empty());
 
         // Check PEM format markers
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
         assert!(public_pem.contains("END PUBLIC KEY"));
 
-        let private_pem = String::from_utf8_lossy(keypair.private_key.as_pem());
+        let private_pem = keypair.private_key.as_pem();
         assert!(private_pem.contains("BEGIN PRIVATE KEY"));
         assert!(private_pem.contains("END PRIVATE KEY"));
     }
@@ -374,11 +374,11 @@ mod rsa_tests {
         assert!(!keypair.private_key.as_pem().is_empty());
 
         // Check PEM format markers
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
         assert!(public_pem.contains("END PUBLIC KEY"));
 
-        let private_pem = String::from_utf8_lossy(keypair.private_key.as_pem());
+        let private_pem = keypair.private_key.as_pem();
         assert!(private_pem.contains("BEGIN PRIVATE KEY"));
         assert!(private_pem.contains("END PRIVATE KEY"));
     }
@@ -388,15 +388,9 @@ mod rsa_tests {
         let keypair1 = Rsa2048.generate().unwrap();
         let keypair2 = Rsa2048.generate().unwrap();
 
-        // Two random keypairs should be different
-        assert_ne!(
-            keypair1.public_key.as_pem(),
-            keypair2.public_key.as_pem()
-        );
-        assert_ne!(
-            keypair1.private_key.as_pem(),
-            keypair2.private_key.as_pem()
-        );
+        // Two random key pairs should be different
+        assert_ne!(keypair1.public_key.as_pem(), keypair2.public_key.as_pem());
+        assert_ne!(keypair1.private_key.as_pem(), keypair2.private_key.as_pem());
     }
 
     #[test]
@@ -405,7 +399,7 @@ mod rsa_tests {
         let keypair = generator.generate().unwrap();
 
         // Check that we got valid PEM data
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
     }
 
@@ -415,7 +409,7 @@ mod rsa_tests {
         let keypair = generator.generate().unwrap();
 
         // Check that we got valid PEM data
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
     }
 }
@@ -453,8 +447,8 @@ impl EcdsaP256 {
             .context(EcdsaPublicKeyPemEncodingSnafu)?;
 
         Ok(KeyPair::new(
-            PublicKey::from_pem(public_pem.as_bytes().to_vec()),
-            PrivateKey::from_pem(private_pem.as_bytes().to_vec()),
+            PublicKey::from(public_pem),
+            PrivateKey::from(private_pem.to_string()),
         ))
     }
 }
@@ -488,8 +482,8 @@ impl EcdsaP384 {
             .context(EcdsaPublicKeyPemEncodingSnafu)?;
 
         Ok(KeyPair::new(
-            PublicKey::from_pem(public_pem.as_bytes().to_vec()),
-            PrivateKey::from_pem(private_pem.as_bytes().to_vec()),
+            PublicKey::from(public_pem),
+            PrivateKey::from(private_pem.to_string()),
         ))
     }
 }
@@ -566,8 +560,8 @@ impl Ed25519KeyGen {
             .context(Ed25519PublicKeyPemEncodingSnafu)?;
 
         Ok(KeyPair::new(
-            PublicKey::from_pem(public_pem.as_bytes().to_vec()),
-            PrivateKey::from_pem(private_pem.as_bytes().to_vec()),
+            PublicKey::from(public_pem),
+            PrivateKey::from(private_pem.to_string()),
         ))
     }
 }
@@ -585,11 +579,11 @@ mod ecdsa_ed25519_tests {
         assert!(!keypair.private_key.as_pem().is_empty());
 
         // Check PEM format markers
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
         assert!(public_pem.contains("END PUBLIC KEY"));
 
-        let private_pem = String::from_utf8_lossy(keypair.private_key.as_pem());
+        let private_pem = keypair.private_key.as_pem();
         assert!(private_pem.contains("BEGIN PRIVATE KEY"));
         assert!(private_pem.contains("END PRIVATE KEY"));
     }
@@ -603,11 +597,11 @@ mod ecdsa_ed25519_tests {
         assert!(!keypair.private_key.as_pem().is_empty());
 
         // Check PEM format markers
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
         assert!(public_pem.contains("END PUBLIC KEY"));
 
-        let private_pem = String::from_utf8_lossy(keypair.private_key.as_pem());
+        let private_pem = keypair.private_key.as_pem();
         assert!(private_pem.contains("BEGIN PRIVATE KEY"));
         assert!(private_pem.contains("END PRIVATE KEY"));
     }
@@ -617,15 +611,9 @@ mod ecdsa_ed25519_tests {
         let keypair1 = EcdsaP256.generate().unwrap();
         let keypair2 = EcdsaP256.generate().unwrap();
 
-        // Two random keypairs should be different
-        assert_ne!(
-            keypair1.public_key.as_pem(),
-            keypair2.public_key.as_pem()
-        );
-        assert_ne!(
-            keypair1.private_key.as_pem(),
-            keypair2.private_key.as_pem()
-        );
+        // Two random key pairs should be different
+        assert_ne!(keypair1.public_key.as_pem(), keypair2.public_key.as_pem());
+        assert_ne!(keypair1.private_key.as_pem(), keypair2.private_key.as_pem());
     }
 
     #[test]
@@ -634,7 +622,7 @@ mod ecdsa_ed25519_tests {
         let keypair = generator.generate().unwrap();
 
         // Check that we got valid PEM data
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
     }
 
@@ -644,7 +632,7 @@ mod ecdsa_ed25519_tests {
         let keypair = generator.generate().unwrap();
 
         // Check that we got valid PEM data
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
     }
 
@@ -657,11 +645,11 @@ mod ecdsa_ed25519_tests {
         assert!(!keypair.private_key.as_pem().is_empty());
 
         // Check PEM format markers
-        let public_pem = String::from_utf8_lossy(keypair.public_key.as_pem());
+        let public_pem = keypair.public_key.as_pem();
         assert!(public_pem.contains("BEGIN PUBLIC KEY"));
         assert!(public_pem.contains("END PUBLIC KEY"));
 
-        let private_pem = String::from_utf8_lossy(keypair.private_key.as_pem());
+        let private_pem = keypair.private_key.as_pem();
         assert!(private_pem.contains("BEGIN PRIVATE KEY"));
         assert!(private_pem.contains("END PRIVATE KEY"));
     }
@@ -671,14 +659,8 @@ mod ecdsa_ed25519_tests {
         let keypair1 = Ed25519KeyGen.generate().unwrap();
         let keypair2 = Ed25519KeyGen.generate().unwrap();
 
-        // Two random keypairs should be different
-        assert_ne!(
-            keypair1.public_key.as_pem(),
-            keypair2.public_key.as_pem()
-        );
-        assert_ne!(
-            keypair1.private_key.as_pem(),
-            keypair2.private_key.as_pem()
-        );
+        // Two random key pairs should be different
+        assert_ne!(keypair1.public_key.as_pem(), keypair2.public_key.as_pem());
+        assert_ne!(keypair1.private_key.as_pem(), keypair2.private_key.as_pem());
     }
 }
