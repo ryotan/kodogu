@@ -99,7 +99,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": [".idea", ".github", "patches", "src-tauri", "gen", "src/stories"],
+    "ignore": [".idea", ".github", "patches", "src-tauri", "src/stories"],
     "ignoreUnknown": true
   }
 }
