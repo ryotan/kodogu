@@ -1,0 +1,80 @@
+{
+  "name": "kodogu-mono",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ちょっとした小道具たち",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/ryotan/kodogu.git"
+  },
+  "scripts": {
+    "lint:biome": "biome ci --error-on-warnings .",
+    "fix:biome": "biome check --write --unsafe ."
+  },
+  "workspaces": {
+    "packages": ["app", "kernel/*"],
+    "catalogs": {
+      "default": {
+        "@biomejs/biome": "^1.9.4",
+        "@chromatic-com/storybook": "3",
+        "@eslint/compat": "^1.2.7",
+        "@eslint/js": "^9.22.0",
+        "@radix-ui/react-icons": "^1.3.2",
+        "@radix-ui/themes": "^3.2.1",
+        "@storybook/addon-essentials": "8.6.7",
+        "@storybook/addon-onboarding": "8.6.7",
+        "@storybook/blocks": "8.6.7",
+        "@storybook/experimental-addon-test": "8.6.7",
+        "@storybook/react": "8.6.7",
+        "@storybook/react-vite": "8.6.7",
+        "@storybook/test": "8.6.7",
+        "@tanstack/eslint-plugin-query": "^5.68.0",
+        "@tanstack/eslint-plugin-router": "^1.114.12",
+        "@tanstack/react-form": "^1.1.2",
+        "@tanstack/react-query": "^5.69.0",
+        "@tanstack/react-query-devtools": "^5.69.0",
+        "@tanstack/react-router": "^1.114.25",
+        "@tanstack/react-router-devtools": "^1.114.25",
+        "@tanstack/react-store": "^0.7.0",
+        "@tanstack/router-plugin": "^1.114.25",
+        "@tauri-apps/api": "^2",
+        "@tauri-apps/cli": "^2",
+        "@tauri-apps/plugin-clipboard-manager": "^2.2.2",
+        "@tauri-apps/plugin-deep-link": "^2.2.0",
+        "@tauri-apps/plugin-http": "^2.4.2",
+        "@tauri-apps/plugin-opener": "^2",
+        "@tauri-apps/plugin-stronghold": "^2.2.0",
+        "@tauri-apps/plugin-window-state": "^2.2.1",
+        "@types/node": "^22",
+        "@types/react": "^19.0.12",
+        "@types/react-dom": "^19.0.4",
+        "@vitejs/plugin-react": "^4.3.4",
+        "@vitest/browser": "^3.0.9",
+        "@vitest/coverage-v8": "^3.0.9",
+        "@vitest/eslint-plugin": "^1.1.38",
+        "arktype": "^2.1.10",
+        "concurrently": "^9.1.2",
+        "eslint": "^9.22.0",
+        "eslint-plugin-import": "^2.31.0",
+        "eslint-plugin-react": "^7.37.4",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "eslint-plugin-storybook": "^0.11.6",
+        "immer": "^10.1.1",
+        "playwright": "^1.51.1",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "storybook": "8.6.7",
+        "typescript": "~5.8.2",
+        "typescript-eslint": "^8.27.0",
+        "vite": "^6.2.2",
+        "vite-tsconfig-paths": "^5.1.4",
+        "vitest": "^3.0.9"
+      }
+    }
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:default",
+    "@types/node": "catalog:default"
+  },
+  "trustedDependencies": ["@biomejs/biome"]
+}

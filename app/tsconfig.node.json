@@ -10,7 +10,8 @@
     "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "types": ["node"]
   },
-  "include": ["vite.config.ts", "vitest.workspace.ts", ".storybook/main.ts", ".storybook/vitest.setup.ts"]
+  "include": ["vite.config.ts", ".storybook/main.ts", ".storybook/vitest.setup.ts"]
 }

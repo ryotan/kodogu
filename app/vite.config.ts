@@ -4,14 +4,15 @@ import paths from 'vite-tsconfig-paths';
 
 import router from '@tanstack/router-plugin/vite';
 
+import {storybookTest} from '@storybook/experimental-addon-test/vitest-plugin';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
 const VITE_DEFAULT_PORT = 5173;
 
-const {
-  TAURI_DEV_HOST: host,
-  TAURI_DEV_SERVER_PORT: portString,
-  // @ts-expect-error -- process is a nodejs global
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-} = process.env as Record<string, string | undefined>;
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const {TAURI_DEV_HOST: host, TAURI_DEV_SERVER_PORT: portString} = process.env;
 
 // Configurations for mobile app development.
 // Tauri CLI adds environment variables to the dev-server process when running Android app.
@@ -47,5 +48,26 @@ export default defineConfig(() => ({
       include: ['src/**/*.{ts,tsx}'],
       exclude: ['**/*.d.ts', '**/*.test.{ts,tsx}', '**/*.stories.{ts,tsx}', '**/*.mock.{ts,tsx}', '**/(dev)/**'],
     },
+    projects: [
+      'vite.config.ts',
+      {
+        extends: 'vite.config.ts',
+        plugins: [
+          // The plugin will run tests for the stories defined in your Storybook config
+          // See options at: https://storybook.js.org/docs/writing-tests/test-addon#storybooktest
+          storybookTest({configDir: path.join(dirname, '.storybook')}),
+        ],
+        test: {
+          name: 'storybook',
+          browser: {
+            enabled: true,
+            headless: true,
+            instances: [{browser: 'chromium'}],
+            provider: 'playwright',
+          },
+          setupFiles: ['.storybook/vitest.setup.ts'],
+        },
+      },
+    ],
   },
 }));
