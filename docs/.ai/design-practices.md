@@ -42,7 +42,7 @@ This project organizes code into layers with dependencies pointing inward, prote
 
 **Adapters Layer**
 - Controllers, Presenters
-- [Repository implementations](#repositories)
+- [Repository implementations](#repository)
 - External service clients
 - Message queue adapters
 
@@ -301,7 +301,7 @@ When adding new invariants to existing systems:
 
 ### Event-Driven Design
 
-- Aggregates publish events after state changes
+- Use Cases publish domain events to other contexts
 - Other contexts can subscribe without tight coupling
 - Events enable eventual consistency across boundaries
 - **Why**: Decouples contexts while maintaining data consistency
@@ -343,7 +343,7 @@ When adding new invariants to existing systems:
 
 - **Commands**: Operations that change state (CreateOrder, UpdatePayment)
 - **Queries**: Operations that read state (GetOrderById, ListOrders)
-- Commands may return success/failure, queries return data
+- Commands should return the domain event to be published, queries return data
 - **Why**: Clear distinction between reads and writes
 
 ### Use Case Responsibilities
@@ -367,29 +367,14 @@ When adding new invariants to existing systems:
 ### Adapter Interface Pattern
 
 - Domain defines interfaces for external system boundaries
-- Infrastructure provides implementations (adapters)
-- Domain depends on abstractions, not implementations
+- Adapter provides implementations
+- Domain and Use Case depends on abstractions, not implementations
 - Examples: Repository, ExternalService, MessageQueue
 - **Why**: Protects domain from infrastructure changes
-
-### Repository Adapters
 
 **Interface vs Implementation:**
 - **Interface**: Defined in Domain layer (what to do)
 - **Implementation**: Provided in Adapter layer (how to do)
-
-#### Repository Abstraction
-
-- Collection-like interface for aggregates
-- Hide persistence details from domain
-- Methods reflect domain operations, not database operations
-- **Why**: Domain logic stays pure and portable
-
-#### Aggregate Root Access
-
-- Repositories only for aggregate roots
-- Load entire aggregate, not individual entities
-- **Why**: Maintains aggregate consistency guarantees
 
 ### Adapter Responsibilities
 
@@ -404,6 +389,21 @@ When adding new invariants to existing systems:
 - Translate external models to domain models
 - Don't leak external concepts into domain
 - **Why**: Domain integrity and independence
+
+### Repository
+
+#### Repository Abstraction
+
+- Collection-like interface for aggregates
+- Hide persistence details from domain
+- Methods reflect domain operations, not database operations
+- **Why**: Domain logic stays pure and portable
+
+#### Aggregate Root Access
+
+- Repositories only for aggregate roots
+- Load entire aggregate, not individual entities
+- **Why**: Maintains aggregate consistency guarantees
 
 ### Common Adapter Types
 
