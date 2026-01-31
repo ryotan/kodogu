@@ -5,9 +5,10 @@
 
 use codec::{
     Base32, Base32CrockfordLower, Base32CrockfordUpper, Base32Hex, Base32Standard, Base58,
-    Base58Bitcoin, Base58Flickr, Base64, Base64Standard, Base64UrlSafe, BinaryCodec, Hex, HexLower,
-    HexUpper, QuotedPrintable, QuotedPrintableRobust, QuotedPrintableStrict, TextCodec,
-    UrlEncoding, UrlEncodingComponent, UrlEncodingForm, UrlEncodingRfc3986, Utf8,
+    Base58Bitcoin, Base58Flickr, Base64, Base64Standard, Base64UrlSafe, Base85, Base85Ascii85,
+    Base85Btoa, Base85Rfc1924, Base85Z85, BinaryCodec, Hex, HexLower, HexUpper, QuotedPrintable,
+    QuotedPrintableRobust, QuotedPrintableStrict, TextCodec, UrlEncoding, UrlEncodingComponent,
+    UrlEncodingForm, UrlEncodingRfc3986, Utf8,
 };
 use proptest::prelude::*;
 
@@ -116,7 +117,7 @@ proptest! {
         prop_assert_eq!(decoded, data);
     }
 
-    /// Property: Encoded base64 length is roughly 4/3 of input length
+    /// Property: Encoded base64 length is roughly 4/3 of the input length
     #[test]
     fn prop_base64_encoded_length(data: Vec<u8>) {
         let encoded = Base64::encode_standard(&data);
@@ -168,7 +169,7 @@ proptest! {
     fn prop_base64_padding_at_end(data: Vec<u8>) {
         let encoded = Base64::encode_standard(&data);
         if let Some(pos) = encoded.find('=') {
-            // All characters after first '=' must also be '='
+            // All characters after the first '=' must also be '='
             prop_assert!(encoded[pos..].chars().all(|c| c == '='));
         }
     }
@@ -236,7 +237,7 @@ proptest! {
 
         prop_assert_eq!(decoded, full_data, "Leading zeros not preserved");
 
-        // Leading zeros should produce leading '1's in Bitcoin alphabet
+        // Leading zeros should produce leading '1's in the Bitcoin alphabet
         if actual_leading_zeros > 0 {
             let leading_ones = encoded.chars().take_while(|&c| c == '1').count();
             prop_assert_eq!(leading_ones, actual_leading_zeros, "Leading '1's count mismatch");
@@ -287,6 +288,161 @@ fn test_base58_empty_input() {
     let encoded = Base58::encode_flickr(&empty);
     assert!(encoded.is_empty());
     assert_eq!(Base58::decode_flickr(&encoded).unwrap(), empty);
+}
+
+// ========================================
+// Base85 Property Tests
+// ========================================
+
+proptest! {
+    /// Property: Ascii85 encoding and decoding returns the original data
+    #[test]
+    fn prop_base85_roundtrip_ascii85(data: Vec<u8>) {
+        let encoded = Base85Ascii85.encode(&data);
+        let decoded = Base85Ascii85.decode(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    /// Property: Z85 encoding and decoding returns the original data (multiple of 4)
+    #[test]
+    fn prop_base85_roundtrip_z85(data in prop::collection::vec(any::<u8>(), 0..100).prop_filter("multiple of 4", |v| v.len() % 4 == 0)) {
+        let encoded = Base85Z85.encode(&data);
+        let decoded = Base85Z85.decode(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    /// Property: RFC 1924 encoding and decoding returns the original data
+    #[test]
+    fn prop_base85_roundtrip_rfc1924(data: Vec<u8>) {
+        let encoded = Base85Rfc1924.encode(&data);
+        let decoded = Base85Rfc1924.decode(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    /// Property: btoa encoding and decoding returns the original data
+    #[test]
+    fn prop_base85_roundtrip_btoa(data: Vec<u8>) {
+        let encoded = Base85Btoa.encode(&data);
+        let decoded = Base85Btoa.decode(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    /// Property: Ascii85 encoded output starts with <~ and ends with ~>
+    #[test]
+    fn prop_base85_ascii85_wrapper(data: Vec<u8>) {
+        let encoded = Base85::encode_ascii85(&data);
+        prop_assert!(encoded.starts_with("<~"));
+        prop_assert!(encoded.ends_with("~>"));
+    }
+
+    /// Property: Ascii85 zero compression
+    #[test]
+    fn prop_base85_ascii85_zero_compression(count in 1usize..10) {
+        // Multiple of 4 zeros should encode to 'z' characters
+        let zeros = vec![0u8; count * 4];
+        let encoded = Base85Ascii85.encode(&zeros);
+        let inner = encoded.strip_prefix("<~").unwrap().strip_suffix("~>").unwrap();
+        prop_assert_eq!(inner.len(), count);
+        prop_assert!(inner.chars().all(|c| c == 'z'));
+    }
+
+    /// Property: Z85 encoded length is 5/4 of input length (for multiple of 4 input)
+    #[test]
+    fn prop_base85_z85_encoded_length(data in prop::collection::vec(any::<u8>(), 0..100).prop_filter("multiple of 4", |v| v.len() % 4 == 0)) {
+        let encoded = Base85Z85.encode(&data);
+        prop_assert_eq!(encoded.len(), data.len() * 5 / 4);
+    }
+
+    /// Property: Ascii85 alphabet contains only valid characters
+    #[test]
+    fn prop_base85_ascii85_valid_chars(data: Vec<u8>) {
+        let encoded = Base85Ascii85.encode(&data);
+        let inner = encoded.strip_prefix("<~").unwrap().strip_suffix("~>").unwrap();
+        // Ascii85 uses '!' (33) to 'u' (117), plus 'z' for zero compression
+        let all_valid = inner.chars().all(|c| {
+            ('!'..='u').contains(&c) || c == 'z'
+        });
+        prop_assert!(all_valid, "Invalid character in Ascii85 encoded output: {}", inner);
+    }
+
+    /// Property: Z85 alphabet contains only valid characters
+    #[test]
+    fn prop_base85_z85_valid_chars(data in prop::collection::vec(any::<u8>(), 0..100).prop_filter("multiple of 4", |v| v.len() % 4 == 0)) {
+        let encoded = Base85Z85.encode(&data);
+        let z85_alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
+        let all_valid = encoded.chars().all(|c| z85_alphabet.contains(c));
+        prop_assert!(all_valid, "Invalid character in Z85 encoded output: {}", encoded);
+    }
+
+    /// Property: RFC 1924 u128 round-trip
+    #[test]
+    fn prop_base85_rfc1924_u128_roundtrip(value: u128) {
+        let encoded = Base85Rfc1924::encode_u128(value);
+        prop_assert_eq!(encoded.len(), 20);
+        let decoded = Base85Rfc1924::decode_u128(&encoded).unwrap();
+        prop_assert_eq!(decoded, value);
+    }
+
+    /// Property: RFC 1924 alphabet contains only valid characters
+    #[test]
+    fn prop_base85_rfc1924_valid_chars(data: Vec<u8>) {
+        let encoded = Base85Rfc1924.encode(&data);
+        let rfc1924_alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
+        let all_valid = encoded.chars().all(|c| rfc1924_alphabet.contains(c));
+        prop_assert!(all_valid, "Invalid character in RFC 1924 encoded output: {}", encoded);
+    }
+
+    /// Property: btoa output contains wrapper
+    #[test]
+    fn prop_base85_btoa_wrapper(data: Vec<u8>) {
+        let encoded = Base85::encode_btoa(&data);
+        prop_assert!(encoded.contains("xbtoa Begin"));
+        prop_assert!(encoded.contains("xbtoa End"));
+    }
+
+    /// Property: Different variants produce different output
+    #[test]
+    fn prop_base85_variants_differ(data in prop::collection::vec(any::<u8>(), 4..20).prop_filter("multiple of 4 and has non-zero", |v| v.len() % 4 == 0 && v.iter().any(|&b| b != 0))) {
+        let ascii85 = Base85Ascii85.encode(&data);
+        let z85 = Base85Z85.encode(&data);
+        let rfc1924 = Base85Rfc1924.encode(&data);
+
+        // Strip wrapper from ascii85
+        let ascii85_inner = ascii85.strip_prefix("<~").unwrap().strip_suffix("~>").unwrap();
+
+        // Different alphabets produce different output
+        prop_assert_ne!(ascii85_inner, &z85);
+        prop_assert_ne!(&z85, &rfc1924);
+    }
+
+    /// Property: Z85 with padding API round-trip
+    #[test]
+    fn prop_base85_z85_padding_roundtrip(data: Vec<u8>) {
+        let (encoded, padding) = Base85Z85.encode_with_padding(&data);
+        let decoded = Base85Z85.decode_with_padding(&encoded, padding).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+}
+
+// Test empty input separately (no randomization needed)
+#[test]
+fn test_base85_empty_input() {
+    let empty: Vec<u8> = vec![];
+
+    // Ascii85
+    let encoded = Base85::encode_ascii85(&empty);
+    assert_eq!(encoded, "<~~>");
+    assert_eq!(Base85::decode_ascii85(&encoded).unwrap(), empty);
+
+    // Z85
+    let encoded = Base85::encode_z85(&empty);
+    assert!(encoded.is_empty());
+    assert_eq!(Base85::decode_z85(&encoded).unwrap(), empty);
+
+    // RFC 1924
+    let encoded = Base85::encode_rfc1924(&empty);
+    assert!(encoded.is_empty());
+    assert_eq!(Base85::decode_rfc1924(&encoded).unwrap(), empty);
 }
 
 // ========================================
@@ -389,7 +545,7 @@ proptest! {
     fn prop_base32_standard_padding_at_end(data: Vec<u8>) {
         let encoded = Base32::encode_standard(&data);
         if let Some(pos) = encoded.find('=') {
-            // All characters after first '=' must also be '='
+            // All characters after the first '=' must also be '='
             prop_assert!(encoded[pos..].chars().all(|c| c == '='));
         }
     }
@@ -497,7 +653,7 @@ proptest! {
     fn prop_utf8_lossy_never_fails(data: Vec<u8>) {
         // decode() should never panic, even with invalid UTF-8
         let _result = Utf8.decode(&data);
-        // If we get here without panicking, test passes
+        // If we get here without panicking, the test passes
     }
 
     /// Property: Encoding length equals byte length (UTF-8 is identity for Rust strings)
@@ -519,7 +675,7 @@ proptest! {
         // Base64 encode
         let base64_encoded = Base64::encode_standard(&data);
 
-        // Hex encode the Base64 string
+        // Hex encodes the Base64 string
         let hex_encoded = Hex::encode_lower(base64_encoded.as_bytes());
 
         // Reverse: Hex decode
@@ -560,6 +716,19 @@ fn test_empty_input_all_codecs() {
     let b64 = Base64::encode_standard(&empty);
     assert!(b64.is_empty());
     assert_eq!(Base64::decode_standard(&b64).unwrap(), empty);
+
+    // Base85
+    let b85_ascii85 = Base85::encode_ascii85(&empty);
+    assert_eq!(b85_ascii85, "<~~>");
+    assert_eq!(Base85::decode_ascii85(&b85_ascii85).unwrap(), empty);
+
+    let b85_z85 = Base85::encode_z85(&empty);
+    assert!(b85_z85.is_empty());
+    assert_eq!(Base85::decode_z85(&b85_z85).unwrap(), empty);
+
+    let b85_rfc1924 = Base85::encode_rfc1924(&empty);
+    assert!(b85_rfc1924.is_empty());
+    assert_eq!(Base85::decode_rfc1924(&b85_rfc1924).unwrap(), empty);
 
     // UTF-8
     let utf8 = Utf8.encode("");
@@ -619,6 +788,34 @@ proptest! {
     fn prop_large_data_base64(data in prop::collection::vec(any::<u8>(), 1024..2048)) {
         let encoded = Base64::encode_standard(&data);
         let decoded = Base64::decode_standard(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    #[test]
+    fn prop_large_data_base85_ascii85(data in prop::collection::vec(any::<u8>(), 1024..2048)) {
+        let encoded = Base85::encode_ascii85(&data);
+        let decoded = Base85::decode_ascii85(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    #[test]
+    fn prop_large_data_base85_z85(data in prop::collection::vec(any::<u8>(), 1024..2048).prop_filter("multiple of 4", |v| v.len() % 4 == 0)) {
+        let encoded = Base85::encode_z85(&data);
+        let decoded = Base85::decode_z85(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    #[test]
+    fn prop_large_data_base85_rfc1924(data in prop::collection::vec(any::<u8>(), 1024..2048)) {
+        let encoded = Base85::encode_rfc1924(&data);
+        let decoded = Base85::decode_rfc1924(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    #[test]
+    fn prop_large_data_base85_btoa(data in prop::collection::vec(any::<u8>(), 1024..2048)) {
+        let encoded = Base85::encode_btoa(&data);
+        let decoded = Base85::decode_btoa(&encoded).unwrap();
         prop_assert_eq!(decoded, data);
     }
 
@@ -710,7 +907,7 @@ proptest! {
         let mut chars = encoded.chars();
         while let Some(c) = chars.next() {
             if c == '%' {
-                // Next two chars must be hex digits
+                // The next two chars must be hex digits
                 let hex1 = chars.next();
                 let hex2 = chars.next();
                 prop_assert!(hex1.is_some() && hex2.is_some(), "Incomplete percent encoding");

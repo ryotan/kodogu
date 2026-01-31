@@ -9,10 +9,12 @@
 - [x] 開発者として、バイト列をBase32文字列にエンコード/デコードしたい（複数バリアント対応）
 - [x] 開発者として、バイト列をBase58文字列にエンコード/デコードしたい（Bitcoin/Flickrアルファベット）
 - [x] 開発者として、バイト列をBase64文字列にエンコード/デコードしたい（Standard/URL-safe/MIME）
-- [ ] 開発者として、バイト列をBase85文字列にエンコード/デコードしたい（Ascii85/Z85/RFC 1924）
+- [x] 開発者として、バイト列をBase85文字列にエンコード/デコードしたい（Ascii85/Z85/RFC 1924/btoa）
 - [x] 開発者として、文字列をURL-safeにエンコード/デコードしたい（Percent Encoding）
 - [x] 開発者として、メールデータをQuoted-Printableにエンコード/デコードしたい
-- [ ] 開発者として、カスタムアルファベットでBase系エンコーディングを使用したい
+- [x] 開発者として、カスタムアルファベットでBase系エンコーディングを使用したい
+  - Hex/Base32/Base58/Base64: カスタムアルファベット対応
+  - Base85: スコープ外（4バリアント（Ascii85/Z85/RFC 1924/btoa）で実用上の需要をカバー。カスタム化にはゼロ圧縮・ラッパー・空白処理等の動作仕様も必要となり、複雑性が高い）
 
 ## 機能要件
 
@@ -55,10 +57,11 @@
 
 ### Base85
 
-- [ ] RFC 1924形式
-- [ ] Ascii85形式（Adobe）
-- [ ] Z85形式（ZeroMQ）
-- [ ] エンコード/デコード
+- [x] RFC 1924形式（IPv6用、128bit特化API付き）
+- [x] ASCII85形式（Adobe、<~...~>ラッパー、ゼロ圧縮）
+- [x] Z85形式（ZeroMQ、4byte倍数入力）
+- [x] btoa形式（Unix、xbtoa Begin/Endラッパー）
+- [x] エンコード/デコード
 
 ### URL Encoding (Percent Encoding)
 
@@ -83,7 +86,7 @@
 
 ### エンコーディング識別
 
-- **`BinaryCodecs`** enum: バイナリコーデックの種別（Hex, Base32, Base58, Base64, Url）
+- **`BinaryCodecs`** enum: バイナリコーデックの種別（Hex, Base32, Base58, Base64, Base85, Url）
 - **`TextCodecs`** enum: テキストコーデックの種別（Utf8）
 
 ### BinaryCodecError の共通エラーパターン
@@ -96,6 +99,8 @@
 ### エンコーディング固有エラー
 
 - `HexOddLength` - Hex文字列の奇数長
+- `Base85Overflow` - Base85デコード時のu32オーバーフロー
+- `InvalidWrapper` - Base85の不正なラッパー（<~...~>、xbtoa Begin/End）
 - `UrlInvalidPercent` - 不正なパーセントエンコーディング（将来のurl_encoding用）
 - `UrlInvalidUtf8` - URLデコード後の無効なUTF-8
 - `DataEncodingSpec` - data-encodingライブラリの仕様エラー
@@ -197,7 +202,7 @@ fn process_hex(alphabet: &str, bytes: &[u8]) -> String {
 - フィールドはprivate
 - コンストラクタでバリデーション実施
 
-#### 4. Static Methods - 便利API
+#### 4. Static Methods – 便利API
 
 最も一般的なユースケース向けの簡潔なAPI。
 
@@ -398,10 +403,10 @@ impl BinaryCodec for HexLower {
 - 外部クレート依存:
   - `data-encoding` (Base16/32/64)
   - `bs58` (Base58)
-  - `base85` (Base85)
   - `percent-encoding` (URL Encoding)
   - `quoted_printable` (Quoted-Printable)
   - `suzunari-error` (エラーハンドリング)
+  - ※ Base85は外部クレートを使わず自前実装（アルファベットとデコードテーブルをconst定義）
 
 ## スコープ外
 

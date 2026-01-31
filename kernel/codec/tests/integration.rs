@@ -4,6 +4,7 @@ mod integration {
     mod base32;
     mod base58;
     mod base64;
+    mod base85;
     mod hex;
     mod quoted_printable;
     mod url_encoding;

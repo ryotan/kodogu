@@ -16,6 +16,7 @@ use suzunari_error::suzunari_error;
 mod base32;
 mod base58;
 mod base64;
+mod base85;
 mod hex;
 mod quoted_printable;
 mod url_encoding;
@@ -27,6 +28,7 @@ pub use base32::{
 };
 pub use base58::{Base58, Base58Bitcoin, Base58Codec, Base58Custom, Base58Flickr};
 pub use base64::{Base64, Base64Codec, Base64Custom, Base64Mime, Base64Standard, Base64UrlSafe};
+pub use base85::{Base85, Base85Ascii85, Base85Btoa, Base85Codec, Base85Rfc1924, Base85Z85};
 pub use hex::{Hex, HexCaseInsensitive, HexCodec, HexCustom, HexLower, HexUpper};
 pub use quoted_printable::{
     QuotedPrintable, QuotedPrintableCodec, QuotedPrintableRobust, QuotedPrintableStrict,
@@ -55,7 +57,7 @@ pub use utf8::Utf8;
 /// let encoded = HexLower.encode(b"Hello");
 /// assert_eq!(encoded, "48656c6c6f");
 ///
-/// // Type-safe - only accepts lowercase during decode
+/// // Type-safe - only accepts lowercase during decoding
 /// let decoded = HexLower.decode("48656c6c6f").unwrap();
 /// assert_eq!(decoded, b"Hello");
 /// ```
@@ -165,6 +167,7 @@ pub enum BinaryCodecs {
     Base32,
     Base58,
     Base64,
+    Base85,
     Url,
 }
 
@@ -188,6 +191,13 @@ pub enum BinaryCodecError {
     // Hex specific
     #[snafu(display("Odd length hex string: {length}"))]
     HexOddLength { length: usize },
+
+    // Base85 specific
+    #[snafu(display("Base85 overflow at position {position}"))]
+    Base85Overflow { position: usize },
+
+    #[snafu(display("Invalid Base85 wrapper (missing <~...~> or xbtoa Begin/End)"))]
+    InvalidWrapper,
 
     // URL encoding specific (for future url_encoding module)
     #[snafu(display("Invalid percent encoding at position {position}"))]
