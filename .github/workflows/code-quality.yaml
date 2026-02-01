@@ -57,6 +57,7 @@ jobs:
         run: bun install --frozen-lock-file # change this to npm or pnpm depending on which one you use.
 
       - name: Install Playwright Browsers
+        working-directory: app
         run: bunx playwright install --with-deps chromium chromium-headless-shell
 
       - name: Generate route files
