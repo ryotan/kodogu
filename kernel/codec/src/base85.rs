@@ -1297,8 +1297,8 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
     fn test_uuid_encode_decode_ascii85() {
         // UUID: 550e8400-e29b-41d4-a716-446655440000
         let uuid_bytes: [u8; 16] = [
-            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4,
-            0xa7, 0x16, 0x44, 0x66, 0x55, 0x44, 0x00, 0x00,
+            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44, 0x66, 0x55, 0x44,
+            0x00, 0x00,
         ];
 
         let encoded = Base85Ascii85.encode(&uuid_bytes);
@@ -1313,8 +1313,8 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
     fn test_uuid_encode_decode_z85() {
         // UUID: 550e8400-e29b-41d4-a716-446655440000
         let uuid_bytes: [u8; 16] = [
-            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4,
-            0xa7, 0x16, 0x44, 0x66, 0x55, 0x44, 0x00, 0x00,
+            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44, 0x66, 0x55, 0x44,
+            0x00, 0x00,
         ];
 
         let encoded = Base85Z85.encode(&uuid_bytes);
@@ -1338,8 +1338,8 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
 
         // Test as bytes
         let uuid_bytes: [u8; 16] = [
-            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4,
-            0xa7, 0x16, 0x44, 0x66, 0x55, 0x44, 0x00, 0x00,
+            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44, 0x66, 0x55, 0x44,
+            0x00, 0x00,
         ];
 
         let encoded_bytes = Base85Rfc1924.encode(&uuid_bytes);
@@ -1354,8 +1354,8 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
     fn test_uuid_encode_decode_btoa() {
         // UUID: 550e8400-e29b-41d4-a716-446655440000
         let uuid_bytes: [u8; 16] = [
-            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4,
-            0xa7, 0x16, 0x44, 0x66, 0x55, 0x44, 0x00, 0x00,
+            0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xa7, 0x16, 0x44, 0x66, 0x55, 0x44,
+            0x00, 0x00,
         ];
 
         let encoded = Base85Btoa.encode(&uuid_bytes);
@@ -1438,10 +1438,7 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
         // 5文字の完全ブロック + 2文字の不完全ブロック（無効な文字を含む）
         // Ascii85は '!' (33) から 'u' (117) を使用、'|' (124) は無効
         let result = Base85Ascii85.decode("<~!!!!!|x~>");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidCharacter { char: '|', .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacter { char: '|', .. })));
     }
 
     /// decode_u128 with invalid length (triggers InvalidLength at line 573)
@@ -1466,15 +1463,24 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
         // RFC1924アルファベットに含まれない文字（スペース）を含む20文字
         // RFC1924アルファベット: 0-9 A-Z a-z !#$%&()*+-;<=>?@^_`{|}~
         let result = Base85Rfc1924::decode_u128("0000000000000000000 "); // 19個の0 + スペース
-        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 19, .. })));
+        assert!(matches!(
+            result,
+            Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 19, .. })
+        ));
 
         // 先頭に無効文字（20文字）
         let result = Base85Rfc1924::decode_u128(" 0000000000000000000"); // スペース + 19個の0
-        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 0, .. })));
+        assert!(matches!(
+            result,
+            Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 0, .. })
+        ));
 
         // 中間に無効文字
         let result = Base85Rfc1924::decode_u128("0000000000 000000000"); // 10個の0 + スペース + 9個の0
-        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 10, .. })));
+        assert!(matches!(
+            result,
+            Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 10, .. })
+        ));
     }
 
     /// btoa decode with malformed footer (triggers line 674 path)

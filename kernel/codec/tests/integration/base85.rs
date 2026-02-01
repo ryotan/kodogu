@@ -234,58 +234,40 @@ mod error_handling {
     #[test]
     fn ascii85_missing_wrapper() {
         let result = Base85Ascii85.decode("HelloWorld");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidWrapper { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidWrapper { .. })));
     }
 
     #[test]
     fn z85_invalid_length() {
         // Z85 requires encoded length to be multiple of 5
         let result = Base85Z85.decode("Hell");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidLength { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidLength { .. })));
     }
 
     #[test]
     fn ascii85_invalid_character() {
         // 'v' is beyond the Ascii85 alphabet (! to u)
         let result = Base85Ascii85.decode("<~vvvvv~>");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidCharacter { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidCharacter { .. })));
     }
 
     #[test]
     fn ascii85_overflow() {
         // `s8W-"` would overflow u32
         let result = Base85Ascii85.decode("<~s8W-\"~>");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::Base85Overflow { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::Base85Overflow { .. })));
     }
 
     #[test]
     fn btoa_missing_wrapper() {
         let result = Base85Btoa.decode("HelloWorld");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidWrapper { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidWrapper { .. })));
     }
 
     #[test]
     fn rfc1924_u128_invalid_length() {
         let result = Base85Rfc1924::decode_u128("short");
-        assert!(matches!(
-            result,
-            Err(BinaryCodecError::InvalidLength { .. })
-        ));
+        assert!(matches!(result, Err(BinaryCodecError::InvalidLength { .. })));
     }
 }
 
@@ -352,11 +334,7 @@ mod variant_differences {
         let rfc1924 = Base85Rfc1924.encode(data);
 
         // Strip wrapper from ascii85 for comparison
-        let ascii85_inner = ascii85
-            .strip_prefix("<~")
-            .unwrap()
-            .strip_suffix("~>")
-            .unwrap();
+        let ascii85_inner = ascii85.strip_prefix("<~").unwrap().strip_suffix("~>").unwrap();
 
         assert_ne!(ascii85_inner, z85);
         assert_ne!(z85, rfc1924);
