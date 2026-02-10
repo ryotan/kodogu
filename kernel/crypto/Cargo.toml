@@ -20,6 +20,8 @@ snafu = { workspace = true }
 aes = { workspace = true }
 aes-gcm = { workspace = true, features = ["std"] }
 cbc = { workspace = true, features = ["alloc"] }
+chacha20 = { workspace = true }
+ctr = { workspace = true }
 ed25519-dalek = { workspace = true, features = ["pkcs8", "pem"] }
 p256 = { workspace = true }
 p384 = { workspace = true }

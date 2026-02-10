@@ -65,9 +65,9 @@
 #### SymmetricEncryptor / Decryptor
 - [x] AES-128-CBC
 - [x] AES-256-CBC
-- [ ] AES-128-CTR
-- [ ] AES-256-CTR
-- [ ] ChaCha20
+- [x] AES-128-CTR
+- [x] AES-256-CTR
+- [x] ChaCha20
 
 #### AEADEncryptor / Decryptor
 - [ ] AES-128-GCM
