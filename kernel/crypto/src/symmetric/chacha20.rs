@@ -15,7 +15,7 @@ const CHACHA20_NONCE_SIZE: usize = 12;
 ///
 /// # Security Warning
 ///
-/// Never reuse a nonce with the same key. Doing so completely
+/// Never reuse nonce with the same key. Doing so completely
 /// compromises the security of ChaCha20.
 ///
 /// # Example
@@ -173,7 +173,7 @@ mod tests {
     }
 
     #[test]
-    fn test_different_nonces_produce_different_ciphertext() {
+    fn test_different_nonce_produce_different_ciphertext() {
         use super::super::traits::test_helpers::assert_different_ivs_produce_different_ciphertext;
 
         let cipher = ChaCha20;
@@ -199,7 +199,7 @@ mod tests {
         let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key1, &nonce).unwrap();
         let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key2, &nonce).unwrap();
 
-        // ChaCha20 doesn't detect wrong key - just produces garbage
+        // ChaCha20 doesn't detect the wrong key - just produces garbage
         assert_ne!(plaintext, decrypted);
     }
 

@@ -474,7 +474,7 @@ mod tests {
     }
 
     #[test]
-    fn test_different_nonces_produce_different_ciphertext() {
+    fn test_different_nonce_produce_different_ciphertext() {
         use super::super::traits::test_helpers::assert_different_ivs_produce_different_ciphertext;
 
         let cipher = Aes128Ctr;
