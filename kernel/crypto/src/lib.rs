@@ -17,10 +17,40 @@
 //! let cipher = Aes128Cbc;
 //! let key = [0u8; 16];
 //! let iv = InitializationVector::from(vec![0u8; 16]);
-//! let plaintext = Plaintext::from("Hello, World!");
+//! let plaintext = Plaintext::from("Hello, World! (ZST)");
 //!
 //! let ciphertext = cipher.encrypt(&plaintext, &key, &iv).unwrap();
 //! let decrypted = cipher.decrypt(&ciphertext, &key, &iv).unwrap();
+//! assert_eq!(plaintext, decrypted);
+//! ```
+//!
+//! ## Example (Enum)
+//!
+//! ```
+//! use crypto::{AesCbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+//!
+//! let cipher = AesCbc::Aes256;
+//! let key = [0u8; 32];
+//! let iv = InitializationVector::from(vec![0u8; 16]);
+//! let plaintext = Plaintext::from("Hello, World! (Enum)");
+//!
+//! let ciphertext = cipher.encrypt(&plaintext, &key, &iv).unwrap();
+//! let decrypted = cipher.decrypt(&ciphertext, &key, &iv).unwrap();
+//! assert_eq!(plaintext, decrypted);
+//! ```
+//!
+//! ## Example (Trait)
+//!
+//! ```
+//! use crypto::{AesCbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+//!
+//! let cipher = AesCbc::Aes256;
+//! let key = [0u8; 32];
+//! let iv = InitializationVector::from(vec![0u8; 16]);
+//! let plaintext = Plaintext::from("Hello, World! (Cipher-specific Trait)");
+//!
+//! let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
+//! let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
 //! assert_eq!(plaintext, decrypted);
 //! ```
 

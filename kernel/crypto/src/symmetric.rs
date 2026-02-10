@@ -11,9 +11,9 @@
 //! ## Design Patterns
 //!
 //! 1. **trait**: `SymmetricEncryptor`, `SymmetricDecryptor`
-//! 2. **ZST types**: `Aes128Cbc`, `Aes256Cbc`, `Aes128Ctr`, `Aes256Ctr`, `ChaCha20` (compile-time dispatch)
-//! 3. **Enum**: `AesCbc`, `AesCtr` (runtime selection)
-//! 4. **Cipher-specific trait**: `AesCbcCipher`, `AesCtrCipher`, `ChaCha20Cipher` (polymorphism)
+//! 2. **ZST types** (compile-time dispatch): `Aes128Cbc`, `Aes256Cbc`, `Aes128Ctr`, `Aes256Ctr`, `ChaCha20`
+//! 3. **Enum** (runtime selection): `AesCbc`, `AesCtr`
+//! 4. **Cipher-specific trait** (polymorphism): `AesCbcCipher`, `AesCtrCipher`, `ChaCha20Cipher`
 //!
 //! ## Example
 //!
