@@ -16,6 +16,7 @@
       <w>abcdefghijklmnopqrstuvwxyz</w>
       <w>abcdefghijkmnopqrstuvwxyz</w>
       <w>abcdefghjkmnpqrstvwxyz</w>
+      <w>aead</w>
       <w>agxbp</w>
       <w>ajdvzr</w>
       <w>anflug</w>
@@ -23,12 +24,15 @@
       <w>bcde</w>
       <w>budneghjklm</w>
       <w>bunx</w>
+      <w>chacha</w>
+      <w>concatkdf</w>
       <w>cpng</w>
       <w>cpnmu</w>
       <w>cpnmuog</w>
       <w>cpnmuoj</w>
       <w>crockford</w>
       <w>ctag</w>
+      <w>ecies</w>
       <w>esimport</w>
       <w>fdvcmxk</w>
       <w>fffd</w>
@@ -56,8 +60,10 @@
       <w>patchelf</w>
       <w>pqrst</w>
       <w>priv</w>
+      <w>roundtrip</w>
       <w>rpshnaf</w>
       <w>rustfmt</w>
+      <w>secp</w>
       <w>spki</w>
       <w>suzunari</w>
       <w>taiki</w>

@@ -13,7 +13,11 @@ codec = { path = './kernel/codec' }
 crypto = { path = './kernel/crypto' }
 
 # External crates
+aes = "0.8"
 aes-gcm = "0.10"
+cbc = "0.1"
+chacha20 = "0.9"
+ctr = "0.9"
 bs58 = "0.5"
 chrono = "0.4.42"
 clap = "4.5.48"
