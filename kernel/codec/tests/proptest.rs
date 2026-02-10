@@ -346,7 +346,7 @@ proptest! {
         prop_assert!(inner.chars().all(|c| c == 'z'));
     }
 
-    /// Property: Z85 encoded length is 5/4 of input length (for multiple of 4 input)
+    /// Property: Z85 encoded length is 5/4 of the input length (for multiple of 4 inputs)
     #[test]
     fn prop_base85_z85_encoded_length(data in prop::collection::vec(any::<u8>(), 0..100).prop_filter("multiple of 4", |v| v.len() % 4 == 0)) {
         let encoded = Base85Z85.encode(&data);
@@ -400,19 +400,21 @@ proptest! {
         prop_assert!(encoded.contains("xbtoa End"));
     }
 
-    /// Property: Different variants produce different output
+    /// Property: Ascii85 differs from Z85 (different alphabet structure)
+    ///
+    /// Note: Z85 と RFC1924 は 0-9 が同じ位置にあるため、
+    /// 特定の入力では同じ出力になる可能性がある。
+    /// Ascii85 は '!' から始まる連続 ASCII を使うため、常に異なる。
     #[test]
-    fn prop_base85_variants_differ(data in prop::collection::vec(any::<u8>(), 4..20).prop_filter("multiple of 4 and has non-zero", |v| v.len() % 4 == 0 && v.iter().any(|&b| b != 0))) {
+    fn prop_base85_ascii85_differs_from_z85(data in prop::collection::vec(any::<u8>(), 4..20).prop_filter("multiple of 4 and has non-zero", |v| v.len() % 4 == 0 && v.iter().any(|&b| b != 0))) {
         let ascii85 = Base85Ascii85.encode(&data);
         let z85 = Base85Z85.encode(&data);
-        let rfc1924 = Base85Rfc1924.encode(&data);
 
         // Strip wrapper from ascii85
         let ascii85_inner = ascii85.strip_prefix("<~").unwrap().strip_suffix("~>").unwrap();
 
-        // Different alphabets produce different output
+        // Ascii85 uses sequential ASCII starting from '!', so the output always differs from Z85
         prop_assert_ne!(ascii85_inner, &z85);
-        prop_assert_ne!(&z85, &rfc1924);
     }
 
     /// Property: Z85 with padding API round-trip
