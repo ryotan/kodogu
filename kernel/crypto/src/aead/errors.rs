@@ -1,3 +1,4 @@
+use aes_gcm::aead;
 use std::array::TryFromSliceError;
 use suzunari_error::suzunari_error;
 
@@ -37,11 +38,16 @@ pub enum AeadError {
 
     /// Authentication failed during decryption
     #[snafu(display("{cipher:?}: authentication failed"))]
-    AuthenticationFailed { cipher: AeadCiphers },
+    AuthenticationFailed { cipher: AeadCiphers, source: aead::Error },
 
     /// Invalid authentication tag length
     #[snafu(display("{cipher:?}: invalid tag length {actual} bytes (expected {expected} bytes)"))]
-    InvalidTagLength { cipher: AeadCiphers, expected: usize, actual: usize },
+    InvalidTagLength {
+        cipher: AeadCiphers,
+        expected: usize,
+        actual: usize,
+        source: TryFromSliceError,
+    },
 
     /// Ciphertext too short for decryption
     #[snafu(display("{cipher:?}: ciphertext too short ({size} bytes, minimum {min_size} bytes)"))]

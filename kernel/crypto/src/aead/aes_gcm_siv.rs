@@ -2,10 +2,10 @@ use super::errors::{AeadCiphers, AeadError, AuthenticationFailedError};
 use super::helpers::{validate_nonce_length, validate_tag_length};
 use super::traits::{AeadCipher, AeadDecryptor, AeadEncryptor};
 use super::types::{AdditionalData, Aes256GcmKey, AuthenticationTag};
-use crate::Nonce;
-use crate::{Ciphertext, Plaintext};
+use crate::{Ciphertext, Nonce, Plaintext};
 use aes_gcm_siv::Aes256GcmSiv as Aes256GcmSivImpl;
 use aes_gcm_siv::aead::{Aead, KeyInit, Payload};
+use snafu::ResultExt;
 
 const AES_GCM_SIV_NONCE_SIZE: usize = 12;
 const AES_GCM_SIV_TAG_SIZE: usize = 16;
@@ -60,7 +60,7 @@ impl AeadEncryptor for Aes256GcmSiv {
 
         let combined = aes_gcm_siv
             .encrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         // aes-gcm-siv は ciphertext || tag を返す
         let (ct, tag) = combined.split_at(combined.len() - AES_GCM_SIV_TAG_SIZE);
@@ -94,7 +94,7 @@ impl AeadDecryptor for Aes256GcmSiv {
 
         let plaintext = aes_gcm_siv
             .decrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         Ok(Plaintext::from(plaintext))
     }

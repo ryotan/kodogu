@@ -2,12 +2,12 @@ use super::errors::{AeadCiphers, AeadError, AuthenticationFailedError};
 use super::helpers::{validate_key_length, validate_nonce_length, validate_tag_length};
 use super::traits::{AeadCipher, AeadDecryptor, AeadEncryptor};
 use super::types::{AdditionalData, AuthenticationTag, ChaCha20Poly1305Key};
-use crate::Nonce;
-use crate::{Ciphertext, Plaintext};
+use crate::{Ciphertext, Nonce, Plaintext};
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{
     ChaCha20Poly1305 as ChaCha20Poly1305Impl, XChaCha20Poly1305 as XChaCha20Poly1305Impl,
 };
+use snafu::ResultExt;
 
 const CHACHA20_POLY1305_NONCE_SIZE: usize = 12;
 const XCHACHA20_POLY1305_NONCE_SIZE: usize = 24;
@@ -112,7 +112,7 @@ impl AeadEncryptor for ChaCha20Poly1305 {
 
         let combined = chacha
             .encrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         let (ct, tag) = combined.split_at(combined.len() - POLY1305_TAG_SIZE);
         Ok((Ciphertext::from(ct), AuthenticationTag::from(tag)))
@@ -144,7 +144,7 @@ impl AeadDecryptor for ChaCha20Poly1305 {
 
         let plaintext = chacha
             .decrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         Ok(Plaintext::from(plaintext))
     }
@@ -176,7 +176,7 @@ impl AeadEncryptor for XChaCha20Poly1305 {
 
         let combined = xchacha
             .encrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         let (ct, tag) = combined.split_at(combined.len() - POLY1305_TAG_SIZE);
         Ok((Ciphertext::from(ct), AuthenticationTag::from(tag)))
@@ -208,7 +208,7 @@ impl AeadDecryptor for XChaCha20Poly1305 {
 
         let plaintext = xchacha
             .decrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         Ok(Plaintext::from(plaintext))
     }

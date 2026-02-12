@@ -31,11 +31,11 @@ pub(crate) fn validate_tag_length<const N: usize>(
     tag: &AuthenticationTag,
     cipher: AeadCiphers,
 ) -> Result<[u8; N], AeadError> {
-    if tag.len() != N {
-        return Err(InvalidTagLengthError { cipher, expected: N, actual: tag.len() }.build());
-    }
-    // tag.len() == N なので unwrap は安全
-    Ok(tag.as_bytes().try_into().unwrap())
+    tag.as_bytes().try_into().context(InvalidTagLengthError {
+        cipher,
+        expected: N,
+        actual: tag.len(),
+    })
 }
 
 #[cfg(test)]

@@ -2,10 +2,10 @@ use super::errors::{AeadCiphers, AeadError, AuthenticationFailedError};
 use super::helpers::{validate_key_length, validate_nonce_length, validate_tag_length};
 use super::traits::{AeadCipher, AeadDecryptor, AeadEncryptor};
 use super::types::{AdditionalData, Aes128GcmKey, Aes256GcmKey, AuthenticationTag};
-use crate::Nonce;
-use crate::{Ciphertext, Plaintext};
+use crate::{Ciphertext, Nonce, Plaintext};
 use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes128Gcm as Aes128GcmImpl, Aes256Gcm as Aes256GcmImpl};
+use snafu::ResultExt;
 
 const AES_GCM_NONCE_SIZE: usize = 12;
 const AES_GCM_TAG_SIZE: usize = 16;
@@ -110,7 +110,7 @@ impl AeadEncryptor for Aes128Gcm {
 
         let combined = aes_gcm
             .encrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         // aes-gcm は ciphertext || tag を返す
         let (ct, tag) = combined.split_at(combined.len() - AES_GCM_TAG_SIZE);
@@ -144,7 +144,7 @@ impl AeadDecryptor for Aes128Gcm {
 
         let plaintext = aes_gcm
             .decrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         Ok(Plaintext::from(plaintext))
     }
@@ -176,7 +176,7 @@ impl AeadEncryptor for Aes256Gcm {
 
         let combined = aes_gcm
             .encrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         let (ct, tag) = combined.split_at(combined.len() - AES_GCM_TAG_SIZE);
         Ok((Ciphertext::from(ct), AuthenticationTag::from(tag)))
@@ -208,7 +208,7 @@ impl AeadDecryptor for Aes256Gcm {
 
         let plaintext = aes_gcm
             .decrypt((&nonce_array).into(), payload)
-            .map_err(|_| AuthenticationFailedError { cipher }.build())?;
+            .context(AuthenticationFailedError { cipher })?;
 
         Ok(Plaintext::from(plaintext))
     }
