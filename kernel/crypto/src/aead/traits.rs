@@ -35,10 +35,7 @@ pub trait AeadEncryptor {
         aad: &AdditionalData,
     ) -> Result<AeadCiphertext, Self::Error> {
         let (ciphertext, tag) = self.encrypt(plaintext, key, nonce, aad)?;
-        Ok(AeadCiphertext::new(
-            ciphertext.into_bytes(),
-            tag.as_bytes().to_vec(),
-        ))
+        Ok(AeadCiphertext::new(ciphertext.into_bytes(), tag.as_bytes().to_vec()))
     }
 }
 

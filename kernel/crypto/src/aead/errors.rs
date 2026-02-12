@@ -40,22 +40,10 @@ pub enum AeadError {
     AuthenticationFailed { cipher: AeadCiphers },
 
     /// Invalid authentication tag length
-    #[snafu(display(
-        "{cipher:?}: invalid tag length {actual} bytes (expected {expected} bytes)"
-    ))]
-    InvalidTagLength {
-        cipher: AeadCiphers,
-        expected: usize,
-        actual: usize,
-    },
+    #[snafu(display("{cipher:?}: invalid tag length {actual} bytes (expected {expected} bytes)"))]
+    InvalidTagLength { cipher: AeadCiphers, expected: usize, actual: usize },
 
     /// Ciphertext too short for decryption
-    #[snafu(display(
-        "{cipher:?}: ciphertext too short ({size} bytes, minimum {min_size} bytes)"
-    ))]
-    CiphertextTooShort {
-        cipher: AeadCiphers,
-        size: usize,
-        min_size: usize,
-    },
+    #[snafu(display("{cipher:?}: ciphertext too short ({size} bytes, minimum {min_size} bytes)"))]
+    CiphertextTooShort { cipher: AeadCiphers, size: usize, min_size: usize },
 }

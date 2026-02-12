@@ -234,11 +234,13 @@ impl AeadEncryptor for AesGcm {
     ) -> Result<(Ciphertext, AuthenticationTag), Self::Error> {
         match self {
             AesGcm::Aes128 => {
-                let key_array = validate_key_length::<AES_128_KEY_SIZE>(key, AeadCiphers::Aes128Gcm)?;
+                let key_array =
+                    validate_key_length::<AES_128_KEY_SIZE>(key, AeadCiphers::Aes128Gcm)?;
                 AeadEncryptor::encrypt(&Aes128Gcm, plaintext, &Aes128GcmKey(key_array), nonce, aad)
             }
             AesGcm::Aes256 => {
-                let key_array = validate_key_length::<AES_256_KEY_SIZE>(key, AeadCiphers::Aes256Gcm)?;
+                let key_array =
+                    validate_key_length::<AES_256_KEY_SIZE>(key, AeadCiphers::Aes256Gcm)?;
                 AeadEncryptor::encrypt(&Aes256Gcm, plaintext, &Aes256GcmKey(key_array), nonce, aad)
             }
         }
@@ -259,7 +261,8 @@ impl AeadDecryptor for AesGcm {
     ) -> Result<Plaintext, Self::Error> {
         match self {
             AesGcm::Aes128 => {
-                let key_array = validate_key_length::<AES_128_KEY_SIZE>(key, AeadCiphers::Aes128Gcm)?;
+                let key_array =
+                    validate_key_length::<AES_128_KEY_SIZE>(key, AeadCiphers::Aes128Gcm)?;
                 AeadDecryptor::decrypt(
                     &Aes128Gcm,
                     ciphertext,
@@ -270,7 +273,8 @@ impl AeadDecryptor for AesGcm {
                 )
             }
             AesGcm::Aes256 => {
-                let key_array = validate_key_length::<AES_256_KEY_SIZE>(key, AeadCiphers::Aes256Gcm)?;
+                let key_array =
+                    validate_key_length::<AES_256_KEY_SIZE>(key, AeadCiphers::Aes256Gcm)?;
                 AeadDecryptor::decrypt(
                     &Aes256Gcm,
                     ciphertext,

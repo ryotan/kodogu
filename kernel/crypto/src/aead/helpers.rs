@@ -1,4 +1,6 @@
-use super::errors::{AeadCiphers, AeadError, InvalidKeyLengthError, InvalidNonceLengthError, InvalidTagLengthError};
+use super::errors::{
+    AeadCiphers, AeadError, InvalidKeyLengthError, InvalidNonceLengthError, InvalidTagLengthError,
+};
 use super::types::AuthenticationTag;
 use crate::Nonce;
 use snafu::ResultExt;
@@ -17,10 +19,11 @@ pub(crate) fn validate_nonce_length<const N: usize>(
     nonce: &Nonce,
     cipher: AeadCiphers,
 ) -> Result<[u8; N], AeadError> {
-    nonce
-        .as_bytes()
-        .try_into()
-        .context(InvalidNonceLengthError { cipher, expected: N, actual: nonce.len() })
+    nonce.as_bytes().try_into().context(InvalidNonceLengthError {
+        cipher,
+        expected: N,
+        actual: nonce.len(),
+    })
 }
 
 /// Validates authentication tag length and converts to a fixed-size array.
@@ -57,8 +60,12 @@ pub(crate) mod test_helpers {
     }
 
     /// AEAD ラウンドトリップテスト（AAD あり）。
-    pub fn assert_aead_roundtrip_with_aad<E, D>(nonce: &Nonce, aad: &AdditionalData, encrypt: E, decrypt: D)
-    where
+    pub fn assert_aead_roundtrip_with_aad<E, D>(
+        nonce: &Nonce,
+        aad: &AdditionalData,
+        encrypt: E,
+        decrypt: D,
+    ) where
         E: Fn(&Plaintext, &Nonce, &AdditionalData) -> (Ciphertext, AuthenticationTag),
         D: Fn(&Ciphertext, &AuthenticationTag, &Nonce, &AdditionalData) -> Plaintext,
     {

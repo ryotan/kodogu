@@ -4,9 +4,9 @@
 //! complementing the specific test cases in unit tests.
 
 use crypto::{
-    AdditionalData, AeadDecryptor, AeadEncryptor, Aes128Gcm, Aes128GcmKey, Aes256Gcm,
-    Aes256GcmKey, Aes256GcmSiv, AuthenticationTag, ChaCha20Poly1305, ChaCha20Poly1305Key,
-    Ciphertext, Nonce, Plaintext, XChaCha20Poly1305,
+    AdditionalData, AeadDecryptor, AeadEncryptor, Aes128Gcm, Aes128GcmKey, Aes256Gcm, Aes256GcmKey,
+    Aes256GcmSiv, AuthenticationTag, ChaCha20Poly1305, ChaCha20Poly1305Key, Ciphertext, Nonce,
+    Plaintext, XChaCha20Poly1305,
 };
 use proptest::prelude::*;
 

@@ -428,8 +428,7 @@ mod tests {
         let aad = AdditionalData::empty();
         let plaintext = Plaintext::from("Hello");
 
-        let (ciphertext, tag) =
-            XChaCha20Poly1305.encrypt(&plaintext, &key1, &nonce, &aad).unwrap();
+        let (ciphertext, tag) = XChaCha20Poly1305.encrypt(&plaintext, &key1, &nonce, &aad).unwrap();
 
         let result = XChaCha20Poly1305.decrypt(&ciphertext, &tag, &key2, &nonce, &aad);
         assert!(matches!(result, Err(AeadError::AuthenticationFailed { .. })));

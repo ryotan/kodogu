@@ -4,8 +4,8 @@ use super::traits::{AeadCipher, AeadDecryptor, AeadEncryptor};
 use super::types::{AdditionalData, Aes256GcmKey, AuthenticationTag};
 use crate::Nonce;
 use crate::{Ciphertext, Plaintext};
-use aes_gcm_siv::aead::{Aead, KeyInit, Payload};
 use aes_gcm_siv::Aes256GcmSiv as Aes256GcmSivImpl;
+use aes_gcm_siv::aead::{Aead, KeyInit, Payload};
 
 const AES_GCM_SIV_NONCE_SIZE: usize = 12;
 const AES_GCM_SIV_TAG_SIZE: usize = 16;

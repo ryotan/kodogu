@@ -60,7 +60,7 @@ mod aead;
 mod symmetric;
 
 pub use aead::{
-    AdditionalData, AeadCiphertext, AeadCipher, AeadCiphers, AeadDecryptor, AeadEncryptor,
+    AdditionalData, AeadCipher, AeadCiphers, AeadCiphertext, AeadDecryptor, AeadEncryptor,
     AeadError, Aes128Gcm, Aes128GcmKey, Aes256Gcm, Aes256GcmKey, Aes256GcmSiv, AesGcm,
     AesGcmCipher, AesGcmSivCipher, AuthenticationTag, ChaCha20Poly1305, ChaCha20Poly1305Cipher,
     ChaCha20Poly1305Family, ChaCha20Poly1305Key, XChaCha20Poly1305,
