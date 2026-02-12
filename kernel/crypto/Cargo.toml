@@ -19,8 +19,10 @@ snafu = { workspace = true }
 # Cryptography (adapter layer only)
 aes = { workspace = true }
 aes-gcm = { workspace = true, features = ["std"] }
+aes-gcm-siv = { workspace = true, features = ["std"] }
 cbc = { workspace = true, features = ["alloc"] }
 chacha20 = { workspace = true }
+chacha20poly1305 = { workspace = true, features = ["std"] }
 ctr = { workspace = true }
 ed25519-dalek = { workspace = true, features = ["pkcs8", "pem"] }
 p256 = { workspace = true }
@@ -34,3 +36,4 @@ subtle = { workspace = true }
 zeroize = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
+proptest = { workspace = true }

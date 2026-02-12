@@ -29,8 +29,8 @@
 |-------|------|---------|
 | SymmetricEncryptor | ブロック暗号暗号化 | `encrypt(plaintext, key, iv) -> ciphertext` |
 | SymmetricDecryptor | ブロック暗号復号 | `decrypt(ciphertext, key, iv) -> plaintext` |
-| AEADEncryptor | 認証付き暗号化 | `encrypt(plaintext, key, nonce, aad?) -> (ciphertext, tag)` |
-| AEADDecryptor | 認証付き復号 | `decrypt(ciphertext, tag, key, nonce, aad?) -> plaintext` |
+| AeadEncryptor | 認証付き暗号化 | `encrypt(plaintext, key, nonce, aad) -> (ciphertext, tag)` |
+| AeadDecryptor | 認証付き復号 | `decrypt(ciphertext, tag, key, nonce, aad) -> plaintext` |
 | MACGenerator | MAC生成 | `generate(message, key) -> tag` |
 | MACVerifier | MAC検証 | `verify(message, tag, key) -> bool` |
 
@@ -69,12 +69,12 @@
 - [x] AES-256-CTR
 - [x] ChaCha20
 
-#### AEADEncryptor / Decryptor
-- [ ] AES-128-GCM
-- [ ] AES-256-GCM
-- [ ] ChaCha20-Poly1305
-- [ ] XChaCha20-Poly1305
-- [ ] AES-256-GCM-SIV
+#### AeadEncryptor / Decryptor
+- [x] AES-128-GCM
+- [x] AES-256-GCM
+- [x] ChaCha20-Poly1305
+- [x] XChaCha20-Poly1305
+- [x] AES-256-GCM-SIV
 
 #### MACGenerator / Verifier
 - [ ] HMAC-SHA256
