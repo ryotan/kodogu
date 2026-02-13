@@ -12,7 +12,7 @@
 //! ## Example (ZST)
 //!
 //! ```
-//! use crypto::{Aes128Cbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+//! use crypto::{Aes128Cbc, BlockEncryptor, BlockDecryptor, Plaintext, InitializationVector};
 //!
 //! let cipher = Aes128Cbc;
 //! let key = [0u8; 16];
@@ -27,7 +27,7 @@
 //! ## Example (Enum)
 //!
 //! ```
-//! use crypto::{AesCbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+//! use crypto::{AesCbc, BlockEncryptor, BlockDecryptor, Plaintext, InitializationVector};
 //!
 //! let cipher = AesCbc::Aes256;
 //! let key = [0u8; 32];
@@ -42,15 +42,15 @@
 //! ## Example (Trait)
 //!
 //! ```
-//! use crypto::{AesCbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+//! use crypto::{AesCbc, BlockEncryptor, BlockDecryptor, Plaintext, InitializationVector};
 //!
 //! let cipher = AesCbc::Aes256;
 //! let key = [0u8; 32];
 //! let iv = InitializationVector::from(vec![0u8; 16]);
 //! let plaintext = Plaintext::from("Hello, World! (Trait)");
 //!
-//! let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
-//! let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
+//! let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
+//! let decrypted = BlockDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
 //! assert_eq!(plaintext, decrypted);
 //! ```
 
@@ -67,8 +67,8 @@ pub use aead::{
 };
 pub use symmetric::{
     Aes128Cbc, Aes128Ctr, Aes256Cbc, Aes256Ctr, AesCbc, AesCbcCipher, AesCtr, AesCtrCipher,
-    ChaCha20, ChaCha20Cipher, SymmetricCipher, SymmetricCipherError, SymmetricDecryptor,
-    SymmetricEncryptor,
+    BlockCipher, BlockDecryptor, BlockEncryptor, ChaCha20, ChaCha20Cipher, StreamCipher,
+    StreamDecryptor, StreamEncryptor, SymmetricCipherError,
 };
 
 /// Plaintext data.
@@ -193,7 +193,7 @@ impl From<&[u8]> for InitializationVector {
 ///
 /// # Security
 ///
-/// **Never reuse a nonce with the same key.**
+/// **Never reuse nonce with the same key.**
 /// Nonce reuse can completely break security guarantees for AEAD and stream ciphers.
 ///
 /// - AEAD (AES-GCM, ChaCha20-Poly1305): 12 bytes (96 bits)
