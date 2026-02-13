@@ -1,9 +1,9 @@
-use super::traits::{
-    PaddingError, SymmetricCipher, SymmetricCipherError, SymmetricCiphers, SymmetricDecryptor,
-    SymmetricEncryptor, validate_iv_length, validate_key_length,
-};
+use super::errors::{PaddingError, SymmetricCipherError, SymmetricCiphers};
+use super::helpers::{validate_iv_length, validate_key_length};
+use super::traits::{BlockCipher, BlockDecryptor, BlockEncryptor};
 use crate::{Ciphertext, InitializationVector, Plaintext};
 use cbc::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, block_padding::Pkcs7};
+use snafu::ResultExt;
 
 const AES_BLOCK_SIZE: usize = 16;
 const AES_128_KEY_SIZE: usize = 16;
@@ -17,7 +17,7 @@ const AES_256_KEY_SIZE: usize = 32;
 /// # Example
 ///
 /// ```
-/// use crypto::{Aes128Cbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+/// use crypto::{Aes128Cbc, BlockEncryptor, BlockDecryptor, Plaintext, InitializationVector};
 ///
 /// let cipher = Aes128Cbc;
 /// let key = [0u8; 16];
@@ -39,7 +39,7 @@ pub struct Aes128Cbc;
 /// # Example
 ///
 /// ```
-/// use crypto::{Aes256Cbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+/// use crypto::{Aes256Cbc, BlockEncryptor, BlockDecryptor, Plaintext, InitializationVector};
 ///
 /// let cipher = Aes256Cbc;
 /// let key = [0u8; 32];
@@ -60,7 +60,7 @@ pub struct Aes256Cbc;
 /// # Example
 ///
 /// ```
-/// use crypto::{AesCbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+/// use crypto::{AesCbc, BlockEncryptor, BlockDecryptor, Plaintext, InitializationVector};
 ///
 /// let cipher = AesCbc::Aes128;
 /// let key: &[u8] = &[0u8; 16];
@@ -83,12 +83,12 @@ pub enum AesCbc {
 /// Marker trait for AES-CBC cipher family.
 ///
 /// Enables generic programming over all AES-CBC variants.
-/// Extends [`SymmetricCipher`] to indicate AES-CBC family membership.
+/// Extends [`BlockCipher`] to indicate AES-CBC family membership.
 ///
 /// # Example
 ///
 /// ```
-/// use crypto::{AesCbcCipher, Aes128Cbc, Aes256Cbc, AesCbc, SymmetricEncryptor, SymmetricDecryptor, Plaintext, InitializationVector};
+/// use crypto::{AesCbcCipher, Aes128Cbc, Aes256Cbc, AesCbc, BlockEncryptor, BlockDecryptor, Plaintext, InitializationVector};
 ///
 /// // ZST type (compile-time key length verification)
 /// let cipher = Aes128Cbc;
@@ -102,12 +102,12 @@ pub enum AesCbc {
 /// let key: &[u8] = &[0u8; 16];
 /// let ciphertext = cipher.encrypt(&plaintext, key, &iv).unwrap();
 /// ```
-pub trait AesCbcCipher: SymmetricCipher<Error = SymmetricCipherError> {}
+pub trait AesCbcCipher: BlockCipher<Error = SymmetricCipherError> {}
 
 type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
-impl SymmetricEncryptor for Aes128Cbc {
+impl BlockEncryptor for Aes128Cbc {
     type Key = [u8; AES_128_KEY_SIZE];
     type Error = SymmetricCipherError;
 
@@ -125,7 +125,7 @@ impl SymmetricEncryptor for Aes128Cbc {
     }
 }
 
-impl SymmetricDecryptor for Aes128Cbc {
+impl BlockDecryptor for Aes128Cbc {
     type Key = [u8; AES_128_KEY_SIZE];
     type Error = SymmetricCipherError;
 
@@ -140,12 +140,12 @@ impl SymmetricDecryptor for Aes128Cbc {
         let decryptor = Aes128CbcDec::new(key.into(), &iv_array.into());
         let plaintext = decryptor
             .decrypt_padded_vec_mut::<Pkcs7>(ciphertext.as_bytes())
-            .map_err(|_| PaddingError { cipher: SymmetricCiphers::Aes128Cbc }.build())?;
+            .context(PaddingError { cipher: SymmetricCiphers::Aes128Cbc })?;
         Ok(Plaintext::from(plaintext))
     }
 }
 
-impl SymmetricCipher for Aes128Cbc {
+impl BlockCipher for Aes128Cbc {
     type Key = [u8; AES_128_KEY_SIZE];
     type Error = SymmetricCipherError;
 }
@@ -155,7 +155,7 @@ impl AesCbcCipher for Aes128Cbc {}
 type Aes256CbcEnc = cbc::Encryptor<aes::Aes256>;
 type Aes256CbcDec = cbc::Decryptor<aes::Aes256>;
 
-impl SymmetricEncryptor for Aes256Cbc {
+impl BlockEncryptor for Aes256Cbc {
     type Key = [u8; AES_256_KEY_SIZE];
     type Error = SymmetricCipherError;
 
@@ -173,7 +173,7 @@ impl SymmetricEncryptor for Aes256Cbc {
     }
 }
 
-impl SymmetricDecryptor for Aes256Cbc {
+impl BlockDecryptor for Aes256Cbc {
     type Key = [u8; AES_256_KEY_SIZE];
     type Error = SymmetricCipherError;
 
@@ -188,19 +188,19 @@ impl SymmetricDecryptor for Aes256Cbc {
         let decryptor = Aes256CbcDec::new(key.into(), &iv_array.into());
         let plaintext = decryptor
             .decrypt_padded_vec_mut::<Pkcs7>(ciphertext.as_bytes())
-            .map_err(|_| PaddingError { cipher: SymmetricCiphers::Aes256Cbc }.build())?;
+            .context(PaddingError { cipher: SymmetricCiphers::Aes256Cbc })?;
         Ok(Plaintext::from(plaintext))
     }
 }
 
-impl SymmetricCipher for Aes256Cbc {
+impl BlockCipher for Aes256Cbc {
     type Key = [u8; AES_256_KEY_SIZE];
     type Error = SymmetricCipherError;
 }
 
 impl AesCbcCipher for Aes256Cbc {}
 
-impl SymmetricEncryptor for AesCbc {
+impl BlockEncryptor for AesCbc {
     type Key = [u8];
     type Error = SymmetricCipherError;
 
@@ -214,18 +214,18 @@ impl SymmetricEncryptor for AesCbc {
             AesCbc::Aes128 => {
                 let key_array =
                     validate_key_length::<AES_128_KEY_SIZE>(key, SymmetricCiphers::Aes128Cbc)?;
-                SymmetricEncryptor::encrypt(&Aes128Cbc, plaintext, &key_array, iv)
+                BlockEncryptor::encrypt(&Aes128Cbc, plaintext, &key_array, iv)
             }
             AesCbc::Aes256 => {
                 let key_array =
                     validate_key_length::<AES_256_KEY_SIZE>(key, SymmetricCiphers::Aes256Cbc)?;
-                SymmetricEncryptor::encrypt(&Aes256Cbc, plaintext, &key_array, iv)
+                BlockEncryptor::encrypt(&Aes256Cbc, plaintext, &key_array, iv)
             }
         }
     }
 }
 
-impl SymmetricDecryptor for AesCbc {
+impl BlockDecryptor for AesCbc {
     type Key = [u8];
     type Error = SymmetricCipherError;
 
@@ -239,18 +239,18 @@ impl SymmetricDecryptor for AesCbc {
             AesCbc::Aes128 => {
                 let key_array =
                     validate_key_length::<AES_128_KEY_SIZE>(key, SymmetricCiphers::Aes128Cbc)?;
-                SymmetricDecryptor::decrypt(&Aes128Cbc, ciphertext, &key_array, iv)
+                BlockDecryptor::decrypt(&Aes128Cbc, ciphertext, &key_array, iv)
             }
             AesCbc::Aes256 => {
                 let key_array =
                     validate_key_length::<AES_256_KEY_SIZE>(key, SymmetricCiphers::Aes256Cbc)?;
-                SymmetricDecryptor::decrypt(&Aes256Cbc, ciphertext, &key_array, iv)
+                BlockDecryptor::decrypt(&Aes256Cbc, ciphertext, &key_array, iv)
             }
         }
     }
 }
 
-impl SymmetricCipher for AesCbc {
+impl BlockCipher for AesCbc {
     type Key = [u8];
     type Error = SymmetricCipherError;
 }
@@ -268,8 +268,8 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello, World!");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
-        let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
+        let decrypted = BlockDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
@@ -281,7 +281,7 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 8]); // invalid length
         let plaintext = Plaintext::from("Hello");
 
-        let result = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv);
+        let result = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv);
         assert!(matches!(result, Err(SymmetricCipherError::InvalidIvLength { .. })));
     }
 
@@ -294,8 +294,8 @@ mod tests {
         // Test various plaintext lengths (padding boundary conditions)
         for len in 0..=32 {
             let plaintext = Plaintext::from(vec![0xABu8; len]);
-            let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
-            let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
+            let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
+            let decrypted = BlockDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
             assert_eq!(plaintext, decrypted, "Failed for length {}", len);
         }
     }
@@ -308,7 +308,7 @@ mod tests {
         let plaintext = Plaintext::from("Hello");
 
         let ciphertext = encrypt_with_aes_cbc(&cipher, &plaintext, &key, &iv).unwrap();
-        let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
+        let decrypted = BlockDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
@@ -320,7 +320,7 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let result = SymmetricEncryptor::encrypt(&cipher, &plaintext, key, &iv);
+        let result = BlockEncryptor::encrypt(&cipher, &plaintext, key, &iv);
         assert!(matches!(result, Err(SymmetricCipherError::InvalidKeyLength { .. })));
     }
 
@@ -331,8 +331,8 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello, World!");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
-        let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
+        let decrypted = BlockDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
@@ -345,7 +345,7 @@ mod tests {
         let plaintext = Plaintext::from("Hello");
 
         let ciphertext = encrypt_with_aes_cbc(&cipher, &plaintext, &key, &iv).unwrap();
-        let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
+        let decrypted = BlockDecryptor::decrypt(&cipher, &ciphertext, &key, &iv).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
@@ -357,8 +357,8 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, key, &iv).unwrap();
-        let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, key, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, key, &iv).unwrap();
+        let decrypted = BlockDecryptor::decrypt(&cipher, &ciphertext, key, &iv).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
@@ -370,8 +370,8 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, key, &iv).unwrap();
-        let decrypted = SymmetricDecryptor::decrypt(&cipher, &ciphertext, key, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, key, &iv).unwrap();
+        let decrypted = BlockDecryptor::decrypt(&cipher, &ciphertext, key, &iv).unwrap();
 
         assert_eq!(plaintext, decrypted);
     }
@@ -384,8 +384,8 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let ciphertext1 = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key1, &iv).unwrap();
-        let ciphertext2 = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key2, &iv).unwrap();
+        let ciphertext1 = BlockEncryptor::encrypt(&cipher, &plaintext, &key1, &iv).unwrap();
+        let ciphertext2 = BlockEncryptor::encrypt(&cipher, &plaintext, &key2, &iv).unwrap();
 
         assert_ne!(ciphertext1, ciphertext2);
     }
@@ -398,8 +398,8 @@ mod tests {
         let iv2 = InitializationVector::from(vec![1u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let ciphertext1 = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv1).unwrap();
-        let ciphertext2 = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv2).unwrap();
+        let ciphertext1 = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv1).unwrap();
+        let ciphertext2 = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv2).unwrap();
 
         assert_ne!(ciphertext1, ciphertext2);
     }
@@ -412,10 +412,10 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello, World!");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key1, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, &key1, &iv).unwrap();
 
         // Decryption with a wrong key causes a padding error
-        let result = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key2, &iv);
+        let result = BlockDecryptor::decrypt(&cipher, &ciphertext, &key2, &iv);
         assert!(matches!(result, Err(SymmetricCipherError::Padding { .. })));
     }
 
@@ -426,10 +426,10 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
 
         let bad_iv = InitializationVector::from(vec![0u8; 8]);
-        let result = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &bad_iv);
+        let result = BlockDecryptor::decrypt(&cipher, &ciphertext, &key, &bad_iv);
         assert!(matches!(result, Err(SymmetricCipherError::InvalidIvLength { .. })));
     }
 
@@ -440,10 +440,10 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, key, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, key, &iv).unwrap();
 
         let bad_key: &[u8] = &[0u8; 8];
-        let result = SymmetricDecryptor::decrypt(&cipher, &ciphertext, bad_key, &iv);
+        let result = BlockDecryptor::decrypt(&cipher, &ciphertext, bad_key, &iv);
         assert!(matches!(result, Err(SymmetricCipherError::InvalidKeyLength { .. })));
     }
 
@@ -454,7 +454,7 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 8]); // invalid length
         let plaintext = Plaintext::from("Hello");
 
-        let result = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv);
+        let result = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv);
         assert!(matches!(result, Err(SymmetricCipherError::InvalidIvLength { .. })));
     }
 
@@ -465,10 +465,10 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, &key, &iv).unwrap();
 
         let bad_iv = InitializationVector::from(vec![0u8; 8]);
-        let result = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key, &bad_iv);
+        let result = BlockDecryptor::decrypt(&cipher, &ciphertext, &key, &bad_iv);
         assert!(matches!(result, Err(SymmetricCipherError::InvalidIvLength { .. })));
     }
 
@@ -479,7 +479,7 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let result = SymmetricEncryptor::encrypt(&cipher, &plaintext, key, &iv);
+        let result = BlockEncryptor::encrypt(&cipher, &plaintext, key, &iv);
         assert!(matches!(result, Err(SymmetricCipherError::InvalidKeyLength { .. })));
     }
 
@@ -490,10 +490,10 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, key, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, key, &iv).unwrap();
 
         let bad_key: &[u8] = &[0u8; 16];
-        let result = SymmetricDecryptor::decrypt(&cipher, &ciphertext, bad_key, &iv);
+        let result = BlockDecryptor::decrypt(&cipher, &ciphertext, bad_key, &iv);
         assert!(matches!(result, Err(SymmetricCipherError::InvalidKeyLength { .. })));
     }
 
@@ -540,17 +540,17 @@ mod tests {
         let iv = InitializationVector::from(vec![0u8; 16]);
         let plaintext = Plaintext::from("Hello, World!");
 
-        let ciphertext = SymmetricEncryptor::encrypt(&cipher, &plaintext, &key1, &iv).unwrap();
+        let ciphertext = BlockEncryptor::encrypt(&cipher, &plaintext, &key1, &iv).unwrap();
 
         // Decryption with a wrong key causes a padding error
-        let result = SymmetricDecryptor::decrypt(&cipher, &ciphertext, &key2, &iv);
+        let result = BlockDecryptor::decrypt(&cipher, &ciphertext, &key2, &iv);
         assert!(matches!(result, Err(SymmetricCipherError::Padding { .. })));
     }
 
     fn encrypt_with_aes_cbc<C>(
         cipher: &C,
         plaintext: &Plaintext,
-        key: &<C as SymmetricEncryptor>::Key,
+        key: &<C as BlockEncryptor>::Key,
         iv: &InitializationVector,
     ) -> Result<Ciphertext, SymmetricCipherError>
     where
