@@ -11,8 +11,8 @@
 //! - NIST SP 800-38D: Galois/Counter Mode (GCM) and GMAC
 
 use crypto::{
-    AdditionalData, Aes128Cbc, Aes128Ctr, Aes128Gcm, Aes128GcmKey, Aes256Cbc, Aes256Ctr,
-    Aes256Gcm, Aes256GcmKey, AeadDecryptor, AeadEncryptor, AuthenticationTag, BlockDecryptor,
+    AdditionalData, AeadDecryptor, AeadEncryptor, Aes128Cbc, Aes128Ctr, Aes128Gcm, Aes128GcmKey,
+    Aes256Cbc, Aes256Ctr, Aes256Gcm, Aes256GcmKey, AuthenticationTag, BlockDecryptor,
     BlockEncryptor, ChaCha20Poly1305, ChaCha20Poly1305Key, Ciphertext, CmacAes, HmacAlgorithm,
     InitializationVector, MacGenerator, Nonce, Plaintext, StreamDecryptor, StreamEncryptor,
 };
@@ -120,10 +120,7 @@ mod aes_gcm_nist {
             .expect("encryption should succeed");
 
         assert!(ciphertext.as_bytes().is_empty());
-        assert_eq!(
-            tag.as_bytes(),
-            hex!("58e2fccefa7e3061367f1d57a4e7455a")
-        );
+        assert_eq!(tag.as_bytes(), hex!("58e2fccefa7e3061367f1d57a4e7455a"));
     }
 
     /// Test Case 2: 16-byte plaintext, empty AAD
@@ -138,14 +135,8 @@ mod aes_gcm_nist {
             .encrypt(&plaintext, &key, &nonce, &aad)
             .expect("encryption should succeed");
 
-        assert_eq!(
-            ciphertext.as_bytes(),
-            hex!("0388dace60b6a392f328c2b971b2fe78")
-        );
-        assert_eq!(
-            tag.as_bytes(),
-            hex!("ab6e47d42cec13bdf53a67b21257bddf")
-        );
+        assert_eq!(ciphertext.as_bytes(), hex!("0388dace60b6a392f328c2b971b2fe78"));
+        assert_eq!(tag.as_bytes(), hex!("ab6e47d42cec13bdf53a67b21257bddf"));
     }
 
     /// Test Case 3: 64-byte plaintext, empty AAD
@@ -177,10 +168,7 @@ mod aes_gcm_nist {
                 "1ba30b396a0aac973d58e091473f5985"
             )
         );
-        assert_eq!(
-            tag.as_bytes(),
-            hex!("4d5c2af327cd64a62cf35abd2ba6fab4")
-        );
+        assert_eq!(tag.as_bytes(), hex!("4d5c2af327cd64a62cf35abd2ba6fab4"));
     }
 
     /// Test Case 4: 60-byte plaintext with AAD
@@ -212,10 +200,7 @@ mod aes_gcm_nist {
                 "1ba30b396a0aac973d58e091"
             )
         );
-        assert_eq!(
-            tag.as_bytes(),
-            hex!("5bc94fbc3221a5db94fae95ae7121a47")
-        );
+        assert_eq!(tag.as_bytes(), hex!("5bc94fbc3221a5db94fae95ae7121a47"));
     }
 
     // ------------------------------------------------------------------------
@@ -238,10 +223,7 @@ mod aes_gcm_nist {
             .expect("encryption should succeed");
 
         assert!(ciphertext.as_bytes().is_empty());
-        assert_eq!(
-            tag.as_bytes(),
-            hex!("530f8afbc74536b9a963b4f1c4cb738b")
-        );
+        assert_eq!(tag.as_bytes(), hex!("530f8afbc74536b9a963b4f1c4cb738b"));
     }
 
     /// Test Case 14: 16-byte plaintext, empty AAD
@@ -259,14 +241,8 @@ mod aes_gcm_nist {
             .encrypt(&plaintext, &key, &nonce, &aad)
             .expect("encryption should succeed");
 
-        assert_eq!(
-            ciphertext.as_bytes(),
-            hex!("cea7403d4d606b6e074ec5d3baf39d18")
-        );
-        assert_eq!(
-            tag.as_bytes(),
-            hex!("d0d1c8a799996bf0265b98b5d48ab919")
-        );
+        assert_eq!(ciphertext.as_bytes(), hex!("cea7403d4d606b6e074ec5d3baf39d18"));
+        assert_eq!(tag.as_bytes(), hex!("d0d1c8a799996bf0265b98b5d48ab919"));
     }
 
     /// Test Case 15: 64-byte plaintext, empty AAD
@@ -301,10 +277,7 @@ mod aes_gcm_nist {
                 "c5f61e6393ba7a0abcc9f662898015ad"
             )
         );
-        assert_eq!(
-            tag.as_bytes(),
-            hex!("b094dac5d93471bdec1a502270e3cc6c")
-        );
+        assert_eq!(tag.as_bytes(), hex!("b094dac5d93471bdec1a502270e3cc6c"));
     }
 
     /// Test Case 16: 60-byte plaintext with AAD
@@ -339,10 +312,7 @@ mod aes_gcm_nist {
                 "c5f61e6393ba7a0abcc9f662"
             )
         );
-        assert_eq!(
-            tag.as_bytes(),
-            hex!("76fc6ece0f4e1768cddf8853bb2d551b")
-        );
+        assert_eq!(tag.as_bytes(), hex!("76fc6ece0f4e1768cddf8853bb2d551b"));
     }
 }
 
@@ -921,9 +891,7 @@ mod poly1305_rfc8439 {
         let key = Poly1305Key::from(hex!(
             "0200000000000000000000000000000000000000000000000000000000000000"
         ));
-        let message = hex!(
-            "ffffffffffffffffffffffffffffffff"
-        );
+        let message = hex!("ffffffffffffffffffffffffffffffff");
 
         let expected_tag = hex!("03000000000000000000000000000000");
 
@@ -937,9 +905,7 @@ mod poly1305_rfc8439 {
         let key = Poly1305Key::from(hex!(
             "02000000000000000000000000000000ffffffffffffffffffffffffffffffff"
         ));
-        let message = hex!(
-            "02000000000000000000000000000000"
-        );
+        let message = hex!("02000000000000000000000000000000");
 
         let expected_tag = hex!("03000000000000000000000000000000");
 
@@ -989,9 +955,7 @@ mod poly1305_rfc8439 {
         let key = Poly1305Key::from(hex!(
             "0200000000000000000000000000000000000000000000000000000000000000"
         ));
-        let message = hex!(
-            "fdffffffffffffffffffffffffffffff"
-        );
+        let message = hex!("fdffffffffffffffffffffffffffffff");
 
         let expected_tag = hex!("faffffffffffffffffffffffffffffff");
 
@@ -1119,10 +1083,7 @@ mod aes_gcm_siv_rfc8452 {
             .encrypt(&plaintext, &key, &nonce, &aad)
             .expect("encryption should succeed");
 
-        assert_eq!(
-            ciphertext.as_bytes(),
-            hex!("85a01b63025ba19b7fd3ddfc033b3e76")
-        );
+        assert_eq!(ciphertext.as_bytes(), hex!("85a01b63025ba19b7fd3ddfc033b3e76"));
         assert_eq!(tag.as_bytes(), hex!("c9eac6fa700942702e90862383c6c366"));
     }
 
@@ -1278,10 +1239,7 @@ mod aes_gcm_siv_rfc8452 {
             .encrypt(&plaintext, &key, &nonce, &aad)
             .expect("encryption should succeed");
 
-        assert_eq!(
-            ciphertext.as_bytes(),
-            hex!("c91545823cc24f17dbb0e9e807d5ec17")
-        );
+        assert_eq!(ciphertext.as_bytes(), hex!("c91545823cc24f17dbb0e9e807d5ec17"));
         assert_eq!(tag.as_bytes(), hex!("b292d28ff61189e8e49f3875ef91aff7"));
     }
 
@@ -1414,18 +1372,13 @@ mod aes_gcm_siv_rfc8452 {
         // 18 bytes: 16 + 2
         let aad = AdditionalData::from(hex!("010000000000000000000000000000000200").as_slice());
         // 20 bytes: 16 + 4
-        let plaintext = Plaintext::from(
-            hex!("0300000000000000000000000000000004000000").to_vec(),
-        );
+        let plaintext = Plaintext::from(hex!("0300000000000000000000000000000004000000").to_vec());
 
         let (ciphertext, tag) = Aes256GcmSiv
             .encrypt(&plaintext, &key, &nonce, &aad)
             .expect("encryption should succeed");
 
-        assert_eq!(
-            ciphertext.as_bytes(),
-            hex!("43dd0163cdb48f9fe3212bf61b201976067f342b")
-        );
+        assert_eq!(ciphertext.as_bytes(), hex!("43dd0163cdb48f9fe3212bf61b201976067f342b"));
         assert_eq!(tag.as_bytes(), hex!("b879ad976d8242acc188ab59cabfe307"));
     }
 
@@ -1510,9 +1463,7 @@ mod xchacha20_poly1305_vectors {
             "909192939495969798999a9b9c9d9e9f"
         ));
         // 24-byte nonce
-        let nonce = Nonce::from(
-            hex!("404142434445464748494a4b4c4d4e4f5051525354555657").to_vec(),
-        );
+        let nonce = Nonce::from(hex!("404142434445464748494a4b4c4d4e4f5051525354555657").to_vec());
         let aad = AdditionalData::from(hex!("50515253c0c1c2c3c4c5c6c7").as_slice());
         let plaintext = Plaintext::from(
             b"Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it."
@@ -1552,9 +1503,7 @@ mod xchacha20_poly1305_vectors {
             "808182838485868788898a8b8c8d8e8f"
             "909192939495969798999a9b9c9d9e9f"
         ));
-        let nonce = Nonce::from(
-            hex!("404142434445464748494a4b4c4d4e4f5051525354555657").to_vec(),
-        );
+        let nonce = Nonce::from(hex!("404142434445464748494a4b4c4d4e4f5051525354555657").to_vec());
         let aad = AdditionalData::empty();
         let plaintext = Plaintext::from(b"Hello, XChaCha20-Poly1305!".to_vec());
 
@@ -1575,9 +1524,7 @@ mod xchacha20_poly1305_vectors {
             "808182838485868788898a8b8c8d8e8f"
             "909192939495969798999a9b9c9d9e9f"
         ));
-        let nonce = Nonce::from(
-            hex!("404142434445464748494a4b4c4d4e4f5051525354555657").to_vec(),
-        );
+        let nonce = Nonce::from(hex!("404142434445464748494a4b4c4d4e4f5051525354555657").to_vec());
         let aad = AdditionalData::empty();
         let plaintext = Plaintext::from(vec![]);
 

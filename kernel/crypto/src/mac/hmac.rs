@@ -294,22 +294,19 @@ impl MacVerifier for HmacAlgorithm {
                 let mut mac = HmacSha256Impl::new_from_slice(key)
                     .context(KeyInitFailedError { algorithm })?;
                 mac.update(message);
-                mac.verify_slice(tag.as_bytes())
-                    .context(VerificationFailedError { algorithm })
+                mac.verify_slice(tag.as_bytes()).context(VerificationFailedError { algorithm })
             }
             HmacAlgorithm::Sha384 => {
                 let mut mac = HmacSha384Impl::new_from_slice(key)
                     .context(KeyInitFailedError { algorithm })?;
                 mac.update(message);
-                mac.verify_slice(tag.as_bytes())
-                    .context(VerificationFailedError { algorithm })
+                mac.verify_slice(tag.as_bytes()).context(VerificationFailedError { algorithm })
             }
             HmacAlgorithm::Sha512 => {
                 let mut mac = HmacSha512Impl::new_from_slice(key)
                     .context(KeyInitFailedError { algorithm })?;
                 mac.update(message);
-                mac.verify_slice(tag.as_bytes())
-                    .context(VerificationFailedError { algorithm })
+                mac.verify_slice(tag.as_bytes()).context(VerificationFailedError { algorithm })
             }
         }
     }

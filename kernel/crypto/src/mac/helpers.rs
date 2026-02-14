@@ -6,5 +6,6 @@ pub(crate) fn validate_key_length<const N: usize>(
     key: &[u8],
     algorithm: MacAlgorithms,
 ) -> Result<[u8; N], MacError> {
-    key.try_into().context(InvalidKeyLengthError { algorithm, expected: N, actual: key.len() })
+    key.try_into()
+        .context(InvalidKeyLengthError { algorithm, expected: N, actual: key.len() })
 }
