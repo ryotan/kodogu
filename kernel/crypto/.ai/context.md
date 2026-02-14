@@ -77,12 +77,13 @@
 - [x] AES-256-GCM-SIV
 
 #### MACGenerator / Verifier
-- [ ] HMAC-SHA256
-- [ ] HMAC-SHA384
-- [ ] HMAC-SHA512
-- [ ] CMAC-AES
-- [ ] GMAC
-- [ ] Poly1305
+- [x] HMAC-SHA256
+- [x] HMAC-SHA384
+- [x] HMAC-SHA512
+- [x] CMAC-AES-128
+- [x] CMAC-AES-256
+- [x] GMAC
+- [x] Poly1305
 
 ### 非対称鍵操作
 
