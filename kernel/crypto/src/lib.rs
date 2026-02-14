@@ -57,6 +57,7 @@
 use zeroize::Zeroize;
 
 mod aead;
+mod mac;
 mod symmetric;
 
 pub use aead::{
@@ -64,6 +65,12 @@ pub use aead::{
     AeadError, Aes128Gcm, Aes128GcmKey, Aes256Gcm, Aes256GcmKey, Aes256GcmSiv, AesGcm,
     AesGcmCipher, AesGcmSivCipher, AuthenticationTag, ChaCha20Poly1305, ChaCha20Poly1305Cipher,
     ChaCha20Poly1305Family, ChaCha20Poly1305Key, XChaCha20Poly1305,
+};
+pub use mac::{
+    CmacAes, CmacAes128, CmacAes128Key, CmacAes256, CmacAes256Key, CmacAesCipher, Gmac, GmacCipher,
+    GmacKeyWithNonce, HmacAlgorithm, HmacCipher, HmacSha256, HmacSha256Key, HmacSha384,
+    HmacSha384Key, HmacSha512, HmacSha512Key, Mac, MacAlgorithms, MacError, MacGenerator, MacTag,
+    MacVerifier, Poly1305Cipher, Poly1305Key, Poly1305Mac,
 };
 pub use symmetric::{
     Aes128Cbc, Aes128Ctr, Aes256Cbc, Aes256Ctr, AesCbc, AesCbcCipher, AesCtr, AesCtrCipher,
