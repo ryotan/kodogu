@@ -23,12 +23,15 @@ aes-gcm-siv = { workspace = true, features = ["std"] }
 cbc = { workspace = true, features = ["std"] }
 chacha20 = { workspace = true }
 chacha20poly1305 = { workspace = true, features = ["std"] }
+cmac = { workspace = true }
 ctr = { workspace = true }
 ed25519-dalek = { workspace = true, features = ["pkcs8", "pem"] }
+hmac = { workspace = true }
 p256 = { workspace = true }
 p384 = { workspace = true }
 pbkdf2 = { workspace = true }
 pkcs8 = { workspace = true, features = ["pem"] }
+poly1305 = { workspace = true }
 rand = { workspace = true }
 rsa = { workspace = true }
 sha2 = { workspace = true }
@@ -36,4 +39,5 @@ subtle = { workspace = true }
 zeroize = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
+hex-literal = { workspace = true }
 proptest = { workspace = true }

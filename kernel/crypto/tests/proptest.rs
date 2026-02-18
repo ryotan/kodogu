@@ -111,7 +111,8 @@ proptest! {
         }),
         nonce1 in nonce_of_len(12),
         nonce2 in nonce_of_len(12),
-        plaintext in prop::collection::vec(any::<u8>(), 1..100).prop_map(Plaintext::from),
+        // 16バイト以上にして衝突確率を無視できるレベルに（1バイトだと1/256で衝突）
+        plaintext in prop::collection::vec(any::<u8>(), 16..100).prop_map(Plaintext::from),
     ) {
         let aad = AdditionalData::empty();
         if nonce1 != nonce2 {
