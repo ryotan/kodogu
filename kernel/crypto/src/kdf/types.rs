@@ -1,0 +1,565 @@
+use core::fmt;
+use subtle::ConstantTimeEq;
+use zeroize::{Zeroize, Zeroizing};
+
+/// Derived key material.
+///
+/// # Security
+///
+/// Implements [`Zeroize`] to clear memory on drop.
+/// Limit scope to ensure early cleanup of sensitive data.
+/// Equality comparison is constant-time to prevent timing attacks.
+#[derive(Clone, Zeroize)]
+pub struct DerivedKey(Vec<u8>);
+
+impl std::fmt::Debug for DerivedKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("DerivedKey").field(&"***").finish()
+    }
+}
+
+impl PartialEq for DerivedKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.ct_eq(&other.0).into()
+    }
+}
+
+impl Eq for DerivedKey {}
+
+impl DerivedKey {
+    /// Creates key material from a KDF implementation.
+    ///
+    /// Cannot be constructed from external crates. Only obtained via KDF `derive` methods.
+    pub(crate) fn new(bytes: Vec<u8>) -> Self {
+        assert!(!bytes.is_empty(), "DerivedKey must not be empty");
+        Self(bytes)
+    }
+
+    /// Returns as a byte slice.
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
+
+    /// Returns the length in bytes.
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Always returns `false`. Non-empty is guaranteed by construction.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Consumes self and returns the underlying bytes.
+    ///
+    /// The returned [`Zeroizing`] wrapper ensures the bytes are cleared on drop.
+    pub fn into_bytes(self) -> Zeroizing<Vec<u8>> {
+        Zeroizing::new(self.0)
+    }
+}
+
+/// HKDF input: IKM (Input Keying Material) and optional salt.
+///
+/// # Security
+///
+/// IKM may contain sensitive data (e.g., shared secrets), so [`Zeroize`] is implemented.
+/// Salt is not secret but zeroized as a precaution.
+#[derive(Clone, Zeroize)]
+pub struct HkdfInput {
+    /// Input Keying Material. E.g., shared secrets.
+    ikm: Vec<u8>,
+    /// Salt (optional). When None, uses zero bytes of hash length (RFC 5869).
+    salt: Option<Vec<u8>>,
+}
+
+impl std::fmt::Debug for HkdfInput {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HkdfInput")
+            .field("ikm", &"***")
+            .field("salt", &self.salt.as_ref().map(|_| "[present]"))
+            .finish()
+    }
+}
+
+impl PartialEq for HkdfInput {
+    fn eq(&self, other: &Self) -> bool {
+        let ikm_eq: bool = self.ikm.ct_eq(&other.ikm).into();
+        let salt_eq: bool = match (&self.salt, &other.salt) {
+            (Some(a), Some(b)) => a.ct_eq(b).into(),
+            (None, None) => true,
+            _ => false,
+        };
+        // Bitwise AND to avoid short-circuit evaluation (timing attack mitigation)
+        ikm_eq & salt_eq
+    }
+}
+
+impl Eq for HkdfInput {}
+
+impl HkdfInput {
+    /// Creates with IKM and salt.
+    pub fn new(ikm: Vec<u8>, salt: Option<Vec<u8>>) -> Self {
+        Self { ikm, salt }
+    }
+
+    /// Creates without salt (RFC 5869 default salt).
+    pub fn without_salt(ikm: Vec<u8>) -> Self {
+        Self { ikm, salt: None }
+    }
+
+    /// Returns the input keying material.
+    pub fn ikm(&self) -> &[u8] {
+        &self.ikm
+    }
+
+    /// Returns the salt.
+    pub fn salt(&self) -> Option<&[u8]> {
+        self.salt.as_deref()
+    }
+}
+
+/// Error for [`Pbkdf2Params::try_new`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Pbkdf2ParamsError {
+    /// `iterations` is zero.
+    IterationsZero,
+}
+
+impl fmt::Display for Pbkdf2ParamsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Pbkdf2ParamsError::IterationsZero => f.write_str("iterations must be greater than 0"),
+        }
+    }
+}
+
+impl std::error::Error for Pbkdf2ParamsError {}
+
+/// PBKDF2 parameters.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Pbkdf2Params {
+    /// Iteration count.
+    ///
+    /// OWASP 2023 recommendation: minimum 600,000 for PBKDF2-SHA256.
+    iterations: u32,
+}
+
+impl Pbkdf2Params {
+    /// OWASP 2023 recommended value (PBKDF2-SHA256: 600,000 iterations).
+    pub const OWASP_RECOMMENDED: Self = Self { iterations: 600_000 };
+
+    /// Creates parameters.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `iterations` is 0.
+    pub const fn new(iterations: u32) -> Self {
+        assert!(iterations > 0, "iterations must be greater than 0");
+        Self { iterations }
+    }
+
+    /// Creates parameters with validation. For runtime input.
+    pub fn try_new(iterations: u32) -> Result<Self, Pbkdf2ParamsError> {
+        if iterations == 0 {
+            return Err(Pbkdf2ParamsError::IterationsZero);
+        }
+        Ok(Self { iterations })
+    }
+
+    /// Returns the iteration count.
+    pub const fn iterations(&self) -> u32 {
+        self.iterations
+    }
+}
+
+/// Error for [`Argon2Params::try_new`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Argon2ParamsError {
+    /// `memory_kib` is zero.
+    MemoryKibZero,
+    /// `time` is zero.
+    TimeZero,
+    /// `parallelism` is zero.
+    ParallelismZero,
+}
+
+impl fmt::Display for Argon2ParamsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Argon2ParamsError::MemoryKibZero => f.write_str("memory_kib must be greater than 0"),
+            Argon2ParamsError::TimeZero => f.write_str("time must be greater than 0"),
+            Argon2ParamsError::ParallelismZero => f.write_str("parallelism must be greater than 0"),
+        }
+    }
+}
+
+impl std::error::Error for Argon2ParamsError {}
+
+/// Argon2id parameters.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Argon2Params {
+    /// Memory cost in KiB.
+    ///
+    /// OWASP 2023 recommendation: 65536 (64 MiB). Minimum: 19456 (19 MiB).
+    memory_kib: u32,
+
+    /// Time cost (number of passes).
+    ///
+    /// OWASP 2023 recommendation: 3.
+    time: u32,
+
+    /// Parallelism (thread count).
+    ///
+    /// OWASP 2023 recommendation: 4.
+    parallelism: u32,
+}
+
+impl Argon2Params {
+    /// OWASP 2023 recommended values (memory=64MiB, time=3, parallelism=4).
+    pub const OWASP_RECOMMENDED: Self = Self { memory_kib: 65536, time: 3, parallelism: 4 };
+
+    /// Creates parameters.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any parameter is 0.
+    pub const fn new(memory_kib: u32, time: u32, parallelism: u32) -> Self {
+        assert!(memory_kib > 0, "memory_kib must be greater than 0");
+        assert!(time > 0, "time must be greater than 0");
+        assert!(parallelism > 0, "parallelism must be greater than 0");
+        Self { memory_kib, time, parallelism }
+    }
+
+    /// Returns the memory cost in KiB.
+    pub const fn memory_kib(&self) -> u32 {
+        self.memory_kib
+    }
+
+    /// Returns the time cost (number of passes).
+    pub const fn time(&self) -> u32 {
+        self.time
+    }
+
+    /// Returns the parallelism.
+    pub const fn parallelism(&self) -> u32 {
+        self.parallelism
+    }
+
+    /// Creates parameters with validation. For runtime input.
+    pub fn try_new(
+        memory_kib: u32,
+        time: u32,
+        parallelism: u32,
+    ) -> Result<Self, Argon2ParamsError> {
+        if memory_kib == 0 {
+            return Err(Argon2ParamsError::MemoryKibZero);
+        }
+        if time == 0 {
+            return Err(Argon2ParamsError::TimeZero);
+        }
+        if parallelism == 0 {
+            return Err(Argon2ParamsError::ParallelismZero);
+        }
+        Ok(Self { memory_kib, time, parallelism })
+    }
+}
+
+/// Error for [`ScryptParams::try_new`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ScryptParamsError {
+    /// `r` is zero.
+    RZero,
+    /// `p` is zero.
+    PZero,
+}
+
+impl fmt::Display for ScryptParamsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ScryptParamsError::RZero => f.write_str("r must be greater than 0"),
+            ScryptParamsError::PZero => f.write_str("p must be greater than 0"),
+        }
+    }
+}
+
+impl std::error::Error for ScryptParamsError {}
+
+/// Scrypt parameters.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScryptParams {
+    /// Logarithm of CPU/memory cost parameter N (N = 2^log_n).
+    ///
+    /// Colin Percival recommendation: 17 (N = 131072).
+    log_n: u8,
+
+    /// Block size parameter. Recommended: 8.
+    r: u32,
+
+    /// Parallelization parameter. Recommended: 1.
+    p: u32,
+}
+
+impl ScryptParams {
+    /// Colin Percival recommended values (log_n=17, r=8, p=1).
+    pub const RECOMMENDED: Self = Self { log_n: 17, r: 8, p: 1 };
+
+    /// Creates parameters.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `r` or `p` is 0.
+    /// `log_n` of 0 is valid (N=1, for testing).
+    pub const fn new(log_n: u8, r: u32, p: u32) -> Self {
+        assert!(r > 0, "r must be greater than 0");
+        assert!(p > 0, "p must be greater than 0");
+        Self { log_n, r, p }
+    }
+
+    /// Returns log_n.
+    pub const fn log_n(&self) -> u8 {
+        self.log_n
+    }
+
+    /// Returns the block size r.
+    pub const fn r(&self) -> u32 {
+        self.r
+    }
+
+    /// Returns the parallelization p.
+    pub const fn p(&self) -> u32 {
+        self.p
+    }
+
+    /// Creates parameters with validation. For runtime input.
+    pub fn try_new(log_n: u8, r: u32, p: u32) -> Result<Self, ScryptParamsError> {
+        if r == 0 {
+            return Err(ScryptParamsError::RZero);
+        }
+        if p == 0 {
+            return Err(ScryptParamsError::PZero);
+        }
+        Ok(Self { log_n, r, p })
+    }
+}
+
+/// Error for [`BcryptPbkdfParams::try_new`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BcryptPbkdfParamsError {
+    /// `rounds` is zero.
+    RoundsZero,
+}
+
+impl fmt::Display for BcryptPbkdfParamsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BcryptPbkdfParamsError::RoundsZero => f.write_str("rounds must be greater than 0"),
+        }
+    }
+}
+
+impl std::error::Error for BcryptPbkdfParamsError {}
+
+/// bcrypt-pbkdf parameters.
+///
+/// Used for OpenSSH key file encryption.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BcryptPbkdfParams {
+    /// Round count (minimum 1).
+    ///
+    /// OpenSSH default: 16. For higher security: 64+.
+    rounds: u32,
+}
+
+impl BcryptPbkdfParams {
+    /// OpenSSH default value (16 rounds).
+    pub const OPENSSH_DEFAULT: Self = Self { rounds: 16 };
+
+    /// Creates parameters.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `rounds` is 0.
+    pub const fn new(rounds: u32) -> Self {
+        assert!(rounds > 0, "rounds must be greater than 0");
+        Self { rounds }
+    }
+
+    /// Creates parameters with validation. For runtime input.
+    pub fn try_new(rounds: u32) -> Result<Self, BcryptPbkdfParamsError> {
+        if rounds == 0 {
+            return Err(BcryptPbkdfParamsError::RoundsZero);
+        }
+        Ok(Self { rounds })
+    }
+
+    /// Returns the round count.
+    pub const fn rounds(&self) -> u32 {
+        self.rounds
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_derived_key_new() {
+        let data = vec![1, 2, 3, 4];
+        let key = DerivedKey::new(data.clone());
+        assert_eq!(key.as_bytes(), &data);
+        assert_eq!(key.len(), 4);
+        assert!(!key.is_empty());
+    }
+
+    #[test]
+    fn test_derived_key_into_bytes() {
+        let data = vec![1, 2, 3, 4];
+        let key = DerivedKey::new(data.clone());
+        assert_eq!(*key.into_bytes(), data);
+    }
+
+    #[test]
+    fn test_derived_key_debug_hides_key_material() {
+        let key = DerivedKey::new(vec![0xDE, 0xAD, 0xBE, 0xEF]);
+        let debug = format!("{:?}", key);
+        assert!(debug.contains("***"), "Debug output must hide key material");
+        assert!(!debug.contains("dead"), "Debug output must not contain key material");
+        assert!(!debug.contains("DEAD"), "Debug output must not contain key material");
+    }
+
+    #[test]
+    fn test_hkdf_input_without_salt() {
+        let input = HkdfInput::without_salt(b"ikm".to_vec());
+        assert_eq!(input.ikm(), b"ikm");
+        assert!(input.salt().is_none());
+    }
+
+    #[test]
+    fn test_hkdf_input_with_salt() {
+        let input = HkdfInput::new(b"ikm".to_vec(), Some(b"salt".to_vec()));
+        assert_eq!(input.ikm(), b"ikm");
+        assert_eq!(input.salt(), Some(b"salt".as_slice()));
+    }
+
+    #[test]
+    fn test_hkdf_input_debug_hides_ikm() {
+        let input = HkdfInput::new(b"secret-ikm".to_vec(), Some(b"salt".to_vec()));
+        let debug = format!("{:?}", input);
+        assert!(debug.contains("***"), "Debug output must hide IKM");
+        assert!(!debug.contains("secret-ikm"), "Debug output must not contain IKM");
+    }
+
+    #[test]
+    fn test_pbkdf2_params_owasp_recommended() {
+        assert_eq!(Pbkdf2Params::OWASP_RECOMMENDED.iterations(), 600_000);
+    }
+
+    #[test]
+    fn test_argon2_params_owasp_recommended() {
+        let p = Argon2Params::OWASP_RECOMMENDED;
+        assert_eq!(p.memory_kib(), 65536);
+        assert_eq!(p.time(), 3);
+        assert_eq!(p.parallelism(), 4);
+    }
+
+    #[test]
+    fn test_derived_key_constant_time_eq() {
+        let key1 = DerivedKey::new(vec![1, 2, 3]);
+        let key2 = DerivedKey::new(vec![1, 2, 3]);
+        let key3 = DerivedKey::new(vec![4, 5, 6]);
+        let key4 = DerivedKey::new(vec![1, 2, 3, 4]);
+        assert_eq!(key1, key2);
+        assert_ne!(key1, key3);
+        assert_ne!(key1, key4, "different lengths must not be equal");
+    }
+
+    #[test]
+    fn test_hkdf_input_constant_time_eq() {
+        let input1 = HkdfInput::new(b"ikm".to_vec(), Some(b"salt".to_vec()));
+        let input2 = HkdfInput::new(b"ikm".to_vec(), Some(b"salt".to_vec()));
+        let input3 = HkdfInput::new(b"other".to_vec(), Some(b"salt".to_vec()));
+        let input4 = HkdfInput::new(b"ikm".to_vec(), Some(b"other".to_vec()));
+        let input5 = HkdfInput::new(b"ikm".to_vec(), None);
+        let input6 = HkdfInput::without_salt(b"ikm".to_vec());
+        assert_eq!(input1, input2);
+        assert_ne!(input1, input3);
+        assert_ne!(input1, input4);
+        assert_ne!(input1, input5);
+        assert_eq!(input5, input6);
+    }
+
+    #[test]
+    fn test_scrypt_params_recommended() {
+        let p = ScryptParams::RECOMMENDED;
+        assert_eq!(p.log_n(), 17);
+        assert_eq!(p.r(), 8);
+        assert_eq!(p.p(), 1);
+    }
+
+    // ========================================
+    // try_new tests
+    // ========================================
+
+    #[test]
+    fn test_pbkdf2_params_try_new_ok() {
+        let p = Pbkdf2Params::try_new(1000).unwrap();
+        assert_eq!(p.iterations(), 1000);
+    }
+
+    #[test]
+    fn test_pbkdf2_params_try_new_zero() {
+        assert_eq!(Pbkdf2Params::try_new(0), Err(Pbkdf2ParamsError::IterationsZero));
+    }
+
+    #[test]
+    fn test_argon2_params_try_new_ok() {
+        let p = Argon2Params::try_new(8, 1, 1).unwrap();
+        assert_eq!(p.memory_kib(), 8);
+        assert_eq!(p.time(), 1);
+        assert_eq!(p.parallelism(), 1);
+    }
+
+    #[test]
+    fn test_argon2_params_try_new_zero_memory() {
+        assert_eq!(Argon2Params::try_new(0, 1, 1), Err(Argon2ParamsError::MemoryKibZero));
+    }
+
+    #[test]
+    fn test_argon2_params_try_new_zero_time() {
+        assert_eq!(Argon2Params::try_new(8, 0, 1), Err(Argon2ParamsError::TimeZero));
+    }
+
+    #[test]
+    fn test_argon2_params_try_new_zero_parallelism() {
+        assert_eq!(Argon2Params::try_new(8, 1, 0), Err(Argon2ParamsError::ParallelismZero));
+    }
+
+    #[test]
+    fn test_scrypt_params_try_new_ok() {
+        let p = ScryptParams::try_new(4, 1, 1).unwrap();
+        assert_eq!(p.log_n(), 4);
+        assert_eq!(p.r(), 1);
+        assert_eq!(p.p(), 1);
+    }
+
+    #[test]
+    fn test_scrypt_params_try_new_zero_r() {
+        assert_eq!(ScryptParams::try_new(4, 0, 1), Err(ScryptParamsError::RZero));
+    }
+
+    #[test]
+    fn test_scrypt_params_try_new_zero_p() {
+        assert_eq!(ScryptParams::try_new(4, 1, 0), Err(ScryptParamsError::PZero));
+    }
+
+    #[test]
+    fn test_bcrypt_pbkdf_params_try_new_ok() {
+        let p = BcryptPbkdfParams::try_new(16).unwrap();
+        assert_eq!(p.rounds(), 16);
+    }
+
+    #[test]
+    fn test_bcrypt_pbkdf_params_try_new_zero() {
+        assert_eq!(BcryptPbkdfParams::try_new(0), Err(BcryptPbkdfParamsError::RoundsZero));
+    }
+}

@@ -1,0 +1,290 @@
+use super::errors::{
+    KdfAlgorithms, KdfError, X963KdfDerivationFailedError, X963KdfError, ZeroLengthOutputError,
+};
+use super::traits::KeyDeriver;
+use super::types::DerivedKey;
+use sha2::{
+    Digest, Sha256, Sha384,
+    digest::{FixedOutputReset, OutputSizeUser},
+};
+use snafu::{ResultExt, ensure};
+
+// ========================================
+// Inline X963KDF implementation (ANSI X9.63-2011)
+// ========================================
+//
+// Algorithm: K_i = Hash(Z || counter || SharedInfo)
+//   counter: 4-byte big-endian, starting from 1
+//   Z: shared secret
+//   SharedInfo: context information (info)
+//
+// Difference from ConcatKDF: field order differs
+//   ConcatKDF: Hash(counter || Z || OtherInfo)
+//   X963KDF:   Hash(Z || counter || SharedInfo)
+
+/// Inline implementation of X9.63 KDF.
+///
+/// The `ansi-x963-kdf` crate depends on `digest 0.11` (RC),
+/// which conflicts with workspace `sha2 0.10`, so the algorithm is implemented inline.
+fn x963_kdf_inner<D>(
+    secret: &[u8],
+    shared_info: &[u8],
+    output: &mut [u8],
+) -> Result<(), X963KdfError>
+where
+    D: Digest + FixedOutputReset,
+{
+    if secret.is_empty() {
+        return Err(X963KdfError::NoSecret);
+    }
+
+    if output.is_empty() {
+        return Err(X963KdfError::NoOutput);
+    }
+
+    let hash_len = <D as OutputSizeUser>::output_size() as u64;
+
+    // Approximate check: secret + shared_info + 4 (counter) < hashmaxlen
+    if secret.len() as u64 + shared_info.len() as u64 + 4 >= hash_len * (u32::MAX as u64) {
+        return Err(X963KdfError::InputOverflow);
+    }
+
+    // keydatalen < hashlen × (2^32 - 1)
+    if output.len() as u64 >= hash_len * (u32::MAX as u64) {
+        return Err(X963KdfError::CounterOverflow);
+    }
+
+    let mut hasher = D::new();
+    let mut counter: u32 = 1;
+    let hash_usize = hash_len as usize;
+
+    for chunk in output.chunks_mut(hash_usize) {
+        // X963: Hash(Z || counter || SharedInfo)
+        Digest::update(&mut hasher, secret);
+        Digest::update(&mut hasher, counter.to_be_bytes());
+        Digest::update(&mut hasher, shared_info);
+        chunk.copy_from_slice(&hasher.finalize_reset()[..chunk.len()]);
+        counter = counter.checked_add(1).ok_or(X963KdfError::CounterOverflow)?;
+    }
+
+    Ok(())
+}
+
+// ========================================
+// X963KDF-SHA256
+// ========================================
+
+/// X9.63 KDF with SHA-256 (ANSI X9.63-2011).
+///
+/// Used for SEC 1v2 and JWA (RFC 7518) ECDH-ES key agreement.
+/// Zero-sized type (ZST) with no runtime overhead.
+///
+/// # Example
+///
+/// ```
+/// use crypto::{X963KdfSha256, KeyDeriver};
+///
+/// let deriver = X963KdfSha256;
+/// let key = deriver.derive(b"shared-secret", b"shared-info", 32).unwrap();
+/// assert_eq!(key.len(), 32);
+/// ```
+#[derive(Default, Copy, Debug, Clone, Eq, PartialEq)]
+pub struct X963KdfSha256;
+
+impl KeyDeriver for X963KdfSha256 {
+    type Input = [u8];
+    type Error = KdfError;
+
+    fn derive(
+        &self,
+        input: &Self::Input,
+        info: &[u8],
+        length: usize,
+    ) -> Result<DerivedKey, Self::Error> {
+        ensure!(length > 0, ZeroLengthOutputError { algorithm: KdfAlgorithms::X963KdfSha256 });
+
+        let mut okm = vec![0u8; length];
+        x963_kdf_inner::<Sha256>(input, info, &mut okm)
+            .context(X963KdfDerivationFailedError { algorithm: KdfAlgorithms::X963KdfSha256 })?;
+        Ok(DerivedKey::new(okm))
+    }
+}
+
+// ========================================
+// X963KDF-SHA384
+// ========================================
+
+/// X9.63 KDF with SHA-384 (ANSI X9.63-2011).
+///
+/// Recommended for use with P-384 key agreement.
+/// Zero-sized type (ZST) with no runtime overhead.
+///
+/// # Example
+///
+/// ```
+/// use crypto::{X963KdfSha384, KeyDeriver};
+///
+/// let deriver = X963KdfSha384;
+/// let key = deriver.derive(b"shared-secret", b"shared-info", 48).unwrap();
+/// assert_eq!(key.len(), 48);
+/// ```
+#[derive(Default, Copy, Debug, Clone, Eq, PartialEq)]
+pub struct X963KdfSha384;
+
+impl KeyDeriver for X963KdfSha384 {
+    type Input = [u8];
+    type Error = KdfError;
+
+    fn derive(
+        &self,
+        input: &Self::Input,
+        info: &[u8],
+        length: usize,
+    ) -> Result<DerivedKey, Self::Error> {
+        ensure!(length > 0, ZeroLengthOutputError { algorithm: KdfAlgorithms::X963KdfSha384 });
+
+        let mut okm = vec![0u8; length];
+        x963_kdf_inner::<Sha384>(input, info, &mut okm)
+            .context(X963KdfDerivationFailedError { algorithm: KdfAlgorithms::X963KdfSha384 })?;
+        Ok(DerivedKey::new(okm))
+    }
+}
+
+// ========================================
+// X963KdfAlgorithm Enum (runtime selection)
+// ========================================
+
+/// Enum for runtime X963KDF variant selection.
+///
+/// # Example
+///
+/// ```
+/// use crypto::{X963KdfAlgorithm, KeyDeriver};
+///
+/// let deriver = X963KdfAlgorithm::Sha256;
+/// let key = deriver.derive(b"shared-secret", b"shared-info", 32).unwrap();
+/// assert_eq!(key.len(), 32);
+/// ```
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
+pub enum X963KdfAlgorithm {
+    /// X963KDF-SHA256
+    #[default]
+    Sha256,
+    /// X963KDF-SHA384
+    Sha384,
+}
+
+impl KeyDeriver for X963KdfAlgorithm {
+    type Input = [u8];
+    type Error = KdfError;
+
+    fn derive(
+        &self,
+        input: &Self::Input,
+        info: &[u8],
+        length: usize,
+    ) -> Result<DerivedKey, Self::Error> {
+        match self {
+            X963KdfAlgorithm::Sha256 => KeyDeriver::derive(&X963KdfSha256, input, info, length),
+            X963KdfAlgorithm::Sha384 => KeyDeriver::derive(&X963KdfSha384, input, info, length),
+        }
+    }
+}
+
+/// Marker trait for X963KDF family.
+pub trait X963KdfDeriver: KeyDeriver<Input = [u8], Error = KdfError> {}
+
+impl X963KdfDeriver for X963KdfSha256 {}
+impl X963KdfDeriver for X963KdfSha384 {}
+impl X963KdfDeriver for X963KdfAlgorithm {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::kdf::helpers::test_helpers::*;
+
+    fn sample_secret() -> Vec<u8> {
+        vec![0xba, 0x5e, 0xba, 0x11, 0xbe, 0xda, 0xbb, 0x1e]
+    }
+
+    // ========================================
+    // X963KdfSha256 Tests
+    // ========================================
+
+    #[test]
+    fn test_x963_kdf_sha256_output_length() {
+        let key = X963KdfSha256.derive(b"secret", b"info", 32).unwrap();
+        assert_key_length(&key, 32);
+    }
+
+    #[test]
+    fn test_x963_kdf_sha256_deterministic() {
+        let key1 = X963KdfSha256.derive(b"secret", b"info", 32).unwrap();
+        let key2 = X963KdfSha256.derive(b"secret", b"info", 32).unwrap();
+        assert_eq!(key1, key2, "same input must produce the same key");
+    }
+
+    #[test]
+    fn test_x963_kdf_sha256_different_secrets_produce_different_keys() {
+        let key1 = X963KdfSha256.derive(b"secret1", b"info", 32).unwrap();
+        let key2 = X963KdfSha256.derive(b"secret2", b"info", 32).unwrap();
+        assert_different_keys(&key1, &key2);
+    }
+
+    #[test]
+    fn test_x963_kdf_sha256_different_info_produces_different_keys() {
+        let secret = sample_secret();
+        let key1 = X963KdfSha256.derive(&secret, b"encryption", 32).unwrap();
+        let key2 = X963KdfSha256.derive(&secret, b"authentication", 32).unwrap();
+        assert_different_keys(&key1, &key2);
+    }
+
+    #[test]
+    fn test_x963_kdf_sha256_empty_info() {
+        let key = X963KdfSha256.derive(b"secret", b"", 32).unwrap();
+        assert_key_length(&key, 32);
+    }
+
+    #[test]
+    fn test_x963_kdf_sha256_empty_secret_returns_error() {
+        let result = X963KdfSha256.derive(b"", b"info", 32);
+        assert!(matches!(result, Err(KdfError::X963KdfDerivationFailed { .. })));
+    }
+
+    // ========================================
+    // X963KdfSha384 Tests
+    // ========================================
+
+    #[test]
+    fn test_x963_kdf_sha384_output_length() {
+        let key = X963KdfSha384.derive(b"secret", b"info", 48).unwrap();
+        assert_key_length(&key, 48);
+    }
+
+    #[test]
+    fn test_x963_kdf_sha384_deterministic() {
+        let key1 = X963KdfSha384.derive(b"secret", b"info", 48).unwrap();
+        let key2 = X963KdfSha384.derive(b"secret", b"info", 48).unwrap();
+        assert_eq!(key1, key2, "same input must produce the same key");
+    }
+
+    // ========================================
+    // X963KdfAlgorithm Enum Tests
+    // ========================================
+
+    #[test]
+    fn test_x963_kdf_algorithm_sha256_matches_zst() {
+        let secret = sample_secret();
+        let key_enum = X963KdfAlgorithm::Sha256.derive(&secret, b"info", 32).unwrap();
+        let key_zst = X963KdfSha256.derive(&secret, b"info", 32).unwrap();
+        assert_eq!(key_enum, key_zst, "enum and ZST must produce the same key");
+    }
+
+    #[test]
+    fn test_x963_kdf_algorithm_sha384_matches_zst() {
+        let secret = sample_secret();
+        let key_enum = X963KdfAlgorithm::Sha384.derive(&secret, b"info", 48).unwrap();
+        let key_zst = X963KdfSha384.derive(&secret, b"info", 48).unwrap();
+        assert_eq!(key_enum, key_zst, "enum and ZST must produce the same key");
+    }
+}

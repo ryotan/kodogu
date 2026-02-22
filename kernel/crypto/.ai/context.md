@@ -133,16 +133,16 @@
 ### 共通操作
 
 #### KeyDeriver
-- [ ] HKDF-SHA256
-- [ ] HKDF-SHA384
-- [ ] ConcatKDF
-- [ ] X963KDF
+- [x] HKDF-SHA256
+- [x] HKDF-SHA384
+- [x] ConcatKDF
+- [x] X963KDF
 
 #### PasswordBasedKeyDeriver
-- [ ] PBKDF2-SHA256
-- [ ] bcrypt
-- [ ] scrypt
-- [ ] Argon2id
+- [x] PBKDF2-SHA256
+- [x] bcrypt-pbkdf
+- [x] scrypt
+- [x] Argon2
 
 ### 鍵形式
 - [ ] PEM 形式インポート/エクスポート
