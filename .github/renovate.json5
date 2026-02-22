@@ -16,4 +16,21 @@
       'before 20:00 on saturday',
     ],
   },
+  packageRules: [
+    // chacha20poly1305 requires chacha20 ^0.9, so upgrading chacha20 alone breaks Cargo.lock update
+    {
+      matchPackageNames: ['chacha20', 'chacha20poly1305'],
+      groupName: 'chacha20 packages',
+    },
+    // aes-gcm and aes-gcm-siv require aes ^0.8, so upgrading aes alone breaks Cargo.lock update
+    {
+      matchPackageNames: ['aes', 'aes-gcm', 'aes-gcm-siv'],
+      groupName: 'aes packages',
+    },
+    // hkdf and pbkdf2 require hmac ^0.12, so upgrading hmac alone breaks Cargo.lock update
+    {
+      matchPackageNames: ['hmac', 'hkdf', 'pbkdf2'],
+      groupName: 'hmac packages',
+    },
+  ],
 }
