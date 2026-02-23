@@ -1,12 +1,12 @@
-use super::types::DerivedKey;
+use super::types::{DerivedKey, OutputLength};
 
 /// Key derivation from keying material (e.g., shared secrets).
 ///
 /// Shared secrets must not be used directly as encryption keys; always derive via this trait.
 ///
-/// # Empty IKM
+/// # Empty input
 ///
-/// Some algorithms (HKDF) accept empty IKM per their specification (RFC 5869),
+/// Some algorithms (HKDF) accept empty input keying material per their specification (RFC 5869),
 /// while others (ConcatKDF, X963KDF) reject it. Check each implementation's documentation.
 pub trait KeyDeriver {
     /// Input keying material type.
@@ -19,12 +19,12 @@ pub trait KeyDeriver {
     ///
     /// - `input`: Input keying material
     /// - `info`: Context information (usage label, etc.; may be empty)
-    /// - `length`: Output key length in bytes (must be > 0)
+    /// - `length`: Output key length in bytes
     fn derive(
         &self,
         input: &Self::Input,
         info: &[u8],
-        length: usize,
+        length: OutputLength,
     ) -> Result<DerivedKey, Self::Error>;
 }
 
@@ -48,12 +48,12 @@ pub trait PasswordDeriver {
     /// - `password`: Password
     /// - `salt`: Cryptographically random salt (minimum 16 bytes recommended; see trait doc)
     /// - `params`: Algorithm-specific parameters
-    /// - `length`: Output key length in bytes (must be > 0)
+    /// - `length`: Output key length in bytes
     fn derive(
         &self,
         password: &[u8],
         salt: &[u8],
         params: &Self::Params,
-        length: usize,
+        length: OutputLength,
     ) -> Result<DerivedKey, Self::Error>;
 }

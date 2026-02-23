@@ -1,11 +1,9 @@
-use super::errors::{
-    KdfAlgorithms, KdfError, ScryptDerivationFailedError, ScryptInvalidParamsError,
-    ZeroLengthOutputError,
-};
+use super::errors::{KdfError, ScryptDerivationFailedError, ScryptInvalidParamsError};
 use super::traits::PasswordDeriver;
-use super::types::{DerivedKey, ScryptParams};
+use super::types::{DerivedKey, OutputLength, ScryptParams};
 use scrypt::{Params as ScryptInternalParams, scrypt as scrypt_fn};
-use snafu::{ResultExt, ensure};
+use snafu::ResultExt;
+use zeroize::Zeroizing;
 
 /// Scrypt key derivation function (RFC 7914).
 ///
@@ -15,12 +13,12 @@ use snafu::{ResultExt, ensure};
 /// # Example
 ///
 /// ```
-/// use crypto::{Scrypt, PasswordDeriver, ScryptParams};
+/// use crypto::{Scrypt, PasswordDeriver, ScryptParams, OutputLength};
 ///
 /// let deriver = Scrypt;
 /// // Low-cost parameters for testing (use RECOMMENDED in production)
 /// let params = ScryptParams::new(4, 1, 1);
-/// let key = deriver.derive(b"password", b"salt", &params, 32).unwrap();
+/// let key = deriver.derive(b"password", b"salt", &params, OutputLength::new(32)).unwrap();
 /// assert_eq!(key.len(), 32);
 /// ```
 #[derive(Default, Copy, Debug, Clone, Eq, PartialEq)]
@@ -35,19 +33,18 @@ impl PasswordDeriver for Scrypt {
         password: &[u8],
         salt: &[u8],
         params: &Self::Params,
-        length: usize,
+        length: OutputLength,
     ) -> Result<DerivedKey, Self::Error> {
-        ensure!(length > 0, ZeroLengthOutputError { algorithm: KdfAlgorithms::Scrypt });
-
+        let length = length.get();
         let internal_params =
             ScryptInternalParams::new(params.log_n(), params.r(), params.p(), length)
                 .context(ScryptInvalidParamsError {})?;
 
-        let mut output = vec![0u8; length];
+        let mut output = Zeroizing::new(vec![0u8; length]);
         scrypt_fn(password, salt, &internal_params, &mut output)
             .context(ScryptDerivationFailedError {})?;
 
-        Ok(DerivedKey::new(output))
+        Ok(DerivedKey::new(std::mem::take(&mut output)))
     }
 }
 
@@ -55,6 +52,8 @@ impl PasswordDeriver for Scrypt {
 mod tests {
     use super::*;
     use crate::kdf::helpers::test_helpers::*;
+
+    const LEN32: OutputLength = OutputLength::new(32);
 
     // Low-cost parameters for fast testing (log_n=4 -> N=16)
     fn fast_params() -> ScryptParams {
@@ -64,29 +63,35 @@ mod tests {
     #[test]
     fn test_scrypt_output_length() {
         let deriver = Scrypt;
-        let key = deriver.derive(b"password", b"salt", &fast_params(), 32).unwrap();
+        let key = deriver.derive(b"password", b"salt", &fast_params(), LEN32).unwrap();
         assert_key_length(&key, 32);
     }
 
     #[test]
     fn test_scrypt_deterministic() {
         let deriver = Scrypt;
-        assert_password_deriver_deterministic(&deriver, b"password", b"salt", &fast_params(), 32);
+        assert_password_deriver_deterministic(
+            &deriver,
+            b"password",
+            b"salt",
+            &fast_params(),
+            LEN32,
+        );
     }
 
     #[test]
     fn test_scrypt_different_passwords_produce_different_keys() {
         let deriver = Scrypt;
-        let key1 = deriver.derive(b"password1", b"salt", &fast_params(), 32).unwrap();
-        let key2 = deriver.derive(b"password2", b"salt", &fast_params(), 32).unwrap();
+        let key1 = deriver.derive(b"password1", b"salt", &fast_params(), LEN32).unwrap();
+        let key2 = deriver.derive(b"password2", b"salt", &fast_params(), LEN32).unwrap();
         assert_different_keys(&key1, &key2);
     }
 
     #[test]
     fn test_scrypt_different_salts_produce_different_keys() {
         let deriver = Scrypt;
-        let key1 = deriver.derive(b"password", b"salt1", &fast_params(), 32).unwrap();
-        let key2 = deriver.derive(b"password", b"salt2", &fast_params(), 32).unwrap();
+        let key1 = deriver.derive(b"password", b"salt1", &fast_params(), LEN32).unwrap();
+        let key2 = deriver.derive(b"password", b"salt2", &fast_params(), LEN32).unwrap();
         assert_different_keys(&key1, &key2);
     }
 
@@ -94,7 +99,8 @@ mod tests {
     fn test_scrypt_variable_output_lengths() {
         let deriver = Scrypt;
         for length in [16, 32, 48, 64] {
-            let key = deriver.derive(b"password", b"salt", &fast_params(), length).unwrap();
+            let ol = OutputLength::new(length);
+            let key = deriver.derive(b"password", b"salt", &fast_params(), ol).unwrap();
             assert_key_length(&key, length);
         }
     }
@@ -102,15 +108,8 @@ mod tests {
     #[test]
     fn test_scrypt_empty_password() {
         let deriver = Scrypt;
-        let key = deriver.derive(b"", b"salt", &fast_params(), 32).unwrap();
+        let key = deriver.derive(b"", b"salt", &fast_params(), LEN32).unwrap();
         assert_key_length(&key, 32);
-    }
-
-    #[test]
-    fn test_scrypt_zero_length_returns_error() {
-        let deriver = Scrypt;
-        let result = deriver.derive(b"password", b"salt", &fast_params(), 0);
-        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
     }
 
     #[test]

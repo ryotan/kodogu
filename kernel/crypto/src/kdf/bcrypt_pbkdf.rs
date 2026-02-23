@@ -1,9 +1,8 @@
-use super::errors::{
-    BcryptPbkdfDerivationFailedError, KdfAlgorithms, KdfError, ZeroLengthOutputError,
-};
+use super::errors::{BcryptPbkdfDerivationFailedError, KdfError};
 use super::traits::PasswordDeriver;
-use super::types::{BcryptPbkdfParams, DerivedKey};
-use snafu::{ResultExt, ensure};
+use super::types::{BcryptPbkdfParams, DerivedKey, OutputLength};
+use snafu::ResultExt;
+use zeroize::Zeroizing;
 
 /// bcrypt-pbkdf key derivation function (OpenBSD bcrypt_pbkdf).
 ///
@@ -14,11 +13,11 @@ use snafu::{ResultExt, ensure};
 /// # Example
 ///
 /// ```
-/// use crypto::{BcryptPbkdf, PasswordDeriver, BcryptPbkdfParams};
+/// use crypto::{BcryptPbkdf, PasswordDeriver, BcryptPbkdfParams, OutputLength};
 ///
 /// let deriver = BcryptPbkdf;
 /// let params = BcryptPbkdfParams::new(4);
-/// let key = deriver.derive(b"password", b"salt", &params, 32).unwrap();
+/// let key = deriver.derive(b"password", b"salt", &params, OutputLength::new(32)).unwrap();
 /// assert_eq!(key.len(), 32);
 /// ```
 #[derive(Default, Copy, Debug, Clone, Eq, PartialEq)]
@@ -33,14 +32,13 @@ impl PasswordDeriver for BcryptPbkdf {
         password: &[u8],
         salt: &[u8],
         params: &Self::Params,
-        length: usize,
+        length: OutputLength,
     ) -> Result<DerivedKey, Self::Error> {
-        ensure!(length > 0, ZeroLengthOutputError { algorithm: KdfAlgorithms::BcryptPbkdf });
-
-        let mut output = vec![0u8; length];
+        let length = length.get();
+        let mut output = Zeroizing::new(vec![0u8; length]);
         bcrypt_pbkdf::bcrypt_pbkdf(password, salt, params.rounds(), &mut output)
             .context(BcryptPbkdfDerivationFailedError {})?;
-        Ok(DerivedKey::new(output))
+        Ok(DerivedKey::new(std::mem::take(&mut output)))
     }
 }
 
@@ -49,6 +47,8 @@ mod tests {
     use super::*;
     use crate::kdf::helpers::test_helpers::*;
 
+    const LEN32: OutputLength = OutputLength::new(32);
+
     fn fast_params() -> BcryptPbkdfParams {
         // Low round count for fast testing (minimum is 1)
         BcryptPbkdfParams::new(4)
@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn test_bcrypt_pbkdf_output_length() {
-        let key = BcryptPbkdf.derive(b"password", b"salt", &fast_params(), 32).unwrap();
+        let key = BcryptPbkdf.derive(b"password", b"salt", &fast_params(), LEN32).unwrap();
         assert_key_length(&key, 32);
     }
 
@@ -67,21 +67,21 @@ mod tests {
             b"password",
             b"salt",
             &fast_params(),
-            32,
+            LEN32,
         );
     }
 
     #[test]
     fn test_bcrypt_pbkdf_different_passwords_produce_different_keys() {
-        let key1 = BcryptPbkdf.derive(b"password1", b"salt", &fast_params(), 32).unwrap();
-        let key2 = BcryptPbkdf.derive(b"password2", b"salt", &fast_params(), 32).unwrap();
+        let key1 = BcryptPbkdf.derive(b"password1", b"salt", &fast_params(), LEN32).unwrap();
+        let key2 = BcryptPbkdf.derive(b"password2", b"salt", &fast_params(), LEN32).unwrap();
         assert_different_keys(&key1, &key2);
     }
 
     #[test]
     fn test_bcrypt_pbkdf_different_salts_produce_different_keys() {
-        let key1 = BcryptPbkdf.derive(b"password", b"salt1", &fast_params(), 32).unwrap();
-        let key2 = BcryptPbkdf.derive(b"password", b"salt2", &fast_params(), 32).unwrap();
+        let key1 = BcryptPbkdf.derive(b"password", b"salt1", &fast_params(), LEN32).unwrap();
+        let key2 = BcryptPbkdf.derive(b"password", b"salt2", &fast_params(), LEN32).unwrap();
         assert_different_keys(&key1, &key2);
     }
 
@@ -89,15 +89,16 @@ mod tests {
     fn test_bcrypt_pbkdf_different_rounds_produce_different_keys() {
         let params1 = BcryptPbkdfParams::new(4);
         let params2 = BcryptPbkdfParams::new(8);
-        let key1 = BcryptPbkdf.derive(b"password", b"salt", &params1, 32).unwrap();
-        let key2 = BcryptPbkdf.derive(b"password", b"salt", &params2, 32).unwrap();
+        let key1 = BcryptPbkdf.derive(b"password", b"salt", &params1, LEN32).unwrap();
+        let key2 = BcryptPbkdf.derive(b"password", b"salt", &params2, LEN32).unwrap();
         assert_different_keys(&key1, &key2);
     }
 
     #[test]
     fn test_bcrypt_pbkdf_variable_output_lengths() {
         for length in [16, 32, 48, 64] {
-            let key = BcryptPbkdf.derive(b"password", b"salt", &fast_params(), length).unwrap();
+            let ol = OutputLength::new(length);
+            let key = BcryptPbkdf.derive(b"password", b"salt", &fast_params(), ol).unwrap();
             assert_key_length(&key, length);
         }
     }
@@ -106,11 +107,5 @@ mod tests {
     #[should_panic(expected = "rounds must be greater than 0")]
     fn test_bcrypt_pbkdf_params_zero_rounds_panics() {
         BcryptPbkdfParams::new(0);
-    }
-
-    #[test]
-    fn test_bcrypt_pbkdf_zero_length_returns_error() {
-        let result = BcryptPbkdf.derive(b"password", b"salt", &fast_params(), 0);
-        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
     }
 }

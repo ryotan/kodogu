@@ -4,6 +4,44 @@ use subtle::ConstantTimeEq;
 use suzunari_error::suzunari_error;
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
+/// Error for [`OutputLength::try_new`].
+#[suzunari_error]
+#[snafu(visibility(pub(crate)), context(suffix(Error)))]
+pub enum OutputLengthError {
+    /// Length is zero.
+    #[snafu(display("output length must be greater than 0"))]
+    Zero,
+}
+
+/// Output key length in bytes. Guaranteed to be > 0.
+///
+/// Follows the same dual-constructor pattern as other parameter types in this module.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct OutputLength(usize);
+
+impl OutputLength {
+    /// Creates an output length.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `length` is 0.
+    pub const fn new(length: usize) -> Self {
+        assert!(length > 0, "output length must be greater than 0");
+        Self(length)
+    }
+
+    /// Creates an output length with validation. For runtime input.
+    pub fn try_new(length: usize) -> Result<Self, OutputLengthError> {
+        ensure!(length > 0, ZeroError);
+        Ok(Self(length))
+    }
+
+    /// Returns the length in bytes.
+    pub const fn get(&self) -> usize {
+        self.0
+    }
+}
+
 /// Derived key material.
 ///
 /// # Security
@@ -70,7 +108,7 @@ impl DerivedKey {
 pub struct HkdfInput {
     /// Input Keying Material. E.g., shared secrets.
     ikm: Vec<u8>,
-    /// Salt (optional). When None, uses zero bytes of hash length (RFC 5869).
+    /// Salt (optional). When None, HKDF-Extract uses a zero-filled salt of hash length (RFC 5869 §2.2).
     salt: Option<Vec<u8>>,
 }
 
@@ -180,6 +218,9 @@ pub enum Argon2ParamsError {
 }
 
 /// Argon2id parameters.
+///
+/// Note: the upstream `argon2` crate requires `memory_kib >= 8 * parallelism`.
+/// Values violating this constraint will cause [`KdfError::Argon2InvalidParams`] at derive time.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Argon2Params {
     /// Memory cost in KiB.
@@ -255,6 +296,9 @@ pub enum ScryptParamsError {
 }
 
 /// Scrypt parameters.
+///
+/// Note: the upstream `scrypt` crate requires `r * p < 2^30`.
+/// Values violating this constraint will cause [`KdfError::ScryptInvalidParams`] at derive time.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ScryptParams {
     /// Logarithm of CPU/memory cost parameter N (N = 2^log_n).
@@ -357,6 +401,41 @@ impl BcryptPbkdfParams {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ========================================
+    // OutputLength tests
+    // ========================================
+
+    #[test]
+    fn test_output_length_new() {
+        let ol = OutputLength::new(32);
+        assert_eq!(ol.get(), 32);
+    }
+
+    #[test]
+    fn test_output_length_try_new_ok() {
+        let ol = OutputLength::try_new(32).unwrap();
+        assert_eq!(ol.get(), 32);
+    }
+
+    #[test]
+    fn test_output_length_try_new_zero() {
+        assert!(matches!(OutputLength::try_new(0), Err(OutputLengthError::Zero { .. })));
+    }
+
+    #[test]
+    #[should_panic(expected = "output length must be greater than 0")]
+    fn test_output_length_new_zero_panics() {
+        OutputLength::new(0);
+    }
+
+    #[test]
+    fn test_output_length_error_display() {
+        assert_eq!(
+            OutputLength::try_new(0).unwrap_err().to_string(),
+            "output length must be greater than 0"
+        );
+    }
 
     #[test]
     fn test_derived_key_new() {

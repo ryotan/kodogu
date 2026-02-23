@@ -70,10 +70,10 @@ pub use aead::{
 pub use kdf::{
     Argon2Params, Argon2ParamsError, Argon2id, BcryptPbkdf, BcryptPbkdfParams,
     BcryptPbkdfParamsError, ConcatKdfAlgorithm, ConcatKdfDeriver, ConcatKdfSha256, ConcatKdfSha384,
-    DerivedKey, HkdfAlgorithm, HkdfDeriver, HkdfInput, HkdfSha256, HkdfSha384, KdfAlgorithms,
-    KdfError, KeyDeriver, PasswordDeriver, Pbkdf2Params, Pbkdf2ParamsError, Pbkdf2Sha256, Scrypt,
-    ScryptParams, ScryptParamsError, X963KdfAlgorithm, X963KdfDeriver, X963KdfSha256,
-    X963KdfSha384,
+    DerivedKey, HkdfAlgorithm, HkdfDeriver, HkdfInput, HkdfSha256, HkdfSha384, KdfAlgorithm,
+    KdfError, KeyDeriver, OutputLength, OutputLengthError, PasswordDeriver, Pbkdf2Params,
+    Pbkdf2ParamsError, Pbkdf2Sha256, Scrypt, ScryptParams, ScryptParamsError, X963KdfAlgorithm,
+    X963KdfDeriver, X963KdfSha256, X963KdfSha384,
 };
 pub use mac::{
     CmacAes, CmacAes128, CmacAes128Key, CmacAes256, CmacAes256Key, CmacAesCipher, Gmac, GmacCipher,

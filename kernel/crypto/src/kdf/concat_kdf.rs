@@ -1,10 +1,9 @@
-use super::errors::{
-    ConcatKdfDerivationFailedError, KdfAlgorithms, KdfError, ZeroLengthOutputError,
-};
+use super::errors::{ConcatKdfDerivationFailedError, KdfAlgorithm, KdfError};
 use super::traits::KeyDeriver;
-use super::types::DerivedKey;
+use super::types::{DerivedKey, OutputLength};
 use sha2::{Sha256, Sha384};
-use snafu::{ResultExt, ensure};
+use snafu::ResultExt;
+use zeroize::Zeroizing;
 
 // ========================================
 // ConcatKDF-SHA256
@@ -19,10 +18,10 @@ use snafu::{ResultExt, ensure};
 /// # Example
 ///
 /// ```
-/// use crypto::{ConcatKdfSha256, KeyDeriver};
+/// use crypto::{ConcatKdfSha256, KeyDeriver, OutputLength};
 ///
 /// let deriver = ConcatKdfSha256;
-/// let key = deriver.derive(b"shared-secret", b"algorithm-id", 32).unwrap();
+/// let key = deriver.derive(b"shared-secret", b"algorithm-id", OutputLength::new(32)).unwrap();
 /// assert_eq!(key.len(), 32);
 /// ```
 #[derive(Default, Copy, Debug, Clone, Eq, PartialEq)]
@@ -36,15 +35,13 @@ impl KeyDeriver for ConcatKdfSha256 {
         &self,
         input: &Self::Input,
         info: &[u8],
-        length: usize,
+        length: OutputLength,
     ) -> Result<DerivedKey, Self::Error> {
-        ensure!(length > 0, ZeroLengthOutputError { algorithm: KdfAlgorithms::ConcatKdfSha256 });
-
-        let mut okm = vec![0u8; length];
-        concat_kdf::derive_key_into::<Sha256>(input, info, &mut okm).context(
-            ConcatKdfDerivationFailedError { algorithm: KdfAlgorithms::ConcatKdfSha256 },
-        )?;
-        Ok(DerivedKey::new(okm))
+        let length = length.get();
+        let mut okm = Zeroizing::new(vec![0u8; length]);
+        concat_kdf::derive_key_into::<Sha256>(input, info, &mut okm)
+            .context(ConcatKdfDerivationFailedError { algorithm: KdfAlgorithm::ConcatKdfSha256 })?;
+        Ok(DerivedKey::new(std::mem::take(&mut okm)))
     }
 }
 
@@ -60,10 +57,10 @@ impl KeyDeriver for ConcatKdfSha256 {
 /// # Example
 ///
 /// ```
-/// use crypto::{ConcatKdfSha384, KeyDeriver};
+/// use crypto::{ConcatKdfSha384, KeyDeriver, OutputLength};
 ///
 /// let deriver = ConcatKdfSha384;
-/// let key = deriver.derive(b"shared-secret", b"algorithm-id", 48).unwrap();
+/// let key = deriver.derive(b"shared-secret", b"algorithm-id", OutputLength::new(48)).unwrap();
 /// assert_eq!(key.len(), 48);
 /// ```
 #[derive(Default, Copy, Debug, Clone, Eq, PartialEq)]
@@ -77,15 +74,13 @@ impl KeyDeriver for ConcatKdfSha384 {
         &self,
         input: &Self::Input,
         info: &[u8],
-        length: usize,
+        length: OutputLength,
     ) -> Result<DerivedKey, Self::Error> {
-        ensure!(length > 0, ZeroLengthOutputError { algorithm: KdfAlgorithms::ConcatKdfSha384 });
-
-        let mut okm = vec![0u8; length];
-        concat_kdf::derive_key_into::<Sha384>(input, info, &mut okm).context(
-            ConcatKdfDerivationFailedError { algorithm: KdfAlgorithms::ConcatKdfSha384 },
-        )?;
-        Ok(DerivedKey::new(okm))
+        let length = length.get();
+        let mut okm = Zeroizing::new(vec![0u8; length]);
+        concat_kdf::derive_key_into::<Sha384>(input, info, &mut okm)
+            .context(ConcatKdfDerivationFailedError { algorithm: KdfAlgorithm::ConcatKdfSha384 })?;
+        Ok(DerivedKey::new(std::mem::take(&mut okm)))
     }
 }
 
@@ -98,10 +93,10 @@ impl KeyDeriver for ConcatKdfSha384 {
 /// # Example
 ///
 /// ```
-/// use crypto::{ConcatKdfAlgorithm, KeyDeriver};
+/// use crypto::{ConcatKdfAlgorithm, KeyDeriver, OutputLength};
 ///
 /// let deriver = ConcatKdfAlgorithm::Sha256;
-/// let key = deriver.derive(b"shared-secret", b"algorithm-id", 32).unwrap();
+/// let key = deriver.derive(b"shared-secret", b"algorithm-id", OutputLength::new(32)).unwrap();
 /// assert_eq!(key.len(), 32);
 /// ```
 #[derive(Default, Debug, Clone, Eq, PartialEq)]
@@ -121,7 +116,7 @@ impl KeyDeriver for ConcatKdfAlgorithm {
         &self,
         input: &Self::Input,
         info: &[u8],
-        length: usize,
+        length: OutputLength,
     ) -> Result<DerivedKey, Self::Error> {
         match self {
             ConcatKdfAlgorithm::Sha256 => KeyDeriver::derive(&ConcatKdfSha256, input, info, length),
@@ -142,6 +137,9 @@ mod tests {
     use super::*;
     use crate::kdf::helpers::test_helpers::*;
 
+    const LEN32: OutputLength = OutputLength::new(32);
+    const LEN48: OutputLength = OutputLength::new(48);
+
     fn sample_secret() -> Vec<u8> {
         vec![0xba, 0x5e, 0xba, 0x11, 0xbe, 0xda, 0xbb, 0x1e]
     }
@@ -152,54 +150,42 @@ mod tests {
 
     #[test]
     fn test_concat_kdf_sha256_output_length() {
-        let key = ConcatKdfSha256.derive(b"secret", b"info", 32).unwrap();
+        let key = ConcatKdfSha256.derive(b"secret", b"info", LEN32).unwrap();
         assert_key_length(&key, 32);
     }
 
     #[test]
     fn test_concat_kdf_sha256_deterministic() {
-        let key1 = ConcatKdfSha256.derive(b"secret", b"info", 32).unwrap();
-        let key2 = ConcatKdfSha256.derive(b"secret", b"info", 32).unwrap();
+        let key1 = ConcatKdfSha256.derive(b"secret", b"info", LEN32).unwrap();
+        let key2 = ConcatKdfSha256.derive(b"secret", b"info", LEN32).unwrap();
         assert_eq!(key1, key2, "same input must produce the same key");
     }
 
     #[test]
     fn test_concat_kdf_sha256_different_secrets_produce_different_keys() {
-        let key1 = ConcatKdfSha256.derive(b"secret1", b"info", 32).unwrap();
-        let key2 = ConcatKdfSha256.derive(b"secret2", b"info", 32).unwrap();
+        let key1 = ConcatKdfSha256.derive(b"secret1", b"info", LEN32).unwrap();
+        let key2 = ConcatKdfSha256.derive(b"secret2", b"info", LEN32).unwrap();
         assert_different_keys(&key1, &key2);
     }
 
     #[test]
     fn test_concat_kdf_sha256_different_info_produces_different_keys() {
         let secret = sample_secret();
-        let key1 = ConcatKdfSha256.derive(&secret, b"encryption", 32).unwrap();
-        let key2 = ConcatKdfSha256.derive(&secret, b"authentication", 32).unwrap();
+        let key1 = ConcatKdfSha256.derive(&secret, b"encryption", LEN32).unwrap();
+        let key2 = ConcatKdfSha256.derive(&secret, b"authentication", LEN32).unwrap();
         assert_different_keys(&key1, &key2);
     }
 
     #[test]
     fn test_concat_kdf_sha256_empty_info() {
-        let key = ConcatKdfSha256.derive(b"secret", b"", 32).unwrap();
+        let key = ConcatKdfSha256.derive(b"secret", b"", LEN32).unwrap();
         assert_key_length(&key, 32);
-    }
-
-    #[test]
-    fn test_concat_kdf_sha256_zero_length_returns_error() {
-        let result = ConcatKdfSha256.derive(b"secret", b"info", 0);
-        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
-    }
-
-    #[test]
-    fn test_concat_kdf_sha384_zero_length_returns_error() {
-        let result = ConcatKdfSha384.derive(b"secret", b"info", 0);
-        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
     }
 
     #[test]
     fn test_concat_kdf_sha256_empty_secret_returns_error() {
         // concat_kdf treats zero-length secret as an error
-        let result = ConcatKdfSha256.derive(b"", b"info", 32);
+        let result = ConcatKdfSha256.derive(b"", b"info", LEN32);
         assert!(matches!(result, Err(KdfError::ConcatKdfDerivationFailed { .. })));
     }
 
@@ -209,14 +195,14 @@ mod tests {
 
     #[test]
     fn test_concat_kdf_sha384_output_length() {
-        let key = ConcatKdfSha384.derive(b"secret", b"info", 48).unwrap();
+        let key = ConcatKdfSha384.derive(b"secret", b"info", LEN48).unwrap();
         assert_key_length(&key, 48);
     }
 
     #[test]
     fn test_concat_kdf_sha384_deterministic() {
-        let key1 = ConcatKdfSha384.derive(b"secret", b"info", 48).unwrap();
-        let key2 = ConcatKdfSha384.derive(b"secret", b"info", 48).unwrap();
+        let key1 = ConcatKdfSha384.derive(b"secret", b"info", LEN48).unwrap();
+        let key2 = ConcatKdfSha384.derive(b"secret", b"info", LEN48).unwrap();
         assert_eq!(key1, key2, "same input must produce the same key");
     }
 
@@ -226,23 +212,23 @@ mod tests {
 
     #[test]
     fn test_concat_kdf_sha384_empty_secret_returns_error() {
-        let result = ConcatKdfSha384.derive(b"", b"info", 48);
+        let result = ConcatKdfSha384.derive(b"", b"info", LEN48);
         assert!(matches!(result, Err(KdfError::ConcatKdfDerivationFailed { .. })));
     }
 
     #[test]
     fn test_concat_kdf_algorithm_sha256_matches_zst() {
         let secret = sample_secret();
-        let key_enum = ConcatKdfAlgorithm::Sha256.derive(&secret, b"info", 32).unwrap();
-        let key_zst = ConcatKdfSha256.derive(&secret, b"info", 32).unwrap();
+        let key_enum = ConcatKdfAlgorithm::Sha256.derive(&secret, b"info", LEN32).unwrap();
+        let key_zst = ConcatKdfSha256.derive(&secret, b"info", LEN32).unwrap();
         assert_eq!(key_enum, key_zst, "enum and ZST must produce the same key");
     }
 
     #[test]
     fn test_concat_kdf_algorithm_sha384_matches_zst() {
         let secret = sample_secret();
-        let key_enum = ConcatKdfAlgorithm::Sha384.derive(&secret, b"info", 48).unwrap();
-        let key_zst = ConcatKdfSha384.derive(&secret, b"info", 48).unwrap();
+        let key_enum = ConcatKdfAlgorithm::Sha384.derive(&secret, b"info", LEN48).unwrap();
+        let key_zst = ConcatKdfSha384.derive(&secret, b"info", LEN48).unwrap();
         assert_eq!(key_enum, key_zst, "enum and ZST must produce the same key");
     }
 }

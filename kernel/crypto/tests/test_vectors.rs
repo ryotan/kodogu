@@ -19,8 +19,8 @@ use crypto::{
     Aes256Cbc, Aes256Ctr, Aes256Gcm, Aes256GcmKey, AuthenticationTag, BcryptPbkdf,
     BcryptPbkdfParams, BlockDecryptor, BlockEncryptor, ChaCha20Poly1305, ChaCha20Poly1305Key,
     Ciphertext, CmacAes, ConcatKdfSha256, HmacAlgorithm, InitializationVector, KeyDeriver,
-    MacGenerator, Nonce, PasswordDeriver, Pbkdf2Params, Pbkdf2Sha256, Plaintext, StreamDecryptor,
-    StreamEncryptor, X963KdfSha256, X963KdfSha384,
+    MacGenerator, Nonce, OutputLength, PasswordDeriver, Pbkdf2Params, Pbkdf2Sha256, Plaintext,
+    StreamDecryptor, StreamEncryptor, X963KdfSha256, X963KdfSha384,
 };
 use hex_literal::hex;
 
@@ -1615,7 +1615,7 @@ mod gmac_nist {
 // ============================================================================
 
 mod hkdf_rfc5869 {
-    use crypto::{HkdfAlgorithm, HkdfInput, HkdfSha256, HkdfSha384, KeyDeriver};
+    use crypto::{HkdfAlgorithm, HkdfInput, HkdfSha256, HkdfSha384, KeyDeriver, OutputLength};
     use hex_literal::hex;
 
     /// RFC 5869 Appendix A.1 - Test Case 1 (SHA-256, with salt and info)
@@ -1631,7 +1631,7 @@ mod hkdf_rfc5869 {
         );
 
         let input = HkdfInput::new(ikm.to_vec(), Some(salt.to_vec()));
-        let key = HkdfSha256.derive(&input, &info, 42).unwrap();
+        let key = HkdfSha256.derive(&input, &info, OutputLength::new(42)).unwrap();
         assert_eq!(key.as_bytes(), expected_okm);
     }
 
@@ -1669,7 +1669,7 @@ mod hkdf_rfc5869 {
         );
 
         let input = HkdfInput::new(ikm.to_vec(), Some(salt.to_vec()));
-        let key = HkdfSha256.derive(&input, &info, 82).unwrap();
+        let key = HkdfSha256.derive(&input, &info, OutputLength::new(82)).unwrap();
         assert_eq!(key.as_bytes(), expected_okm);
     }
 
@@ -1684,7 +1684,7 @@ mod hkdf_rfc5869 {
         );
 
         let input = HkdfInput::without_salt(ikm.to_vec());
-        let key = HkdfSha256.derive(&input, &[], 42).unwrap();
+        let key = HkdfSha256.derive(&input, &[], OutputLength::new(42)).unwrap();
         assert_eq!(key.as_bytes(), expected_okm);
     }
 
@@ -1701,7 +1701,7 @@ mod hkdf_rfc5869 {
         );
 
         let input = HkdfInput::new(ikm.to_vec(), Some(salt.to_vec()));
-        let key = HkdfAlgorithm::Sha256.derive(&input, &info, 42).unwrap();
+        let key = HkdfAlgorithm::Sha256.derive(&input, &info, OutputLength::new(42)).unwrap();
         assert_eq!(key.as_bytes(), expected_okm);
     }
 
@@ -1718,7 +1718,7 @@ mod hkdf_rfc5869 {
         );
 
         let input = HkdfInput::new(ikm.to_vec(), Some(salt.to_vec()));
-        let key = HkdfSha384.derive(&input, &info, 42).unwrap();
+        let key = HkdfSha384.derive(&input, &info, OutputLength::new(42)).unwrap();
         assert_eq!(key.as_bytes(), expected_okm);
     }
 }
@@ -1729,7 +1729,7 @@ mod hkdf_rfc5869 {
 // ============================================================================
 
 mod scrypt_rfc7914 {
-    use crypto::{PasswordDeriver, Scrypt, ScryptParams};
+    use crypto::{OutputLength, PasswordDeriver, Scrypt, ScryptParams};
     use hex_literal::hex;
 
     /// RFC 7914 Section 12 - Test Vector 1 (empty password and salt, N=16, r=1, p=1)
@@ -1744,7 +1744,7 @@ mod scrypt_rfc7914 {
             "e8d3e0fb2e0d3628cf35e20c38d18906"
         );
 
-        let key = Scrypt.derive(b"", b"", &params, 64).unwrap();
+        let key = Scrypt.derive(b"", b"", &params, OutputLength::new(64)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -1760,7 +1760,7 @@ mod scrypt_rfc7914 {
             "c727afb94a83ee6d8360cbdfa2cc0640"
         );
 
-        let key = Scrypt.derive(b"password", b"NaCl", &params, 64).unwrap();
+        let key = Scrypt.derive(b"password", b"NaCl", &params, OutputLength::new(64)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 }
@@ -1771,7 +1771,7 @@ mod scrypt_rfc7914 {
 // ============================================================================
 
 mod argon2id_rfc9106 {
-    use crypto::{Argon2Params, Argon2id, PasswordDeriver};
+    use crypto::{Argon2Params, Argon2id, OutputLength, PasswordDeriver};
     use hex_literal::hex;
 
     /// Argon2id PHC リファレンステストベクタ（secret なし）
@@ -1793,7 +1793,9 @@ mod argon2id_rfc9106 {
             "c17987b4cac90c2ef54d5b3021c68bfe"
         );
 
-        let key = Argon2id.derive(b"password", b"somesalt", &params, 32).unwrap();
+        let key = Argon2id
+            .derive(b"password", b"somesalt", &params, OutputLength::new(32))
+            .unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -1810,7 +1812,9 @@ mod argon2id_rfc9106 {
             "cf32edc24702987c02b6566f61913cf7"
         );
 
-        let key = Argon2id.derive(b"password", b"somesalt", &params, 32).unwrap();
+        let key = Argon2id
+            .derive(b"password", b"somesalt", &params, OutputLength::new(32))
+            .unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 }
@@ -1832,7 +1836,7 @@ mod concat_kdf_sp800_56a {
             "060dc63e5595dffbd161c9ec98bc06fc"
             "f67cb22e2e75ecdf0003821388aeee4d"
         );
-        let key = ConcatKdfSha256.derive(&[0x00], &[], 32).unwrap();
+        let key = ConcatKdfSha256.derive(&[0x00], &[], OutputLength::new(32)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -1845,7 +1849,7 @@ mod concat_kdf_sp800_56a {
             "a400be9935d0c843a1504aa64f607819"
             "5b6e20ea3fe64bb8d7f29aaea6a351bf"
         );
-        let key = ConcatKdfSha256.derive(&secret, &info, 32).unwrap();
+        let key = ConcatKdfSha256.derive(&secret, &info, OutputLength::new(32)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 }
@@ -1867,7 +1871,7 @@ mod x963_kdf_ansi {
             "15f2f1a4339f5f2a313b95015cad8124"
             "d054a171ac2f31cf529dda7cfb6a38b4"
         );
-        let key = X963KdfSha256.derive(&[0x00], &[], 32).unwrap();
+        let key = X963KdfSha256.derive(&[0x00], &[], OutputLength::new(32)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -1880,7 +1884,7 @@ mod x963_kdf_ansi {
             "41bf219e0dedf77305f1f79739fd917b"
             "3311e61dd504150d6f3c40195837c75a"
         );
-        let key = X963KdfSha256.derive(&secret, &info, 32).unwrap();
+        let key = X963KdfSha256.derive(&secret, &info, OutputLength::new(32)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -1901,7 +1905,7 @@ mod x963_kdf_ansi {
             "142d43525a78e5bc79a17f59676a5706"
             "dc54d54d4d1f0bd7e386128ec26afc21"
         );
-        let key = X963KdfSha256.derive(&z, &shared_info, 128).unwrap();
+        let key = X963KdfSha256.derive(&z, &shared_info, OutputLength::new(128)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -1920,7 +1924,7 @@ mod x963_kdf_ansi {
             "0bdaea66204012efe34971dc431d625c"
             "d9a329b8217cc8fd0d9f02b13f2f6b0b"
         );
-        let key = X963KdfSha256.derive(&z, &shared_info, 128).unwrap();
+        let key = X963KdfSha256.derive(&z, &shared_info, OutputLength::new(128)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
     // =========================================================================
@@ -1933,7 +1937,7 @@ mod x963_kdf_ansi {
     fn test_cavs_x963_kdf_sha384_no_info_count0() {
         let z = hex!("d8554db1b392cd55c3fe957bed76af09c13ac2a9392f88f6");
         let expected = hex!("671a46aada145162f8ddf1ca586a1cda");
-        let key = X963KdfSha384.derive(&z, &[], 16).unwrap();
+        let key = X963KdfSha384.derive(&z, &[], OutputLength::new(16)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -1942,7 +1946,7 @@ mod x963_kdf_ansi {
     fn test_cavs_x963_kdf_sha384_no_info_count1() {
         let z = hex!("070265bd04222fc1dcb67182fa797166eaa18a2a1e1a6c0f");
         let expected = hex!("522d79f65430350cec5c59c014e1a2cd");
-        let key = X963KdfSha384.derive(&z, &[], 16).unwrap();
+        let key = X963KdfSha384.derive(&z, &[], OutputLength::new(16)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -1963,7 +1967,7 @@ mod x963_kdf_ansi {
             "9fdcb373895484649a645d1845eec91b"
             "5bfdc5ad28c7824984482002dd4a8677"
         );
-        let key = X963KdfSha384.derive(&z, &shared_info, 128).unwrap();
+        let key = X963KdfSha384.derive(&z, &shared_info, OutputLength::new(128)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 }
@@ -1991,7 +1995,7 @@ mod pbkdf2_hmac_sha256_rfc7914 {
             "49ca9cccf179b645991664b39d77ef31"
             "7c71b845b1e30bd509112041d3a19783"
         );
-        let key = Pbkdf2Sha256.derive(b"passwd", b"salt", &params, 64).unwrap();
+        let key = Pbkdf2Sha256.derive(b"passwd", b"salt", &params, OutputLength::new(64)).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -2006,7 +2010,9 @@ mod pbkdf2_hmac_sha256_rfc7914 {
             "a1d425a1225833549adb841b51c9b317"
             "6a272bdebba1d078478f62b397f33c8d"
         );
-        let key = Pbkdf2Sha256.derive(b"Password", b"NaCl", &params, 64).unwrap();
+        let key = Pbkdf2Sha256
+            .derive(b"Password", b"NaCl", &params, OutputLength::new(64))
+            .unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 }
@@ -2022,7 +2028,9 @@ mod bcrypt_pbkdf_openbsd {
             "5bbf0cc293587f1c3635555c27796598"
             "d47e579071bf427e9d8fbe842aba34d9"
         );
-        let key = BcryptPbkdf.derive(b"password", b"salt", &params, 32).unwrap();
+        let key = BcryptPbkdf
+            .derive(b"password", b"salt", &params, OutputLength::new(32))
+            .unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -2037,7 +2045,9 @@ mod bcrypt_pbkdf_openbsd {
             "7aa478010246e74bba51723fefa9"
             "f9474d6508845e8d"
         );
-        let key = BcryptPbkdf.derive(b"password", b"salt", &params, 64).unwrap();
+        let key = BcryptPbkdf
+            .derive(b"password", b"salt", &params, OutputLength::new(64))
+            .unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 
@@ -2046,7 +2056,9 @@ mod bcrypt_pbkdf_openbsd {
     fn test_bcrypt_pbkdf_vector3_password_salt_rounds42() {
         let params = BcryptPbkdfParams::new(42);
         let expected = hex!("833cf0dcf56db65608e8f0dc0ce882bd");
-        let key = BcryptPbkdf.derive(b"password", b"salt", &params, 16).unwrap();
+        let key = BcryptPbkdf
+            .derive(b"password", b"salt", &params, OutputLength::new(16))
+            .unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 }

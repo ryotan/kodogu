@@ -1,8 +1,9 @@
-use super::errors::{Argon2InvalidParamsError, KdfAlgorithms, KdfError, ZeroLengthOutputError};
+use super::errors::{Argon2InvalidParamsError, KdfError};
 use super::traits::PasswordDeriver;
-use super::types::{Argon2Params, DerivedKey};
+use super::types::{Argon2Params, DerivedKey, OutputLength};
 use argon2::{Algorithm, Argon2 as Argon2Impl, Params as Argon2InternalParams, Version};
-use snafu::{ResultExt, ensure};
+use snafu::ResultExt;
+use zeroize::Zeroizing;
 
 /// Argon2id key derivation function (RFC 9106).
 ///
@@ -13,12 +14,12 @@ use snafu::{ResultExt, ensure};
 /// # Example
 ///
 /// ```
-/// use crypto::{Argon2id, PasswordDeriver, Argon2Params};
+/// use crypto::{Argon2id, PasswordDeriver, Argon2Params, OutputLength};
 ///
 /// let deriver = Argon2id;
 /// // Low-cost parameters for testing (use OWASP_RECOMMENDED in production)
 /// let params = Argon2Params::new(8, 1, 1);
-/// let key = deriver.derive(b"password", b"saltsaltsaltsalt", &params, 32).unwrap();
+/// let key = deriver.derive(b"password", b"saltsaltsaltsalt", &params, OutputLength::new(32)).unwrap();
 /// assert_eq!(key.len(), 32);
 /// ```
 #[derive(Default, Copy, Debug, Clone, Eq, PartialEq)]
@@ -33,10 +34,9 @@ impl PasswordDeriver for Argon2id {
         password: &[u8],
         salt: &[u8],
         params: &Self::Params,
-        length: usize,
+        length: OutputLength,
     ) -> Result<DerivedKey, Self::Error> {
-        ensure!(length > 0, ZeroLengthOutputError { algorithm: KdfAlgorithms::Argon2id });
-
+        let length = length.get();
         let internal_params = Argon2InternalParams::new(
             params.memory_kib(),
             params.time(),
@@ -46,14 +46,14 @@ impl PasswordDeriver for Argon2id {
         .context(Argon2InvalidParamsError {})?;
 
         let argon2 = Argon2Impl::new(Algorithm::Argon2id, Version::V0x13, internal_params);
-        let mut output = vec![0u8; length];
+        let mut output = Zeroizing::new(vec![0u8; length]);
         // argon2::Error variants are all input validation errors (salt too short/long,
         // password too long, output size, etc.), not runtime derivation failures.
         argon2
             .hash_password_into(password, salt, &mut output)
             .context(Argon2InvalidParamsError {})?;
 
-        Ok(DerivedKey::new(output))
+        Ok(DerivedKey::new(std::mem::take(&mut output)))
     }
 }
 
@@ -61,6 +61,8 @@ impl PasswordDeriver for Argon2id {
 mod tests {
     use super::*;
     use crate::kdf::helpers::test_helpers::*;
+
+    const LEN32: OutputLength = OutputLength::new(32);
 
     // Low-cost parameters for fast testing
     fn fast_params() -> Argon2Params {
@@ -70,7 +72,7 @@ mod tests {
     #[test]
     fn test_argon2id_output_length() {
         let deriver = Argon2id;
-        let key = deriver.derive(b"password", b"saltsaltsaltsalt", &fast_params(), 32).unwrap();
+        let key = deriver.derive(b"password", b"saltsaltsaltsalt", &fast_params(), LEN32).unwrap();
         assert_key_length(&key, 32);
     }
 
@@ -82,23 +84,27 @@ mod tests {
             b"password",
             b"saltsaltsaltsalt",
             &fast_params(),
-            32,
+            LEN32,
         );
     }
 
     #[test]
     fn test_argon2id_different_passwords_produce_different_keys() {
         let deriver = Argon2id;
-        let key1 = deriver.derive(b"password1", b"saltsaltsaltsalt", &fast_params(), 32).unwrap();
-        let key2 = deriver.derive(b"password2", b"saltsaltsaltsalt", &fast_params(), 32).unwrap();
+        let key1 = deriver
+            .derive(b"password1", b"saltsaltsaltsalt", &fast_params(), LEN32)
+            .unwrap();
+        let key2 = deriver
+            .derive(b"password2", b"saltsaltsaltsalt", &fast_params(), LEN32)
+            .unwrap();
         assert_different_keys(&key1, &key2);
     }
 
     #[test]
     fn test_argon2id_different_salts_produce_different_keys() {
         let deriver = Argon2id;
-        let key1 = deriver.derive(b"password", b"saltsaltsaltsalt", &fast_params(), 32).unwrap();
-        let key2 = deriver.derive(b"password", b"differentsaltstr", &fast_params(), 32).unwrap();
+        let key1 = deriver.derive(b"password", b"saltsaltsaltsalt", &fast_params(), LEN32).unwrap();
+        let key2 = deriver.derive(b"password", b"differentsaltstr", &fast_params(), LEN32).unwrap();
         assert_different_keys(&key1, &key2);
     }
 
@@ -106,9 +112,8 @@ mod tests {
     fn test_argon2id_variable_output_lengths() {
         let deriver = Argon2id;
         for length in [16, 32, 48, 64] {
-            let key = deriver
-                .derive(b"password", b"saltsaltsaltsalt", &fast_params(), length)
-                .unwrap();
+            let ol = OutputLength::new(length);
+            let key = deriver.derive(b"password", b"saltsaltsaltsalt", &fast_params(), ol).unwrap();
             assert_key_length(&key, length);
         }
     }
@@ -132,16 +137,9 @@ mod tests {
     }
 
     #[test]
-    fn test_argon2id_zero_length_returns_error() {
-        let deriver = Argon2id;
-        let result = deriver.derive(b"password", b"saltsaltsaltsalt", &fast_params(), 0);
-        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
-    }
-
-    #[test]
     fn test_argon2id_short_salt_returns_error() {
         // Argon2 requires salt >= 8 bytes (RFC 9106)
-        let result = Argon2id.derive(b"password", b"short", &fast_params(), 32);
+        let result = Argon2id.derive(b"password", b"short", &fast_params(), LEN32);
         assert!(matches!(result, Err(KdfError::Argon2InvalidParams { .. })));
     }
 }

@@ -6,7 +6,7 @@ use suzunari_error::suzunari_error;
 
 /// KDF algorithm identifier (for error messages).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KdfAlgorithms {
+pub enum KdfAlgorithm {
     HkdfSha256,
     HkdfSha384,
     Pbkdf2Sha256,
@@ -19,19 +19,19 @@ pub enum KdfAlgorithms {
     BcryptPbkdf,
 }
 
-impl fmt::Display for KdfAlgorithms {
+impl fmt::Display for KdfAlgorithm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            KdfAlgorithms::HkdfSha256 => f.write_str("HKDF-SHA256"),
-            KdfAlgorithms::HkdfSha384 => f.write_str("HKDF-SHA384"),
-            KdfAlgorithms::Pbkdf2Sha256 => f.write_str("PBKDF2-SHA256"),
-            KdfAlgorithms::Argon2id => f.write_str("Argon2id"),
-            KdfAlgorithms::Scrypt => f.write_str("scrypt"),
-            KdfAlgorithms::ConcatKdfSha256 => f.write_str("ConcatKDF-SHA256"),
-            KdfAlgorithms::ConcatKdfSha384 => f.write_str("ConcatKDF-SHA384"),
-            KdfAlgorithms::X963KdfSha256 => f.write_str("X963KDF-SHA256"),
-            KdfAlgorithms::X963KdfSha384 => f.write_str("X963KDF-SHA384"),
-            KdfAlgorithms::BcryptPbkdf => f.write_str("bcrypt-pbkdf"),
+            KdfAlgorithm::HkdfSha256 => f.write_str("HKDF-SHA256"),
+            KdfAlgorithm::HkdfSha384 => f.write_str("HKDF-SHA384"),
+            KdfAlgorithm::Pbkdf2Sha256 => f.write_str("PBKDF2-SHA256"),
+            KdfAlgorithm::Argon2id => f.write_str("Argon2id"),
+            KdfAlgorithm::Scrypt => f.write_str("scrypt"),
+            KdfAlgorithm::ConcatKdfSha256 => f.write_str("ConcatKDF-SHA256"),
+            KdfAlgorithm::ConcatKdfSha384 => f.write_str("ConcatKDF-SHA384"),
+            KdfAlgorithm::X963KdfSha256 => f.write_str("X963KDF-SHA256"),
+            KdfAlgorithm::X963KdfSha384 => f.write_str("X963KDF-SHA384"),
+            KdfAlgorithm::BcryptPbkdf => f.write_str("bcrypt-pbkdf"),
         }
     }
 }
@@ -60,17 +60,13 @@ pub enum X963KdfError {
 #[suzunari_error]
 #[snafu(visibility(pub), context(suffix(Error)))]
 pub enum KdfError {
-    /// Output length is 0 bytes (empty key is meaningless).
-    #[snafu(display("{algorithm}: output length must be greater than 0"))]
-    ZeroLengthOutput { algorithm: KdfAlgorithms },
-
     /// HKDF output length exceeds algorithm maximum (255 * HashLen).
     ///
     /// SHA-256: max 8160 bytes, SHA-384: max 12240 bytes.
     #[snafu(display(
         "{algorithm}: output length {length} bytes exceeds algorithm maximum (255 * hash length)"
     ))]
-    HkdfOutputTooLong { algorithm: KdfAlgorithms, length: usize, source: hkdf::InvalidLength },
+    HkdfOutputTooLong { algorithm: KdfAlgorithm, length: usize, source: hkdf::InvalidLength },
 
     /// Argon2id invalid parameters (includes salt/password/output validation).
     #[snafu(display("Argon2id: invalid parameters: {source}"))]
@@ -86,11 +82,11 @@ pub enum KdfError {
 
     /// ConcatKDF derivation failed (empty input or output length exceeded).
     #[snafu(display("{algorithm}: ConcatKDF derivation failed: {source}"))]
-    ConcatKdfDerivationFailed { algorithm: KdfAlgorithms, source: concat_kdf::Error },
+    ConcatKdfDerivationFailed { algorithm: KdfAlgorithm, source: concat_kdf::Error },
 
     /// X963KDF derivation failed (empty input or output length exceeded).
     #[snafu(display("{algorithm}: X963KDF derivation failed: {source}"))]
-    X963KdfDerivationFailed { algorithm: KdfAlgorithms, source: X963KdfError },
+    X963KdfDerivationFailed { algorithm: KdfAlgorithm, source: X963KdfError },
 
     /// bcrypt-pbkdf derivation failed (invalid parameters or output length exceeded).
     ///
@@ -108,16 +104,16 @@ mod tests {
 
     #[test]
     fn test_kdf_algorithms_display() {
-        assert_eq!(KdfAlgorithms::HkdfSha256.to_string(), "HKDF-SHA256");
-        assert_eq!(KdfAlgorithms::HkdfSha384.to_string(), "HKDF-SHA384");
-        assert_eq!(KdfAlgorithms::Pbkdf2Sha256.to_string(), "PBKDF2-SHA256");
-        assert_eq!(KdfAlgorithms::Argon2id.to_string(), "Argon2id");
-        assert_eq!(KdfAlgorithms::Scrypt.to_string(), "scrypt");
-        assert_eq!(KdfAlgorithms::ConcatKdfSha256.to_string(), "ConcatKDF-SHA256");
-        assert_eq!(KdfAlgorithms::ConcatKdfSha384.to_string(), "ConcatKDF-SHA384");
-        assert_eq!(KdfAlgorithms::X963KdfSha256.to_string(), "X963KDF-SHA256");
-        assert_eq!(KdfAlgorithms::X963KdfSha384.to_string(), "X963KDF-SHA384");
-        assert_eq!(KdfAlgorithms::BcryptPbkdf.to_string(), "bcrypt-pbkdf");
+        assert_eq!(KdfAlgorithm::HkdfSha256.to_string(), "HKDF-SHA256");
+        assert_eq!(KdfAlgorithm::HkdfSha384.to_string(), "HKDF-SHA384");
+        assert_eq!(KdfAlgorithm::Pbkdf2Sha256.to_string(), "PBKDF2-SHA256");
+        assert_eq!(KdfAlgorithm::Argon2id.to_string(), "Argon2id");
+        assert_eq!(KdfAlgorithm::Scrypt.to_string(), "scrypt");
+        assert_eq!(KdfAlgorithm::ConcatKdfSha256.to_string(), "ConcatKDF-SHA256");
+        assert_eq!(KdfAlgorithm::ConcatKdfSha384.to_string(), "ConcatKDF-SHA384");
+        assert_eq!(KdfAlgorithm::X963KdfSha256.to_string(), "X963KDF-SHA256");
+        assert_eq!(KdfAlgorithm::X963KdfSha384.to_string(), "X963KDF-SHA384");
+        assert_eq!(KdfAlgorithm::BcryptPbkdf.to_string(), "bcrypt-pbkdf");
     }
 
     #[test]

@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub(crate) mod test_helpers {
-    use crate::kdf::{DerivedKey, KeyDeriver, PasswordDeriver};
+    use crate::kdf::{DerivedKey, KeyDeriver, OutputLength, PasswordDeriver};
     use core::fmt::Debug;
 
     /// Asserts that the same input produces the same key (deterministic).
@@ -8,7 +8,7 @@ pub(crate) mod test_helpers {
         deriver: &D,
         input: &D::Input,
         info: &[u8],
-        length: usize,
+        length: OutputLength,
     ) where
         D: KeyDeriver,
         D::Error: Debug,
@@ -25,7 +25,7 @@ pub(crate) mod test_helpers {
         password: &[u8],
         salt: &[u8],
         params: &D::Params,
-        length: usize,
+        length: OutputLength,
     ) where
         D: PasswordDeriver,
         D::Error: Debug,
