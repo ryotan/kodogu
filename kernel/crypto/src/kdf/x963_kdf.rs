@@ -1,5 +1,6 @@
 use super::errors::{
-    KdfAlgorithms, KdfError, X963KdfDerivationFailedError, X963KdfError, ZeroLengthOutputError,
+    CounterOverflowError, InputOverflowError, KdfAlgorithms, KdfError, NoOutputError,
+    NoSecretError, X963KdfDerivationFailedError, X963KdfError, ZeroLengthOutputError,
 };
 use super::traits::KeyDeriver;
 use super::types::DerivedKey;
@@ -7,7 +8,7 @@ use sha2::{
     Digest, Sha256, Sha384,
     digest::{FixedOutputReset, OutputSizeUser},
 };
-use snafu::{ResultExt, ensure};
+use snafu::{OptionExt, ResultExt, ensure};
 
 // ========================================
 // Inline X963KDF implementation (ANSI X9.63-2011)
@@ -26,6 +27,7 @@ use snafu::{ResultExt, ensure};
 ///
 /// The `ansi-x963-kdf` crate depends on `digest 0.11` (RC),
 /// which conflicts with workspace `sha2 0.10`, so the algorithm is implemented inline.
+/// TODO: Re-evaluate once workspace migrates to `digest 0.11+` stable.
 fn x963_kdf_inner<D>(
     secret: &[u8],
     shared_info: &[u8],
@@ -34,25 +36,17 @@ fn x963_kdf_inner<D>(
 where
     D: Digest + FixedOutputReset,
 {
-    if secret.is_empty() {
-        return Err(X963KdfError::NoSecret);
-    }
-
-    if output.is_empty() {
-        return Err(X963KdfError::NoOutput);
-    }
+    ensure!(!secret.is_empty(), NoSecretError);
+    ensure!(!output.is_empty(), NoOutputError);
 
     let hash_len = <D as OutputSizeUser>::output_size() as u64;
+    let max_len = hash_len * (u32::MAX as u64);
 
     // Approximate check: secret + shared_info + 4 (counter) < hashmaxlen
-    if secret.len() as u64 + shared_info.len() as u64 + 4 >= hash_len * (u32::MAX as u64) {
-        return Err(X963KdfError::InputOverflow);
-    }
+    ensure!(max_len > secret.len() as u64 + shared_info.len() as u64 + 4, InputOverflowError);
 
     // keydatalen < hashlen × (2^32 - 1)
-    if output.len() as u64 >= hash_len * (u32::MAX as u64) {
-        return Err(X963KdfError::CounterOverflow);
-    }
+    ensure!(max_len > output.len() as u64, CounterOverflowError);
 
     let mut hasher = D::new();
     let mut counter: u32 = 1;
@@ -64,7 +58,7 @@ where
         Digest::update(&mut hasher, counter.to_be_bytes());
         Digest::update(&mut hasher, shared_info);
         chunk.copy_from_slice(&hasher.finalize_reset()[..chunk.len()]);
-        counter = counter.checked_add(1).ok_or(X963KdfError::CounterOverflow)?;
+        counter = counter.checked_add(1).context(CounterOverflowError)?;
     }
 
     Ok(())

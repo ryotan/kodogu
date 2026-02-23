@@ -3,6 +3,11 @@ use super::types::DerivedKey;
 /// Key derivation from keying material (e.g., shared secrets).
 ///
 /// Shared secrets must not be used directly as encryption keys; always derive via this trait.
+///
+/// # Empty IKM
+///
+/// Some algorithms (HKDF) accept empty IKM per their specification (RFC 5869),
+/// while others (ConcatKDF, X963KDF) reject it. Check each implementation's documentation.
 pub trait KeyDeriver {
     /// Input keying material type.
     type Input: ?Sized;
@@ -14,7 +19,7 @@ pub trait KeyDeriver {
     ///
     /// - `input`: Input keying material
     /// - `info`: Context information (usage label, etc.; may be empty)
-    /// - `length`: Output key length in bytes
+    /// - `length`: Output key length in bytes (must be > 0)
     fn derive(
         &self,
         input: &Self::Input,
@@ -24,6 +29,13 @@ pub trait KeyDeriver {
 }
 
 /// Key derivation from passwords (low-entropy input).
+///
+/// # Salt requirements
+///
+/// All implementations accept any salt length, including empty.
+/// However, **using an empty or short salt is cryptographically dangerous** --
+/// it makes the output deterministic across all users with the same password.
+/// Always use a cryptographically random salt of at least 16 bytes (OWASP recommendation).
 pub trait PasswordDeriver {
     /// Algorithm-specific parameter type (iterations, memory cost, etc.).
     type Params;
@@ -34,9 +46,9 @@ pub trait PasswordDeriver {
     /// Derives a key of specified length from a password and salt.
     ///
     /// - `password`: Password
-    /// - `salt`: Salt (randomly generated, minimum 16 bytes recommended)
+    /// - `salt`: Cryptographically random salt (minimum 16 bytes recommended; see trait doc)
     /// - `params`: Algorithm-specific parameters
-    /// - `length`: Output key length in bytes
+    /// - `length`: Output key length in bytes (must be > 0)
     fn derive(
         &self,
         password: &[u8],

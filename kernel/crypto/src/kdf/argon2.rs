@@ -137,4 +137,11 @@ mod tests {
         let result = deriver.derive(b"password", b"saltsaltsaltsalt", &fast_params(), 0);
         assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
     }
+
+    #[test]
+    fn test_argon2id_short_salt_returns_error() {
+        // Argon2 requires salt >= 8 bytes (RFC 9106)
+        let result = Argon2id.derive(b"password", b"short", &fast_params(), 32);
+        assert!(matches!(result, Err(KdfError::Argon2InvalidParams { .. })));
+    }
 }

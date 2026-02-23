@@ -12,7 +12,7 @@ use snafu::{ResultExt, ensure};
 
 /// ConcatKDF with SHA-256 (NIST SP 800-56A Rev. 3, Section 5.8.2).
 ///
-/// Single-step hash KDF. Maximum output length: 255 x 32 = 8160 bytes (effectively larger).
+/// Single-step hash KDF using a 32-bit counter (max output: (2^32 - 1) x 32 bytes).
 /// Standard method for deriving encryption keys from ECDH shared secrets.
 /// Zero-sized type (ZST) with no runtime overhead.
 ///

@@ -20,7 +20,7 @@ use crypto::{
     BcryptPbkdfParams, BlockDecryptor, BlockEncryptor, ChaCha20Poly1305, ChaCha20Poly1305Key,
     Ciphertext, CmacAes, ConcatKdfSha256, HmacAlgorithm, InitializationVector, KeyDeriver,
     MacGenerator, Nonce, PasswordDeriver, Pbkdf2Params, Pbkdf2Sha256, Plaintext, StreamDecryptor,
-    StreamEncryptor, X963KdfSha256,
+    StreamEncryptor, X963KdfSha256, X963KdfSha384,
 };
 use hex_literal::hex;
 
@@ -1921,6 +1921,49 @@ mod x963_kdf_ansi {
             "d9a329b8217cc8fd0d9f02b13f2f6b0b"
         );
         let key = X963KdfSha256.derive(&z, &shared_info, 128).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+    // =========================================================================
+    // CAVS 12.0 SHA-384 テストベクター
+    // 出典: NIST CAVP ANS X9.63-2001 KDF (pyca/cryptography vectors)
+    // =========================================================================
+
+    /// CAVS SHA-384 [shared secret length=192, SharedInfo length=0, key data length=128]: COUNT=0
+    #[test]
+    fn test_cavs_x963_kdf_sha384_no_info_count0() {
+        let z = hex!("d8554db1b392cd55c3fe957bed76af09c13ac2a9392f88f6");
+        let expected = hex!("671a46aada145162f8ddf1ca586a1cda");
+        let key = X963KdfSha384.derive(&z, &[], 16).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// CAVS SHA-384 [shared secret length=192, SharedInfo length=0, key data length=128]: COUNT=1
+    #[test]
+    fn test_cavs_x963_kdf_sha384_no_info_count1() {
+        let z = hex!("070265bd04222fc1dcb67182fa797166eaa18a2a1e1a6c0f");
+        let expected = hex!("522d79f65430350cec5c59c014e1a2cd");
+        let key = X963KdfSha384.derive(&z, &[], 16).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// CAVS SHA-384 [shared secret length=192, SharedInfo length=128, key data length=1024]: COUNT=0
+    ///
+    /// マルチブロック出力（128バイト ≈ 2.67ブロック）で counter increment を検証する。
+    #[test]
+    fn test_cavs_x963_kdf_sha384_with_info_count0() {
+        let z = hex!("c051fd22539c9de791d6c43a854b8f80a6bf70190050854a");
+        let shared_info = hex!("1317504aa34759bb4c931e3b78201945");
+        let expected = hex!(
+            "cf6a84434734ac6949e1d7976743277b"
+            "e789906908ad3ca3a8923da7f476abbe"
+            "b574306d7243031a85566914bfd247d2"
+            "519c479953d9d55b6b831e56260806c3"
+            "9af21b74e3ecf470e3bd8332791c8a23"
+            "c13352514fdef00c2d1a408ba31b2d3f"
+            "9fdcb373895484649a645d1845eec91b"
+            "5bfdc5ad28c7824984482002dd4a8677"
+        );
+        let key = X963KdfSha384.derive(&z, &shared_info, 128).unwrap();
         assert_eq!(key.as_bytes(), expected);
     }
 }

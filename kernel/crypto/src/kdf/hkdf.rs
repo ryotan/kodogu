@@ -54,7 +54,7 @@ impl KeyDeriver for HkdfSha256 {
 
 /// HKDF with SHA-384 (RFC 5869).
 ///
-/// Maximum output length: 255 x 48 = 12240 bytes.
+/// Maximum output length: 255 x 48 = 12,240 bytes.
 /// Zero-sized type (ZST) with no runtime overhead.
 ///
 /// # Example
@@ -250,7 +250,7 @@ mod tests {
     fn test_hkdf_sha384_output_too_long() {
         let deriver = HkdfSha384;
         let input = sample_input();
-        // SHA-384 max output length is 255 * 48 = 12240 bytes
+        // SHA-384 max output length is 255 * 48 = 12,240 bytes
         let result = deriver.derive(&input, b"info", 12241);
         assert!(matches!(result, Err(KdfError::HkdfOutputTooLong { .. })));
     }

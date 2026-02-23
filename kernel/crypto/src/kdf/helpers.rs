@@ -1,6 +1,7 @@
 #[cfg(test)]
 pub(crate) mod test_helpers {
     use crate::kdf::{DerivedKey, KeyDeriver, PasswordDeriver};
+    use core::fmt::Debug;
 
     /// Asserts that the same input produces the same key (deterministic).
     pub fn assert_key_deriver_deterministic<D>(
@@ -10,7 +11,7 @@ pub(crate) mod test_helpers {
         length: usize,
     ) where
         D: KeyDeriver,
-        D::Error: std::fmt::Debug,
+        D::Error: Debug,
         D::Input: Sized,
     {
         let key1 = deriver.derive(input, info, length).unwrap();
@@ -27,7 +28,7 @@ pub(crate) mod test_helpers {
         length: usize,
     ) where
         D: PasswordDeriver,
-        D::Error: std::fmt::Debug,
+        D::Error: Debug,
     {
         let key1 = deriver.derive(password, salt, params, length).unwrap();
         let key2 = deriver.derive(password, salt, params, length).unwrap();

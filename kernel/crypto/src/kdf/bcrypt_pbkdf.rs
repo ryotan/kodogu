@@ -50,7 +50,7 @@ mod tests {
     use crate::kdf::helpers::test_helpers::*;
 
     fn fast_params() -> BcryptPbkdfParams {
-        // Low round count for fast testing (rounds=4 is the minimum)
+        // Low round count for fast testing (minimum is 1)
         BcryptPbkdfParams::new(4)
     }
 

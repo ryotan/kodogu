@@ -1,19 +1,20 @@
-use core::fmt;
+use core::fmt::{Debug, Formatter};
+use snafu::ensure;
 use subtle::ConstantTimeEq;
-use zeroize::{Zeroize, Zeroizing};
+use suzunari_error::suzunari_error;
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 /// Derived key material.
 ///
 /// # Security
 ///
-/// Implements [`Zeroize`] to clear memory on drop.
-/// Limit scope to ensure early cleanup of sensitive data.
+/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
 /// Equality comparison is constant-time to prevent timing attacks.
-#[derive(Clone, Zeroize)]
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct DerivedKey(Vec<u8>);
 
-impl std::fmt::Debug for DerivedKey {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Debug for DerivedKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         f.debug_tuple("DerivedKey").field(&"***").finish()
     }
 }
@@ -53,8 +54,9 @@ impl DerivedKey {
     /// Consumes self and returns the underlying bytes.
     ///
     /// The returned [`Zeroizing`] wrapper ensures the bytes are cleared on drop.
-    pub fn into_bytes(self) -> Zeroizing<Vec<u8>> {
-        Zeroizing::new(self.0)
+    pub fn into_bytes(mut self) -> Zeroizing<Vec<u8>> {
+        // take で内容を移動。self.0 は空 vec になり、drop 時のゼロ化は空操作。
+        Zeroizing::new(std::mem::take(&mut self.0))
     }
 }
 
@@ -62,9 +64,9 @@ impl DerivedKey {
 ///
 /// # Security
 ///
-/// IKM may contain sensitive data (e.g., shared secrets), so [`Zeroize`] is implemented.
-/// Salt is not secret but zeroized as a precaution.
-#[derive(Clone, Zeroize)]
+/// IKM may contain sensitive data (e.g., shared secrets).
+/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct HkdfInput {
     /// Input Keying Material. E.g., shared secrets.
     ikm: Vec<u8>,
@@ -72,8 +74,8 @@ pub struct HkdfInput {
     salt: Option<Vec<u8>>,
 }
 
-impl std::fmt::Debug for HkdfInput {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Debug for HkdfInput {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("HkdfInput")
             .field("ikm", &"***")
             .field("salt", &self.salt.as_ref().map(|_| "[present]"))
@@ -119,21 +121,13 @@ impl HkdfInput {
 }
 
 /// Error for [`Pbkdf2Params::try_new`].
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[suzunari_error]
+#[snafu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum Pbkdf2ParamsError {
     /// `iterations` is zero.
+    #[snafu(display("iterations must be greater than 0"))]
     IterationsZero,
 }
-
-impl fmt::Display for Pbkdf2ParamsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Pbkdf2ParamsError::IterationsZero => f.write_str("iterations must be greater than 0"),
-        }
-    }
-}
-
-impl std::error::Error for Pbkdf2ParamsError {}
 
 /// PBKDF2 parameters.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -160,9 +154,7 @@ impl Pbkdf2Params {
 
     /// Creates parameters with validation. For runtime input.
     pub fn try_new(iterations: u32) -> Result<Self, Pbkdf2ParamsError> {
-        if iterations == 0 {
-            return Err(Pbkdf2ParamsError::IterationsZero);
-        }
+        ensure!(iterations > 0, IterationsZeroError);
         Ok(Self { iterations })
     }
 
@@ -173,34 +165,26 @@ impl Pbkdf2Params {
 }
 
 /// Error for [`Argon2Params::try_new`].
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[suzunari_error]
+#[snafu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum Argon2ParamsError {
     /// `memory_kib` is zero.
+    #[snafu(display("memory_kib must be greater than 0"))]
     MemoryKibZero,
     /// `time` is zero.
+    #[snafu(display("time must be greater than 0"))]
     TimeZero,
     /// `parallelism` is zero.
+    #[snafu(display("parallelism must be greater than 0"))]
     ParallelismZero,
 }
-
-impl fmt::Display for Argon2ParamsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Argon2ParamsError::MemoryKibZero => f.write_str("memory_kib must be greater than 0"),
-            Argon2ParamsError::TimeZero => f.write_str("time must be greater than 0"),
-            Argon2ParamsError::ParallelismZero => f.write_str("parallelism must be greater than 0"),
-        }
-    }
-}
-
-impl std::error::Error for Argon2ParamsError {}
 
 /// Argon2id parameters.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Argon2Params {
     /// Memory cost in KiB.
     ///
-    /// OWASP 2023 recommendation: 65536 (64 MiB). Minimum: 19456 (19 MiB).
+    /// OWASP 2023 recommendation: 65,536 (64 MiB). Minimum: 19,456 (19 MiB).
     memory_kib: u32,
 
     /// Time cost (number of passes).
@@ -251,38 +235,24 @@ impl Argon2Params {
         time: u32,
         parallelism: u32,
     ) -> Result<Self, Argon2ParamsError> {
-        if memory_kib == 0 {
-            return Err(Argon2ParamsError::MemoryKibZero);
-        }
-        if time == 0 {
-            return Err(Argon2ParamsError::TimeZero);
-        }
-        if parallelism == 0 {
-            return Err(Argon2ParamsError::ParallelismZero);
-        }
+        ensure!(memory_kib > 0, MemoryKibZeroError);
+        ensure!(time > 0, TimeZeroError);
+        ensure!(parallelism > 0, ParallelismZeroError);
         Ok(Self { memory_kib, time, parallelism })
     }
 }
 
 /// Error for [`ScryptParams::try_new`].
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[suzunari_error]
+#[snafu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum ScryptParamsError {
     /// `r` is zero.
+    #[snafu(display("r must be greater than 0"))]
     RZero,
     /// `p` is zero.
+    #[snafu(display("p must be greater than 0"))]
     PZero,
 }
-
-impl fmt::Display for ScryptParamsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ScryptParamsError::RZero => f.write_str("r must be greater than 0"),
-            ScryptParamsError::PZero => f.write_str("p must be greater than 0"),
-        }
-    }
-}
-
-impl std::error::Error for ScryptParamsError {}
 
 /// Scrypt parameters.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -332,32 +302,20 @@ impl ScryptParams {
 
     /// Creates parameters with validation. For runtime input.
     pub fn try_new(log_n: u8, r: u32, p: u32) -> Result<Self, ScryptParamsError> {
-        if r == 0 {
-            return Err(ScryptParamsError::RZero);
-        }
-        if p == 0 {
-            return Err(ScryptParamsError::PZero);
-        }
+        ensure!(r > 0, RZeroError);
+        ensure!(p > 0, PZeroError);
         Ok(Self { log_n, r, p })
     }
 }
 
 /// Error for [`BcryptPbkdfParams::try_new`].
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[suzunari_error]
+#[snafu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum BcryptPbkdfParamsError {
     /// `rounds` is zero.
+    #[snafu(display("rounds must be greater than 0"))]
     RoundsZero,
 }
-
-impl fmt::Display for BcryptPbkdfParamsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            BcryptPbkdfParamsError::RoundsZero => f.write_str("rounds must be greater than 0"),
-        }
-    }
-}
-
-impl std::error::Error for BcryptPbkdfParamsError {}
 
 /// bcrypt-pbkdf parameters.
 ///
@@ -386,9 +344,7 @@ impl BcryptPbkdfParams {
 
     /// Creates parameters with validation. For runtime input.
     pub fn try_new(rounds: u32) -> Result<Self, BcryptPbkdfParamsError> {
-        if rounds == 0 {
-            return Err(BcryptPbkdfParamsError::RoundsZero);
-        }
+        ensure!(rounds > 0, RoundsZeroError);
         Ok(Self { rounds })
     }
 
@@ -508,7 +464,10 @@ mod tests {
 
     #[test]
     fn test_pbkdf2_params_try_new_zero() {
-        assert_eq!(Pbkdf2Params::try_new(0), Err(Pbkdf2ParamsError::IterationsZero));
+        assert!(matches!(
+            Pbkdf2Params::try_new(0),
+            Err(Pbkdf2ParamsError::IterationsZero { .. })
+        ));
     }
 
     #[test]
@@ -521,17 +480,26 @@ mod tests {
 
     #[test]
     fn test_argon2_params_try_new_zero_memory() {
-        assert_eq!(Argon2Params::try_new(0, 1, 1), Err(Argon2ParamsError::MemoryKibZero));
+        assert!(matches!(
+            Argon2Params::try_new(0, 1, 1),
+            Err(Argon2ParamsError::MemoryKibZero { .. })
+        ));
     }
 
     #[test]
     fn test_argon2_params_try_new_zero_time() {
-        assert_eq!(Argon2Params::try_new(8, 0, 1), Err(Argon2ParamsError::TimeZero));
+        assert!(matches!(
+            Argon2Params::try_new(8, 0, 1),
+            Err(Argon2ParamsError::TimeZero { .. })
+        ));
     }
 
     #[test]
     fn test_argon2_params_try_new_zero_parallelism() {
-        assert_eq!(Argon2Params::try_new(8, 1, 0), Err(Argon2ParamsError::ParallelismZero));
+        assert!(matches!(
+            Argon2Params::try_new(8, 1, 0),
+            Err(Argon2ParamsError::ParallelismZero { .. })
+        ));
     }
 
     #[test]
@@ -544,12 +512,12 @@ mod tests {
 
     #[test]
     fn test_scrypt_params_try_new_zero_r() {
-        assert_eq!(ScryptParams::try_new(4, 0, 1), Err(ScryptParamsError::RZero));
+        assert!(matches!(ScryptParams::try_new(4, 0, 1), Err(ScryptParamsError::RZero { .. })));
     }
 
     #[test]
     fn test_scrypt_params_try_new_zero_p() {
-        assert_eq!(ScryptParams::try_new(4, 1, 0), Err(ScryptParamsError::PZero));
+        assert!(matches!(ScryptParams::try_new(4, 1, 0), Err(ScryptParamsError::PZero { .. })));
     }
 
     #[test]
@@ -560,7 +528,10 @@ mod tests {
 
     #[test]
     fn test_bcrypt_pbkdf_params_try_new_zero() {
-        assert_eq!(BcryptPbkdfParams::try_new(0), Err(BcryptPbkdfParamsError::RoundsZero));
+        assert!(matches!(
+            BcryptPbkdfParams::try_new(0),
+            Err(BcryptPbkdfParamsError::RoundsZero { .. })
+        ));
     }
 
     #[test]
@@ -575,7 +546,7 @@ mod tests {
     #[test]
     fn test_pbkdf2_params_error_display() {
         assert_eq!(
-            Pbkdf2ParamsError::IterationsZero.to_string(),
+            Pbkdf2Params::try_new(0).unwrap_err().to_string(),
             "iterations must be greater than 0"
         );
     }
@@ -583,25 +554,37 @@ mod tests {
     #[test]
     fn test_argon2_params_error_display() {
         assert_eq!(
-            Argon2ParamsError::MemoryKibZero.to_string(),
+            Argon2Params::try_new(0, 1, 1).unwrap_err().to_string(),
             "memory_kib must be greater than 0"
         );
-        assert_eq!(Argon2ParamsError::TimeZero.to_string(), "time must be greater than 0");
         assert_eq!(
-            Argon2ParamsError::ParallelismZero.to_string(),
+            Argon2Params::try_new(8, 0, 1).unwrap_err().to_string(),
+            "time must be greater than 0"
+        );
+        assert_eq!(
+            Argon2Params::try_new(8, 1, 0).unwrap_err().to_string(),
             "parallelism must be greater than 0"
         );
     }
 
     #[test]
     fn test_scrypt_params_error_display() {
-        assert_eq!(ScryptParamsError::RZero.to_string(), "r must be greater than 0");
-        assert_eq!(ScryptParamsError::PZero.to_string(), "p must be greater than 0");
+        assert_eq!(
+            ScryptParams::try_new(4, 0, 1).unwrap_err().to_string(),
+            "r must be greater than 0"
+        );
+        assert_eq!(
+            ScryptParams::try_new(4, 1, 0).unwrap_err().to_string(),
+            "p must be greater than 0"
+        );
     }
 
     #[test]
     fn test_bcrypt_pbkdf_params_error_display() {
-        assert_eq!(BcryptPbkdfParamsError::RoundsZero.to_string(), "rounds must be greater than 0");
+        assert_eq!(
+            BcryptPbkdfParams::try_new(0).unwrap_err().to_string(),
+            "rounds must be greater than 0"
+        );
     }
 
     // ========================================
