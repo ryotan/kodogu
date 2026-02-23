@@ -2,6 +2,7 @@
   <dictionary name="project">
     <words>
       <w>Fcmms</w>
+      <w>Gmac</w>
       <w>Hiaj</w>
       <w>Rlol</w>
       <w>Stvz</w>
@@ -20,6 +21,7 @@
       <w>agxbp</w>
       <w>ajdvzr</w>
       <w>anflug</w>
+      <w>arktype</w>
       <w>axyz</w>
       <w>bcde</w>
       <w>budneghjklm</w>
@@ -38,6 +40,7 @@
       <w>fffd</w>
       <w>fpath</w>
       <w>gitmoji</w>
+      <w>gmac</w>
       <w>hjkmnp</w>
       <w>ijprv</w>
       <w>imor</w>
@@ -48,6 +51,7 @@
       <w>jprv</w>
       <w>jtkvsb</w>
       <w>khononov</w>
+      <w>kodogu</w>
       <w>lateinit</w>
       <w>libappindicator</w>
       <w>librsvg</w>
@@ -60,9 +64,11 @@
       <w>patchelf</w>
       <w>pqrst</w>
       <w>priv</w>
+      <w>raycast</w>
       <w>roundtrip</w>
       <w>rpshnaf</w>
       <w>rustfmt</w>
+      <w>saltsaltsaltsalt</w>
       <w>secp</w>
       <w>spki</w>
       <w>suzunari</w>
