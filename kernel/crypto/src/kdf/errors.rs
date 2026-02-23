@@ -91,3 +91,16 @@ pub enum KdfError {
     #[snafu(display("bcrypt-pbkdf: derivation failed: {source}"))]
     BcryptPbkdfDerivationFailed { source: bcrypt_pbkdf::Error },
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_x963kdf_error_display() {
+        assert_eq!(X963KdfError::NoSecret.to_string(), "secret has zero length");
+        assert_eq!(X963KdfError::NoOutput.to_string(), "output has zero length");
+        assert_eq!(X963KdfError::InputOverflow.to_string(), "input is too big");
+        assert_eq!(X963KdfError::CounterOverflow.to_string(), "requested key length is too big");
+    }
+}

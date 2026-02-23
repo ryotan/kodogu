@@ -246,6 +246,18 @@ mod tests {
     }
 
     #[test]
+    fn test_x963_kdf_sha256_zero_length_returns_error() {
+        let result = X963KdfSha256.derive(b"secret", b"info", 0);
+        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
+    }
+
+    #[test]
+    fn test_x963_kdf_sha384_zero_length_returns_error() {
+        let result = X963KdfSha384.derive(b"secret", b"info", 0);
+        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
+    }
+
+    #[test]
     fn test_x963_kdf_sha256_empty_secret_returns_error() {
         let result = X963KdfSha256.derive(b"", b"info", 32);
         assert!(matches!(result, Err(KdfError::X963KdfDerivationFailed { .. })));
@@ -266,6 +278,12 @@ mod tests {
         let key1 = X963KdfSha384.derive(b"secret", b"info", 48).unwrap();
         let key2 = X963KdfSha384.derive(b"secret", b"info", 48).unwrap();
         assert_eq!(key1, key2, "same input must produce the same key");
+    }
+
+    #[test]
+    fn test_x963_kdf_sha384_empty_secret_returns_error() {
+        let result = X963KdfSha384.derive(b"", b"info", 48);
+        assert!(matches!(result, Err(KdfError::X963KdfDerivationFailed { .. })));
     }
 
     // ========================================

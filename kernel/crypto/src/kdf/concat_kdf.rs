@@ -185,6 +185,18 @@ mod tests {
     }
 
     #[test]
+    fn test_concat_kdf_sha256_zero_length_returns_error() {
+        let result = ConcatKdfSha256.derive(b"secret", b"info", 0);
+        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
+    }
+
+    #[test]
+    fn test_concat_kdf_sha384_zero_length_returns_error() {
+        let result = ConcatKdfSha384.derive(b"secret", b"info", 0);
+        assert!(matches!(result, Err(KdfError::ZeroLengthOutput { .. })));
+    }
+
+    #[test]
     fn test_concat_kdf_sha256_empty_secret_returns_error() {
         // concat_kdf treats zero-length secret as an error
         let result = ConcatKdfSha256.derive(b"", b"info", 32);
@@ -211,6 +223,12 @@ mod tests {
     // ========================================
     // ConcatKdfAlgorithm Enum Tests
     // ========================================
+
+    #[test]
+    fn test_concat_kdf_sha384_empty_secret_returns_error() {
+        let result = ConcatKdfSha384.derive(b"", b"info", 48);
+        assert!(matches!(result, Err(KdfError::ConcatKdfDerivationFailed { .. })));
+    }
 
     #[test]
     fn test_concat_kdf_algorithm_sha256_matches_zst() {

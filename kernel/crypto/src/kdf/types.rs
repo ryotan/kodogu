@@ -562,4 +562,97 @@ mod tests {
     fn test_bcrypt_pbkdf_params_try_new_zero() {
         assert_eq!(BcryptPbkdfParams::try_new(0), Err(BcryptPbkdfParamsError::RoundsZero));
     }
+
+    #[test]
+    fn test_bcrypt_pbkdf_params_openssh_default() {
+        assert_eq!(BcryptPbkdfParams::OPENSSH_DEFAULT.rounds(), 16);
+    }
+
+    // ========================================
+    // Display tests
+    // ========================================
+
+    #[test]
+    fn test_pbkdf2_params_error_display() {
+        assert_eq!(
+            Pbkdf2ParamsError::IterationsZero.to_string(),
+            "iterations must be greater than 0"
+        );
+    }
+
+    #[test]
+    fn test_argon2_params_error_display() {
+        assert_eq!(
+            Argon2ParamsError::MemoryKibZero.to_string(),
+            "memory_kib must be greater than 0"
+        );
+        assert_eq!(Argon2ParamsError::TimeZero.to_string(), "time must be greater than 0");
+        assert_eq!(
+            Argon2ParamsError::ParallelismZero.to_string(),
+            "parallelism must be greater than 0"
+        );
+    }
+
+    #[test]
+    fn test_scrypt_params_error_display() {
+        assert_eq!(ScryptParamsError::RZero.to_string(), "r must be greater than 0");
+        assert_eq!(ScryptParamsError::PZero.to_string(), "p must be greater than 0");
+    }
+
+    #[test]
+    fn test_bcrypt_pbkdf_params_error_display() {
+        assert_eq!(BcryptPbkdfParamsError::RoundsZero.to_string(), "rounds must be greater than 0");
+    }
+
+    // ========================================
+    // Panic guard tests
+    // ========================================
+
+    #[test]
+    #[should_panic(expected = "DerivedKey must not be empty")]
+    fn test_derived_key_new_empty_panics() {
+        DerivedKey::new(vec![]);
+    }
+
+    #[test]
+    #[should_panic(expected = "iterations must be greater than 0")]
+    fn test_pbkdf2_params_new_zero_panics() {
+        Pbkdf2Params::new(0);
+    }
+
+    #[test]
+    #[should_panic(expected = "memory_kib must be greater than 0")]
+    fn test_argon2_params_new_zero_memory_panics() {
+        Argon2Params::new(0, 1, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "time must be greater than 0")]
+    fn test_argon2_params_new_zero_time_panics() {
+        Argon2Params::new(8, 0, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "parallelism must be greater than 0")]
+    fn test_argon2_params_new_zero_parallelism_panics() {
+        Argon2Params::new(8, 1, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "r must be greater than 0")]
+    fn test_scrypt_params_new_zero_r_panics() {
+        ScryptParams::new(4, 0, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "p must be greater than 0")]
+    fn test_scrypt_params_new_zero_p_panics() {
+        ScryptParams::new(4, 1, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "rounds must be greater than 0")]
+    fn test_bcrypt_pbkdf_params_new_zero_panics() {
+        BcryptPbkdfParams::new(0);
+    }
 }
