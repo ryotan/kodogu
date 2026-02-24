@@ -5,7 +5,7 @@ import vitest from '@vitest/eslint-plugin';
 import query from '@tanstack/eslint-plugin-query';
 import router from '@tanstack/eslint-plugin-router';
 
-import {includeIgnoreFile} from '@eslint/compat';
+import {fixupPluginRules, includeIgnoreFile} from '@eslint/compat';
 import eslint from '@eslint/js';
 import {defineConfig, globalIgnores} from 'eslint/config';
 import react from 'eslint-plugin-react';
@@ -37,8 +37,8 @@ const eslintConfig = defineConfig([
     }),
   ),
   name('eslint/recommended')(eslint.configs.recommended),
-  name('react/recommended')(ts(react.configs.flat.recommended)),
-  name('react/jsx-runtime')(ts(react.configs.flat['jsx-runtime'])),
+  name('react/recommended')(ts({...react.configs.flat.recommended, plugins: {react: fixupPluginRules(react)}})),
+  name('react/jsx-runtime')(ts({...react.configs.flat['jsx-runtime'], plugins: {react: fixupPluginRules(react)}})),
   name('vitest/recommended')({
     files: ['**/*.test.ts', '**/*.test.tsx'], // or any other pattern
     plugins: {vitest},
@@ -64,7 +64,7 @@ const eslintConfig = defineConfig([
       },
     }),
   ),
-  ts(hooks.configs['recommended-latest']),
+  ts(hooks.configs.flat['recommended-latest']),
   ts(tslint.configs.base),
   ts(tslint.configs.eslintRecommended),
   ts(tslint.configs.recommendedTypeChecked.findLast(e => e.name === 'typescript-eslint/recommended-type-checked')),
