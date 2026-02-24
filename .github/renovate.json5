@@ -27,10 +27,10 @@
       matchPackageNames: ['aes', 'aes-gcm', 'aes-gcm-siv'],
       groupName: 'aes packages',
     },
-    // hkdf and pbkdf2 require hmac ^0.12, so upgrading hmac alone breaks Cargo.lock update
+    // hkdf/pbkdf2 require hmac ^0.12, bcrypt-pbkdf/scrypt require pbkdf2 ^0.12 and sha2 ^0.10
     {
-      matchPackageNames: ['hmac', 'hkdf', 'pbkdf2'],
-      groupName: 'hmac packages',
+      matchPackageNames: ['hmac', 'sha2', 'hkdf', 'pbkdf2', 'bcrypt-pbkdf', 'scrypt'],
+      groupName: 'digest/kdf packages',
     },
   ],
 }

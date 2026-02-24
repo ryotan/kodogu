@@ -54,9 +54,10 @@
 //! assert_eq!(plaintext, decrypted);
 //! ```
 
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 mod aead;
+mod kdf;
 mod mac;
 mod symmetric;
 
@@ -65,6 +66,14 @@ pub use aead::{
     AeadError, Aes128Gcm, Aes128GcmKey, Aes256Gcm, Aes256GcmKey, Aes256GcmSiv, AesGcm,
     AesGcmCipher, AesGcmSivCipher, AuthenticationTag, ChaCha20Poly1305, ChaCha20Poly1305Cipher,
     ChaCha20Poly1305Family, ChaCha20Poly1305Key, XChaCha20Poly1305,
+};
+pub use kdf::{
+    Argon2Params, Argon2ParamsError, Argon2id, BcryptPbkdf, BcryptPbkdfParams,
+    BcryptPbkdfParamsError, ConcatKdfAlgorithm, ConcatKdfDeriver, ConcatKdfSha256, ConcatKdfSha384,
+    DerivedKey, HkdfAlgorithm, HkdfDeriver, HkdfInput, HkdfSha256, HkdfSha384, KdfAlgorithm,
+    KdfError, KeyDeriver, OutputLength, OutputLengthError, PasswordDeriver, Pbkdf2Params,
+    Pbkdf2ParamsError, Pbkdf2Sha256, Scrypt, ScryptParams, ScryptParamsError, X963KdfAlgorithm,
+    X963KdfDeriver, X963KdfSha256, X963KdfSha384,
 };
 pub use mac::{
     CmacAes, CmacAes128, CmacAes128Key, CmacAes256, CmacAes256Key, CmacAesCipher, Gmac, GmacCipher,
@@ -94,8 +103,10 @@ impl Plaintext {
     }
 
     /// Consumes self and returns the underlying bytes.
-    pub fn into_bytes(self) -> Vec<u8> {
-        self.0
+    ///
+    /// The returned [`Zeroizing`] wrapper ensures the bytes are cleared on drop.
+    pub fn into_bytes(self) -> Zeroizing<Vec<u8>> {
+        Zeroizing::new(self.0)
     }
 }
 

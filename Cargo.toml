@@ -30,7 +30,12 @@ data-encoding-macro = "0.1"
 ed25519-dalek = "2.1"
 futures = "0.3"
 hex-literal = "0.4"
+argon2 = { version = "0.5", features = ["std"] }
+bcrypt-pbkdf = { version = "0.10.0", features = ["std"] }
+concat-kdf = { version = "0.1.0", features = ["std"] }
+hkdf = { version = "0.12", features = ["std"] }
 hmac = "0.12"
+scrypt = "0.11"
 openidconnect = "4.0.0"
 p256 = "0.13"
 p384 = "0.13"

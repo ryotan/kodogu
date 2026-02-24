@@ -3,7 +3,11 @@
 //! 外部ツールとの相互運用性を保証するため、公式テストベクターを使用してテストを実行する。
 //!
 //! # 参照
+//! - RFC 5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF)
+//! - RFC 7914: The scrypt Password-Based Key Derivation Function
+//! - RFC 8018: PKCS #5: Password-Based Cryptography Specification
 //! - RFC 8439: ChaCha20 and Poly1305 for IETF Protocols
+//! - RFC 9106: Argon2 Memory-Hard Function for Password Hashing and Proof-of-Work Applications
 //! - RFC 4231: HMAC-SHA-224/256/384/512 Test Vectors
 //! - RFC 4493: The AES-CMAC Algorithm
 //! - NIST SP 800-38A: Recommendation for Block Cipher Modes of Operation
@@ -12,9 +16,11 @@
 
 use crypto::{
     AdditionalData, AeadDecryptor, AeadEncryptor, Aes128Cbc, Aes128Ctr, Aes128Gcm, Aes128GcmKey,
-    Aes256Cbc, Aes256Ctr, Aes256Gcm, Aes256GcmKey, AuthenticationTag, BlockDecryptor,
-    BlockEncryptor, ChaCha20Poly1305, ChaCha20Poly1305Key, Ciphertext, CmacAes, HmacAlgorithm,
-    InitializationVector, MacGenerator, Nonce, Plaintext, StreamDecryptor, StreamEncryptor,
+    Aes256Cbc, Aes256Ctr, Aes256Gcm, Aes256GcmKey, AuthenticationTag, BcryptPbkdf,
+    BcryptPbkdfParams, BlockDecryptor, BlockEncryptor, ChaCha20Poly1305, ChaCha20Poly1305Key,
+    Ciphertext, CmacAes, ConcatKdfSha256, HmacAlgorithm, InitializationVector, KeyDeriver,
+    MacGenerator, Nonce, OutputLength, PasswordDeriver, Pbkdf2Params, Pbkdf2Sha256, Plaintext,
+    StreamDecryptor, StreamEncryptor, X963KdfSha256, X963KdfSha384,
 };
 use hex_literal::hex;
 
@@ -1600,5 +1606,459 @@ mod gmac_nist {
 
         let tag = Gmac.generate_with_nonce(message, &key, &nonce).unwrap();
         Gmac.verify_with_nonce(message, &tag, &key, &nonce).unwrap();
+    }
+}
+
+// ============================================================================
+// RFC 5869: HKDF テストベクター
+// https://www.rfc-editor.org/rfc/rfc5869
+// ============================================================================
+
+mod hkdf_rfc5869 {
+    use crypto::{HkdfAlgorithm, HkdfInput, HkdfSha256, HkdfSha384, KeyDeriver, OutputLength};
+    use hex_literal::hex;
+
+    /// RFC 5869 Appendix A.1 - Test Case 1 (SHA-256, with salt and info)
+    #[test]
+    fn test_rfc5869_a1_sha256_with_salt_and_info() {
+        let ikm = hex!("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
+        let salt = hex!("000102030405060708090a0b0c");
+        let info = hex!("f0f1f2f3f4f5f6f7f8f9");
+        let expected_okm = hex!(
+            "3cb25f25faacd57a90434f64d0362f2a"
+            "2d2d0a90cf1a5a4c5db02d56ecc4c5bf"
+            "34007208d5b887185865"
+        );
+
+        let input = HkdfInput::new(ikm.to_vec(), Some(salt.to_vec()));
+        let key = HkdfSha256.derive(&input, &info, OutputLength::new(42)).unwrap();
+        assert_eq!(key.as_bytes(), expected_okm);
+    }
+
+    /// RFC 5869 Appendix A.2 - Test Case 2 (SHA-256, longer inputs)
+    #[test]
+    fn test_rfc5869_a2_sha256_longer_inputs() {
+        let ikm = hex!(
+            "000102030405060708090a0b0c0d0e0f"
+            "101112131415161718191a1b1c1d1e1f"
+            "202122232425262728292a2b2c2d2e2f"
+            "303132333435363738393a3b3c3d3e3f"
+            "404142434445464748494a4b4c4d4e4f"
+        );
+        let salt = hex!(
+            "606162636465666768696a6b6c6d6e6f"
+            "707172737475767778797a7b7c7d7e7f"
+            "808182838485868788898a8b8c8d8e8f"
+            "909192939495969798999a9b9c9d9e9f"
+            "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf"
+        );
+        let info = hex!(
+            "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"
+            "c0c1c2c3c4c5c6c7c8c9cacbcccdcecf"
+            "d0d1d2d3d4d5d6d7d8d9dadbdcdddedf"
+            "e0e1e2e3e4e5e6e7e8e9eaebecedeeef"
+            "f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        );
+        let expected_okm = hex!(
+            "b11e398dc80327a1c8e7f78c596a4934"
+            "4f012eda2d4efad8a050cc4c19afa97c"
+            "59045a99cac7827271cb41c65e590e09"
+            "da3275600c2f09b8367793a9aca3db71"
+            "cc30c58179ec3e87c14c01d5c1f3434f"
+            "1d87"
+        );
+
+        let input = HkdfInput::new(ikm.to_vec(), Some(salt.to_vec()));
+        let key = HkdfSha256.derive(&input, &info, OutputLength::new(82)).unwrap();
+        assert_eq!(key.as_bytes(), expected_okm);
+    }
+
+    /// RFC 5869 Appendix A.3 - Test Case 3 (SHA-256, no salt, no info)
+    #[test]
+    fn test_rfc5869_a3_sha256_no_salt_no_info() {
+        let ikm = hex!("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
+        let expected_okm = hex!(
+            "8da4e775a563c18f715f802a063c5a31"
+            "b8a11f5c5ee1879ec3454e5f3c738d2d"
+            "9d201395faa4b61a96c8"
+        );
+
+        let input = HkdfInput::without_salt(ikm.to_vec());
+        let key = HkdfSha256.derive(&input, &[], OutputLength::new(42)).unwrap();
+        assert_eq!(key.as_bytes(), expected_okm);
+    }
+
+    /// HkdfAlgorithm::Sha256 が ZST と同じ結果を生成することを確認
+    #[test]
+    fn test_hkdf_algorithm_sha256_matches_rfc_vector() {
+        let ikm = hex!("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
+        let salt = hex!("000102030405060708090a0b0c");
+        let info = hex!("f0f1f2f3f4f5f6f7f8f9");
+        let expected_okm = hex!(
+            "3cb25f25faacd57a90434f64d0362f2a"
+            "2d2d0a90cf1a5a4c5db02d56ecc4c5bf"
+            "34007208d5b887185865"
+        );
+
+        let input = HkdfInput::new(ikm.to_vec(), Some(salt.to_vec()));
+        let key = HkdfAlgorithm::Sha256.derive(&input, &info, OutputLength::new(42)).unwrap();
+        assert_eq!(key.as_bytes(), expected_okm);
+    }
+
+    /// RFC 5869 Appendix A.4 - Test Case 4 (SHA-384, with salt and info)
+    #[test]
+    fn test_rfc5869_a4_sha384_with_salt_and_info() {
+        let ikm = hex!("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
+        let salt = hex!("000102030405060708090a0b0c");
+        let info = hex!("f0f1f2f3f4f5f6f7f8f9");
+        let expected_okm = hex!(
+            "9b5097a86038b805309076a44b3a9f38"
+            "063e25b516dcbf369f394cfab43685f7"
+            "48b6457763e4f0204fc5"
+        );
+
+        let input = HkdfInput::new(ikm.to_vec(), Some(salt.to_vec()));
+        let key = HkdfSha384.derive(&input, &info, OutputLength::new(42)).unwrap();
+        assert_eq!(key.as_bytes(), expected_okm);
+    }
+}
+
+// ============================================================================
+// RFC 7914: Scrypt テストベクター
+// https://www.rfc-editor.org/rfc/rfc7914
+// ============================================================================
+
+mod scrypt_rfc7914 {
+    use crypto::{OutputLength, PasswordDeriver, Scrypt, ScryptParams};
+    use hex_literal::hex;
+
+    /// RFC 7914 Section 12 - Test Vector 1 (empty password and salt, N=16, r=1, p=1)
+    #[test]
+    fn test_rfc7914_vector1() {
+        // N=16 → log_n=4 (2^4=16)
+        let params = ScryptParams::new(4, 1, 1);
+        let expected = hex!(
+            "77d6576238657b203b19ca42c18a0497"
+            "f16b4844e3074ae8dfdffa3fede21442"
+            "fcd0069ded0948f8326a753a0fc81f17"
+            "e8d3e0fb2e0d3628cf35e20c38d18906"
+        );
+
+        let key = Scrypt.derive(b"", b"", &params, OutputLength::new(64)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// RFC 7914 Section 12 - Test Vector 2 (password="password", salt="NaCl", N=1024, r=8, p=16)
+    #[test]
+    fn test_rfc7914_vector2() {
+        // N=1024 → log_n=10 (2^10=1024)
+        let params = ScryptParams::new(10, 8, 16);
+        let expected = hex!(
+            "fdbabe1c9d3472007856e7190d01e9fe"
+            "7c6ad7cbc8237830e77376634b373162"
+            "2eaf30d92e22a3886ff109279d9830da"
+            "c727afb94a83ee6d8360cbdfa2cc0640"
+        );
+
+        let key = Scrypt.derive(b"password", b"NaCl", &params, OutputLength::new(64)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+}
+
+// ============================================================================
+// RFC 9106: Argon2id テストベクター
+// https://www.rfc-editor.org/rfc/rfc9106 Appendix B
+// ============================================================================
+
+mod argon2id_rfc9106 {
+    use crypto::{Argon2Params, Argon2id, OutputLength, PasswordDeriver};
+    use hex_literal::hex;
+
+    /// Argon2id PHC リファレンステストベクタ（secret なし）
+    ///
+    /// 出典: RustCrypto argon2 クレート kat.rs PHC reference tests
+    ///
+    /// 注: RFC 9106 Appendix B.4 の完全なベクタは secret (key) と associated data を含むが、
+    /// 本 API は `derive(password, salt, params, length)` インタフェースのみ対応。
+    /// secret/assoc data が必要なユースケースは将来の拡張として管理する。
+    ///
+    /// password = "password"
+    /// salt     = "somesalt"
+    /// t=2, m=256 KiB, p=1, tagLength=32
+    #[test]
+    fn test_argon2id_phc_reference_m256_t2_p1() {
+        let params = Argon2Params::new(256, 2, 1);
+        let expected = hex!(
+            "9dfeb910e80bad0311fee20f9c0e2b12"
+            "c17987b4cac90c2ef54d5b3021c68bfe"
+        );
+
+        let key = Argon2id
+            .derive(b"password", b"somesalt", &params, OutputLength::new(32))
+            .unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// Argon2id PHC リファレンステストベクタ（secret なし、larger memory）
+    ///
+    /// password = "password"
+    /// salt     = "somesalt"
+    /// t=2, m=65536 KiB, p=1, tagLength=32
+    #[test]
+    fn test_argon2id_phc_reference_m65536_t2_p1() {
+        let params = Argon2Params::new(65536, 2, 1);
+        let expected = hex!(
+            "09316115d5cf24ed5a15a31a3ba326e5"
+            "cf32edc24702987c02b6566f61913cf7"
+        );
+
+        let key = Argon2id
+            .derive(b"password", b"somesalt", &params, OutputLength::new(32))
+            .unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+}
+
+// ============================================================================
+// NIST SP 800-56A: ConcatKDF テストベクター
+// 出典: concat-kdf クレート付属テストベクター（NIST SP 800-56A Section 5.8.2）
+// ============================================================================
+
+mod concat_kdf_sp800_56a {
+    use super::*;
+
+    /// ConcatKDF-SHA256: secret=0x00, other_info=[]
+    ///
+    /// Hash order: H(counter || Z || OtherInfo)
+    #[test]
+    fn test_concat_kdf_sha256_vector1_secret_0x00_no_info() {
+        let expected = hex!(
+            "060dc63e5595dffbd161c9ec98bc06fc"
+            "f67cb22e2e75ecdf0003821388aeee4d"
+        );
+        let key = ConcatKdfSha256.derive(&[0x00], &[], OutputLength::new(32)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// ConcatKDF-SHA256: secret=ba5eba11..., other_info=f005ba1100ddba11
+    #[test]
+    fn test_concat_kdf_sha256_vector2_with_info() {
+        let secret = hex!("ba5eba11bedabb1ebe5077edb0a710adb01dfacecab005eca11ab1eca55e77e011");
+        let info = hex!("f005ba1100ddba11");
+        let expected = hex!(
+            "a400be9935d0c843a1504aa64f607819"
+            "5b6e20ea3fe64bb8d7f29aaea6a351bf"
+        );
+        let key = ConcatKdfSha256.derive(&secret, &info, OutputLength::new(32)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+}
+
+// ============================================================================
+// ANSI X9.63: X963KDF テストベクター
+// 出典: BouncyCastle KDF2BytesGenerator 互換テストベクター（ANSI X9.63-2011）
+// ============================================================================
+
+mod x963_kdf_ansi {
+    use super::*;
+
+    /// X963KDF-SHA256: secret=0x00, shared_info=[]
+    ///
+    /// Hash order: H(Z || counter || SharedInfo)
+    #[test]
+    fn test_x963_kdf_sha256_vector1_secret_0x00_no_info() {
+        let expected = hex!(
+            "15f2f1a4339f5f2a313b95015cad8124"
+            "d054a171ac2f31cf529dda7cfb6a38b4"
+        );
+        let key = X963KdfSha256.derive(&[0x00], &[], OutputLength::new(32)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// X963KDF-SHA256: secret=ba5eba11..., shared_info=f005ba1100ddba11
+    #[test]
+    fn test_x963_kdf_sha256_vector2_with_info() {
+        let secret = hex!("ba5eba11bedabb1ebe5077edb0a710adb01dfacecab005eca11ab1eca55e77e011");
+        let info = hex!("f005ba1100ddba11");
+        let expected = hex!(
+            "41bf219e0dedf77305f1f79739fd917b"
+            "3311e61dd504150d6f3c40195837c75a"
+        );
+        let key = X963KdfSha256.derive(&secret, &info, OutputLength::new(32)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// CAVS 12.0 SHA-256 マルチブロック出力（128バイト = 4ブロック）: COUNT=0
+    ///
+    /// chunks_mut ループと counter increment を検証する。
+    #[test]
+    fn test_cavs_x963_kdf_sha256_multiblock_count0() {
+        let z = hex!("22518b10e70f2a3f243810ae3254139efbee04aa57c7af7d");
+        let shared_info = hex!("75eef81aa3041e33b80971203d2c0c52");
+        let expected = hex!(
+            "c498af77161cc59f2962b9a713e2b215"
+            "152d139766ce34a776df11866a69bf2e"
+            "52a13d9c7c6fc878c50c5ea0bc7b00e0"
+            "da2447cfd874f6cf92f30d0097111485"
+            "500c90c3af8b487872d04685d14c8d1d"
+            "c8d7fa08beb0ce0ababc11f0bd496269"
+            "142d43525a78e5bc79a17f59676a5706"
+            "dc54d54d4d1f0bd7e386128ec26afc21"
+        );
+        let key = X963KdfSha256.derive(&z, &shared_info, OutputLength::new(128)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// CAVS 12.0 SHA-256 マルチブロック出力（128バイト = 4ブロック）: COUNT=1
+    #[test]
+    fn test_cavs_x963_kdf_sha256_multiblock_count1() {
+        let z = hex!("7e335afa4b31d772c0635c7b0e06f26fcd781df947d2990a");
+        let shared_info = hex!("d65a4812733f8cdbcdfb4b2f4c191d87");
+        let expected = hex!(
+            "c0bd9e38a8f9de14c2acd35b2f3410c6"
+            "988cf02400543631e0d6a4c1d030365a"
+            "cbf398115e51aaddebdc9590664210f9"
+            "aa9fed770d4c57edeafa0b8c14f93300"
+            "865251218c262d63dadc47dfa0e02848"
+            "26793985137e0a544ec80abf2fdf5ab9"
+            "0bdaea66204012efe34971dc431d625c"
+            "d9a329b8217cc8fd0d9f02b13f2f6b0b"
+        );
+        let key = X963KdfSha256.derive(&z, &shared_info, OutputLength::new(128)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+    // =========================================================================
+    // CAVS 12.0 SHA-384 テストベクター
+    // 出典: NIST CAVP ANS X9.63-2001 KDF (pyca/cryptography vectors)
+    // =========================================================================
+
+    /// CAVS SHA-384 [shared secret length=192, SharedInfo length=0, key data length=128]: COUNT=0
+    #[test]
+    fn test_cavs_x963_kdf_sha384_no_info_count0() {
+        let z = hex!("d8554db1b392cd55c3fe957bed76af09c13ac2a9392f88f6");
+        let expected = hex!("671a46aada145162f8ddf1ca586a1cda");
+        let key = X963KdfSha384.derive(&z, &[], OutputLength::new(16)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// CAVS SHA-384 [shared secret length=192, SharedInfo length=0, key data length=128]: COUNT=1
+    #[test]
+    fn test_cavs_x963_kdf_sha384_no_info_count1() {
+        let z = hex!("070265bd04222fc1dcb67182fa797166eaa18a2a1e1a6c0f");
+        let expected = hex!("522d79f65430350cec5c59c014e1a2cd");
+        let key = X963KdfSha384.derive(&z, &[], OutputLength::new(16)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// CAVS SHA-384 [shared secret length=192, SharedInfo length=128, key data length=1024]: COUNT=0
+    ///
+    /// マルチブロック出力（128バイト ≈ 2.67ブロック）で counter increment を検証する。
+    #[test]
+    fn test_cavs_x963_kdf_sha384_with_info_count0() {
+        let z = hex!("c051fd22539c9de791d6c43a854b8f80a6bf70190050854a");
+        let shared_info = hex!("1317504aa34759bb4c931e3b78201945");
+        let expected = hex!(
+            "cf6a84434734ac6949e1d7976743277b"
+            "e789906908ad3ca3a8923da7f476abbe"
+            "b574306d7243031a85566914bfd247d2"
+            "519c479953d9d55b6b831e56260806c3"
+            "9af21b74e3ecf470e3bd8332791c8a23"
+            "c13352514fdef00c2d1a408ba31b2d3f"
+            "9fdcb373895484649a645d1845eec91b"
+            "5bfdc5ad28c7824984482002dd4a8677"
+        );
+        let key = X963KdfSha384.derive(&z, &shared_info, OutputLength::new(128)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+}
+
+// ============================================================================
+// OpenBSD bcrypt-pbkdf テストベクター
+// 出典: bcrypt-pbkdf クレート付属 OpenBSD テストベクター
+// ============================================================================
+
+// ============================================================================
+// RFC 7914 Section 11: PBKDF2-HMAC-SHA256 テストベクター
+// https://www.rfc-editor.org/rfc/rfc7914.html#section-11
+// ============================================================================
+
+mod pbkdf2_hmac_sha256_rfc7914 {
+    use super::*;
+
+    /// RFC 7914 Section 11 - Vector 1: password="passwd", salt="salt", c=1, dkLen=64
+    #[test]
+    fn test_rfc7914_pbkdf2_vector1_c1() {
+        let params = Pbkdf2Params::new(1);
+        let expected = hex!(
+            "55ac046e56e3089fec1691c22544b605"
+            "f94185216dde0465e68b9d57c20dacbc"
+            "49ca9cccf179b645991664b39d77ef31"
+            "7c71b845b1e30bd509112041d3a19783"
+        );
+        let key = Pbkdf2Sha256.derive(b"passwd", b"salt", &params, OutputLength::new(64)).unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// RFC 7914 Section 11 - Vector 2: password="Password", salt="NaCl", c=80000, dkLen=64
+    #[test]
+    #[ignore = "高コスト（80000反復）: cargo test -- --ignored で実行"]
+    fn test_rfc7914_pbkdf2_vector2_c80000() {
+        let params = Pbkdf2Params::new(80000);
+        let expected = hex!(
+            "4ddcd8f60b98be21830cee5ef22701f9"
+            "641a4418d04c0414aeff08876b34ab56"
+            "a1d425a1225833549adb841b51c9b317"
+            "6a272bdebba1d078478f62b397f33c8d"
+        );
+        let key = Pbkdf2Sha256
+            .derive(b"Password", b"NaCl", &params, OutputLength::new(64))
+            .unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+}
+
+mod bcrypt_pbkdf_openbsd {
+    use super::*;
+
+    /// password="password", salt="salt", rounds=4, len=32
+    #[test]
+    fn test_bcrypt_pbkdf_vector1_password_salt_rounds4() {
+        let params = BcryptPbkdfParams::new(4);
+        let expected = hex!(
+            "5bbf0cc293587f1c3635555c27796598"
+            "d47e579071bf427e9d8fbe842aba34d9"
+        );
+        let key = BcryptPbkdf
+            .derive(b"password", b"salt", &params, OutputLength::new(32))
+            .unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// password="password", salt="salt", rounds=8, len=64
+    #[test]
+    fn test_bcrypt_pbkdf_vector2_password_salt_rounds8() {
+        let params = BcryptPbkdfParams::new(8);
+        let expected = hex!(
+            "e1367ec5151a33faac4cc1c144cd"
+            "23fa15d5548493ecc99b9b5d9c0d"
+            "3b27bec76227ea66088b849b20ab"
+            "7aa478010246e74bba51723fefa9"
+            "f9474d6508845e8d"
+        );
+        let key = BcryptPbkdf
+            .derive(b"password", b"salt", &params, OutputLength::new(64))
+            .unwrap();
+        assert_eq!(key.as_bytes(), expected);
+    }
+
+    /// password="password", salt="salt", rounds=42, len=16
+    #[test]
+    fn test_bcrypt_pbkdf_vector3_password_salt_rounds42() {
+        let params = BcryptPbkdfParams::new(42);
+        let expected = hex!("833cf0dcf56db65608e8f0dc0ce882bd");
+        let key = BcryptPbkdf
+            .derive(b"password", b"salt", &params, OutputLength::new(16))
+            .unwrap();
+        assert_eq!(key.as_bytes(), expected);
     }
 }

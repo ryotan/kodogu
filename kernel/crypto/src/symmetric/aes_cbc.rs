@@ -507,7 +507,7 @@ mod tests {
         assert_eq!(pt2.as_bytes(), b"World");
 
         let bytes = pt2.into_bytes();
-        assert_eq!(bytes, b"World");
+        assert_eq!(*bytes, *b"World");
     }
 
     #[test]
