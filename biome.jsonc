@@ -1,7 +1,46 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "organizeImports": {
-    "enabled": false
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              // builtin
+              ":BUN:",
+              ":NODE:",
+              // external (specific)
+              ":BLANK_LINE:",
+              ["vite*", "vite*/**", "@vite*/**"],
+              ":BLANK_LINE:",
+              ["react", "react-dom", "react-dom*/**"],
+              ":BLANK_LINE:",
+              ["tanstack*", "tanstack*/**", "@tanstack*/**"],
+              ":BLANK_LINE:",
+              ["radix-ui*", "radix-ui*/**", "@radix-ui*/**"],
+              // external
+              ":BLANK_LINE:",
+              ":PACKAGE:",
+              ":URL:",
+              ":PACKAGE_WITH_PROTOCOL:",
+              // internal
+              ":BLANK_LINE:",
+              // sources starting with #, @/, ~, $, or %.
+              ":ALIAS:",
+              // path (parent)
+              ":BLANK_LINE:",
+              ["..", "../**"],
+              // path (sibling, index, absolute)
+              ":BLANK_LINE:",
+              [".", "./**"],
+              ":PATH:"
+            ]
+          }
+        }
+      }
+    }
   },
   "linter": {
     "enabled": true,
@@ -13,7 +52,23 @@
         "useHookAtTopLevel": "off",
         // react-hooks/exhaustive-depsの代替にはならないので、無効にしておく。
         // （依存変数配列を自動では修正してくれない）
-        "useExhaustiveDependencies": "off"
+        "useExhaustiveDependencies": "off",
+        "noUndeclaredDependencies": {
+          "level": "error",
+          "options": {
+            "devDependencies": [
+              "**/*.test.*",
+              "**/*.spec.*",
+              "**/*.stories.*",
+              "**/_dev/**",
+              "**/(dev)/**",
+              "**/eslint.config.mjs",
+              "**/vite.config.ts",
+              "**/vitest.workspace.ts",
+              "**/.storybook/vitest.setup.ts"
+            ]
+          }
+        }
       },
       "complexity": {
         // @typescript-eslint/dot-notation
@@ -43,29 +98,40 @@
             "strictCase": true
           }
         },
+        "useImportType": {
+          "level": "error",
+          "options": {
+            "style": "separatedType"
+          }
+        },
         // React Componentの命名規約（PascalCase）が守れなくなるので無効にしておく
         "useNamingConvention": {
           "level": "off",
           "options": {
-            "enumMemberCase": "CONSTANT_CASE",
+            "conventions": [
+              {
+                "selector": { "kind": "enumMember" },
+                "formats": ["CONSTANT_CASE"]
+              }
+            ],
             "strictCase": false,
             "requireAscii": false
           }
         },
         "useSelfClosingElements": "error",
-        "useShorthandAssign": "error"
+        "useShorthandAssign": "error",
+        "useConsistentCurlyBraces": "error"
       },
       "suspicious": {
         "noEmptyBlockStatements": "error"
       },
-      "nursery": {
-        "useConsistentCurlyBraces": "error"
-      }
+      "nursery": {}
     }
   },
   "formatter": {
     "enabled": true,
-    "useEditorconfig": true
+    "useEditorconfig": true,
+    "lineWidth": 120
   },
   "javascript": {
     "formatter": {
@@ -99,7 +165,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": [".idea", ".github", "patches", "src-tauri", "src/stories"],
+    "includes": ["**", "!**/.idea", "!**/.github", "!**/patches", "!**/src-tauri", "!kernel"],
     "ignoreUnknown": true
   }
 }

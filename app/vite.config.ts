@@ -1,12 +1,14 @@
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
 import react from '@vitejs/plugin-react';
+import {playwright} from '@vitest/browser-playwright';
 import {defineConfig} from 'vite';
 import paths from 'vite-tsconfig-paths';
 
 import router from '@tanstack/router-plugin/vite';
 
-import {storybookTest} from '@storybook/experimental-addon-test/vitest-plugin';
-import path from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {storybookTest} from '@storybook/addon-vitest/vitest-plugin';
 
 const VITE_DEFAULT_PORT = 5173;
 
@@ -17,7 +19,9 @@ const {TAURI_DEV_HOST: host, TAURI_DEV_SERVER_PORT: portString} = process.env;
 // Configurations for mobile app development.
 // Tauri CLI adds environment variables to the dev-server process when running Android app.
 const port =
-  portString && Number.isSafeInteger(Number.parseInt(portString)) ? Number.parseInt(portString) : VITE_DEFAULT_PORT;
+  portString && Number.isSafeInteger(Number.parseInt(portString, 10))
+    ? Number.parseInt(portString, 10)
+    : VITE_DEFAULT_PORT;
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
@@ -62,8 +66,8 @@ export default defineConfig(() => ({
           browser: {
             enabled: true,
             headless: true,
-            instances: [{browser: 'chromium'}],
-            provider: 'playwright',
+            provider: playwright(),
+            instances: [{browser: 'chromium' as const}],
           },
           setupFiles: ['.storybook/vitest.setup.ts'],
         },

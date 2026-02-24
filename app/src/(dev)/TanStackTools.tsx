@@ -3,7 +3,7 @@ import {TanStackRouterDevtools} from '@tanstack/react-router-devtools';
 
 export const TanStackTools = () => {
   if (!import.meta.env.DEV) {
-    return <></>;
+    return null;
   }
 
   return (
