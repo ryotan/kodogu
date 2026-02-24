@@ -677,7 +677,9 @@ proptest! {
     fn prop_different_ciphers_produce_different_ciphertext(
         key_bytes in prop::collection::vec(any::<u8>(), 32),
         nonce_bytes in prop::collection::vec(any::<u8>(), 12),
-        plaintext in prop::collection::vec(any::<u8>(), 1..100).prop_map(Plaintext::from),
+        // 暗号文長 = 平文長なので、短い平文だと異なるアルゴリズム間で偶然一致する確率が無視できない（1バイトなら 1/256）。
+        // 16バイト以上にすれば衝突確率は 1/2^128 で事実上ゼロ。
+        plaintext in prop::collection::vec(any::<u8>(), 16..100).prop_map(Plaintext::from),
     ) {
         let key256: [u8; 32] = key_bytes.clone().try_into().unwrap();
         let key128: [u8; 16] = key_bytes[..16].try_into().unwrap();
