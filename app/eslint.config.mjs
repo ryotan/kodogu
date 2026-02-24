@@ -1,3 +1,5 @@
+import {resolve} from 'node:path';
+
 import vitest from '@vitest/eslint-plugin';
 
 import query from '@tanstack/eslint-plugin-query';
@@ -6,11 +8,9 @@ import router from '@tanstack/eslint-plugin-router';
 import {includeIgnoreFile} from '@eslint/compat';
 import eslint from '@eslint/js';
 import {defineConfig, globalIgnores} from 'eslint/config';
-import esimport from 'eslint-plugin-import';
 import react from 'eslint-plugin-react';
 import * as hooks from 'eslint-plugin-react-hooks';
 import storybook from 'eslint-plugin-storybook';
-import {resolve} from 'node:path';
 import * as tslint from 'typescript-eslint';
 
 const gitignore = resolve(import.meta.dirname, '.gitignore');
@@ -72,8 +72,6 @@ const eslintConfig = defineConfig([
   ts(tslint.configs.stylisticTypeChecked.findLast(e => e.name === 'typescript-eslint/stylistic-type-checked')),
   ...query.configs['flat/recommended'].map(ts),
   ...router.configs['flat/recommended'].map(ts).map(name('tanstack/router/flat/recommended')),
-  name('import/typescript')(ts(esimport.flatConfigs.typescript)),
-  name('#setup/import/plugin-internal-regex')(ts({settings: {'import/internal-regex': '^!?#'}})),
   ...storybook.configs['flat/recommended'],
   ...storybook.configs['flat/csf-strict'],
   name('#customise/typescript-eslint/stylistic-type-checked')(
@@ -81,71 +79,6 @@ const eslintConfig = defineConfig([
       rules: {
         // https://typescript-eslint.io/rules/consistent-type-definitions
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-      },
-    }),
-  ),
-  name('#customise/import/extraneous-dependencies')(
-    ts({
-      rules: {
-        // https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-extraneous-dependencies.md
-        'import/no-extraneous-dependencies': [
-          'error',
-          {
-            devDependencies: [
-              '**/*.test.*',
-              '**/*.spec.*',
-              '**/_dev/**',
-              '**/(dev)/**',
-              '**/eslint.config.mjs',
-              '**/vite.config.ts',
-              '.storybook/vitest.setup.ts',
-            ],
-          },
-        ],
-      },
-    }),
-  ),
-  name('#customise/import/order')(
-    ts({
-      rules: {
-        // https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/order.md
-        'import/order': [
-          'error',
-          {
-            groups: [['builtin', 'external'], 'internal', 'parent', ['index', 'sibling']],
-            'newlines-between': 'always',
-            alphabetize: {
-              order: 'asc',
-            },
-            named: {
-              enabled: true,
-              types: 'types-first',
-            },
-            pathGroups: [
-              {
-                pattern: '{vite*,vite*/**,@vite*/**}',
-                group: 'external',
-                position: 'before',
-              },
-              {
-                pattern: '{react,react-dom,react-dom*/**}',
-                group: 'external',
-                position: 'before',
-              },
-              {
-                pattern: '{tanstack*,tanstack*/**,@tanstack*/**}',
-                group: 'external',
-                position: 'before',
-              },
-              {
-                pattern: '{radix-ui*,radix-ui*/**,@radix-ui*/**}',
-                group: 'external',
-                position: 'before',
-              },
-            ],
-            pathGroupsExcludedImportTypes: ['builtin'],
-          },
-        ],
       },
     }),
   ),

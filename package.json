@@ -12,10 +12,13 @@
     "fix:biome": "biome check --write --unsafe ."
   },
   "workspaces": {
-    "packages": ["app", "kernel/*"],
+    "packages": [
+      "app",
+      "kernel/*"
+    ],
     "catalogs": {
       "default": {
-        "@biomejs/biome": "^1.9.4",
+        "@biomejs/biome": "^2.4.4",
         "@chromatic-com/storybook": "3",
         "@eslint/compat": "^1.2.7",
         "@eslint/js": "^9.22.0",
@@ -55,7 +58,6 @@
         "arktype": "^2.1.10",
         "concurrently": "^9.1.2",
         "eslint": "^9.22.0",
-        "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-react": "^7.37.4",
         "eslint-plugin-react-hooks": "^5.2.0",
         "eslint-plugin-storybook": "^0.11.6",
@@ -76,5 +78,7 @@
     "@biomejs/biome": "catalog:default",
     "@types/node": "catalog:default"
   },
-  "trustedDependencies": ["@biomejs/biome"]
+  "trustedDependencies": [
+    "@biomejs/biome"
+  ]
 }
