@@ -1,6 +1,7 @@
 use anflug::{Config, FileProcessor, MatchMode, ProcessFileOptions};
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
 use std::fs;
+use std::hint::black_box;
 use tempfile::TempDir;
 
 fn bench_regex_cache_performance(c: &mut Criterion) {
