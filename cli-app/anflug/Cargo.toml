@@ -17,24 +17,23 @@ path = "src/main.rs"
 
 [dependencies]
 chrono = { workspace = true, features = ["serde"] }
-clap = { version = "4.5.48", features = ["derive", "env", "unicode"] }
-confy = { version = "1.0.0" }
-futures = { version = "0.3", optional = true }
-regex = "1.11.2"
-serde = { version = "1.0.225", features = ["derive"] }
-snafu = "0.8"
+clap = { workspace = true, features = ["derive", "env", "unicode"] }
+confy = { workspace = true }
+regex = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+snafu = { workspace = true }
 suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
-tokio = { version = "1.0", features = ["full"], optional = true }
-validator = { version = "0.18", features = ["derive"] }
+tokio = { workspace = true, features = ["full"], optional = true }
+validator = { workspace = true, features = ["derive"] }
 
 [features]
 default = []
-async = ["tokio", "futures"]
+async = ["tokio"]
 
 [dev-dependencies]
-tempfile = "3.22.0"
-criterion = { version = "0.5", features = ["html_reports"] }
-proptest = "1.4"
+tempfile = { workspace = true }
+criterion = { workspace = true, features = ["html_reports"] }
+proptest = { workspace = true }
 
 [[bench]]
 name = "file_processing"

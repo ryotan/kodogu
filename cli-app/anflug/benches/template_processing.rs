@@ -1,5 +1,6 @@
 use anflug::{Config, TemplateProcessor};
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
+use std::hint::black_box;
 
 fn bench_template_processing(c: &mut Criterion) {
     let mut group = c.benchmark_group("template_processing");
