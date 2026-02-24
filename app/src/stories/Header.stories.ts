@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
+import type {Meta, StoryObj} from '@storybook/react-vite';
+import {fn} from 'storybook/test';
 
-import { Header } from './Header';
+import {Header} from './Header';
 
 const meta = {
   title: 'Example/Header',

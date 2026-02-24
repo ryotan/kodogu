@@ -59,6 +59,7 @@
             "devDependencies": [
               "**/*.test.*",
               "**/*.spec.*",
+              "**/*.stories.*",
               "**/_dev/**",
               "**/(dev)/**",
               "**/eslint.config.mjs",
@@ -164,7 +165,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/.idea", "!**/.github", "!**/patches", "!**/src-tauri", "!**/src/stories", "!kernel"],
+    "includes": ["**", "!**/.idea", "!**/.github", "!**/patches", "!**/src-tauri", "!kernel"],
     "ignoreUnknown": true
   }
 }
