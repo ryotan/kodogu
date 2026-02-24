@@ -8,7 +8,7 @@ import paths from 'vite-tsconfig-paths';
 
 import router from '@tanstack/router-plugin/vite';
 
-import {storybookTest} from '@storybook/experimental-addon-test/vitest-plugin';
+import {storybookTest} from '@storybook/addon-vitest/vitest-plugin';
 
 const VITE_DEFAULT_PORT = 5173;
 

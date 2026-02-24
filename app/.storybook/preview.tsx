@@ -6,7 +6,7 @@ import type {FC} from 'react';
 
 import {Theme} from '@radix-ui/themes';
 
-import type {Preview} from '@storybook/react';
+import type {Preview} from '@storybook/react-vite';
 
 const preview: Preview = {
   parameters: {
