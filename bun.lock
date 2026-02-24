@@ -36,6 +36,7 @@
         "@chromatic-com/storybook": "catalog:default",
         "@eslint/compat": "catalog:default",
         "@eslint/js": "catalog:default",
+        "@storybook/addon-a11y": "catalog:default",
         "@storybook/addon-docs": "catalog:default",
         "@storybook/addon-onboarding": "catalog:default",
         "@storybook/addon-vitest": "catalog:default",
@@ -72,15 +73,16 @@
   "catalogs": {
     "default": {
       "@biomejs/biome": "^2.4.4",
-      "@chromatic-com/storybook": "5.0.1",
+      "@chromatic-com/storybook": "^5",
       "@eslint/compat": "^2.0.2",
       "@eslint/js": "^10.0.1",
       "@radix-ui/react-icons": "^1.3.2",
       "@radix-ui/themes": "^3.2.1",
-      "@storybook/addon-docs": "10.2.12",
-      "@storybook/addon-onboarding": "10.2.12",
-      "@storybook/addon-vitest": "10.2.12",
-      "@storybook/react-vite": "10.2.12",
+      "@storybook/addon-a11y": "^10",
+      "@storybook/addon-docs": "^10",
+      "@storybook/addon-onboarding": "^10",
+      "@storybook/addon-vitest": "^10",
+      "@storybook/react-vite": "^10",
       "@tanstack/eslint-plugin-query": "^5.68.0",
       "@tanstack/eslint-plugin-router": "^1.114.12",
       "@tanstack/react-form": "^1.1.2",
@@ -110,11 +112,11 @@
       "eslint": "^10.0.2",
       "eslint-plugin-react": "^7.37.4",
       "eslint-plugin-react-hooks": "^7.0.1",
-      "eslint-plugin-storybook": "10.2.12",
+      "eslint-plugin-storybook": "^10",
       "immer": "^11.1.4",
       "react": "^19.0.0",
       "react-dom": "^19.0.0",
-      "storybook": "10.2.12",
+      "storybook": "^10",
       "typescript": "~5.9",
       "typescript-eslint": "^8.27.0",
       "vite": "^7.3.1",
@@ -481,6 +483,8 @@
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
+    "@storybook/addon-a11y": ["@storybook/addon-a11y@10.2.12", "", { "dependencies": { "@storybook/global": "^5.0.0", "axe-core": "^4.2.0" }, "peerDependencies": { "storybook": "^10.2.12" } }, "sha512-UFJU9cOqaOLcb6WnO/y0urB6EUqPCxtNvIsiJ1MviCm9IqV+b3Y84NFxWYvYSBuYzqt89DKdh19edP6aVaLe6w=="],
+
     "@storybook/addon-docs": ["@storybook/addon-docs@10.2.12", "", { "dependencies": { "@mdx-js/react": "^3.0.0", "@storybook/csf-plugin": "10.2.12", "@storybook/icons": "^2.0.1", "@storybook/react-dom-shim": "10.2.12", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "ts-dedent": "^2.0.0" }, "peerDependencies": { "storybook": "^10.2.12" } }, "sha512-LlLQSYxISugG2mEVVV/rNMyZaF1wIvIhaq5kGKbBuAz18GOtQmvaa/o3fJjlebmvTn/AOmipNlQ4ChOXSAwmdg=="],
 
     "@storybook/addon-onboarding": ["@storybook/addon-onboarding@10.2.12", "", { "peerDependencies": { "storybook": "^10.2.12" } }, "sha512-yvopxlhHHT20xV9WfOtxvhKoSVrw9eQ4+EeRBAfVpInxR4lunjzSOBrwpNjnZQNZ0tgHAv4VGJfEFLOaEXKHeA=="],
@@ -708,6 +712,8 @@
     "async-function": ["async-function@1.0.0", "", {}, "sha512-hsU18Ae8CDTR6Kgu9DYf0EbCr/a5iGL0rytQDobUcdpYOKokk8LEjVphnXkDkgpi0wYVsqrXuP0bZxJaTqdgoA=="],
 
     "available-typed-arrays": ["available-typed-arrays@1.0.7", "", { "dependencies": { "possible-typed-array-names": "^1.0.0" } }, "sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ=="],
+
+    "axe-core": ["axe-core@4.11.1", "", {}, "sha512-BASOg+YwO2C+346x3LZOeoovTIoTrRqEsqMa6fmfAV0P+U9mFr9NsyOEpiYvFjbc64NMrSswhV50WdXzdb/Z5A=="],
 
     "babel-dead-code-elimination": ["babel-dead-code-elimination@1.0.12", "", { "dependencies": { "@babel/core": "^7.23.7", "@babel/parser": "^7.23.6", "@babel/traverse": "^7.23.7", "@babel/types": "^7.23.6" } }, "sha512-GERT7L2TiYcYDtYk1IpD+ASAYXjKbLTDPhBtYj7X1NuRMDTMtAx9kyBenub1Ev41lo91OHCKdmP+egTDmfQ7Ig=="],
 

@@ -17,16 +17,15 @@ const preview: Preview = {
       },
     },
   },
+  decorators: [
+    (Story: FC) => {
+      return (
+        <Theme panelBackground='solid'>
+          <Story />
+        </Theme>
+      );
+    },
+  ],
 };
-
-export const decorators = [
-  (Story: FC) => {
-    return (
-      <Theme panelBackground='solid'>
-        <Story />
-      </Theme>
-    );
-  },
-];
 
 export default preview;

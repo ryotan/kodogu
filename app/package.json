@@ -55,6 +55,7 @@
     "@chromatic-com/storybook": "catalog:default",
     "@eslint/compat": "catalog:default",
     "@eslint/js": "catalog:default",
+    "@storybook/addon-a11y": "catalog:default",
     "@storybook/addon-docs": "catalog:default",
     "@storybook/addon-onboarding": "catalog:default",
     "@storybook/addon-vitest": "catalog:default",
