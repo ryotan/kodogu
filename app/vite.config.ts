@@ -2,6 +2,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 import react from '@vitejs/plugin-react';
+import {playwright} from '@vitest/browser-playwright';
 import {defineConfig} from 'vite';
 import paths from 'vite-tsconfig-paths';
 
@@ -65,8 +66,8 @@ export default defineConfig(() => ({
           browser: {
             enabled: true,
             headless: true,
-            instances: [{browser: 'chromium'}],
-            provider: 'playwright',
+            provider: playwright(),
+            instances: [{browser: 'chromium' as const}],
           },
           setupFiles: ['.storybook/vitest.setup.ts'],
         },
