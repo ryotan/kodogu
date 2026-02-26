@@ -81,6 +81,7 @@
     "typescript-eslint": "catalog:default",
     "vite": "catalog:default",
     "vite-tsconfig-paths": "catalog:default",
-    "vitest": "catalog:default"
+    "vitest": "catalog:default",
+    "vitest-browser-react": "catalog:default"
   }
 }
