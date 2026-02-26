@@ -311,6 +311,95 @@ class OrderNotFound extends DomainError {
 - Enforces best practices
 - **Why**: Better code quality
 
+## Application Structure
+
+### Directory Layout
+
+```
+app/src/
+  routes/          # TanStack Router file-based routes (auto-generated tree)
+  hooks/           # Custom React hooks (reusable across routes)
+  components/      # Shared UI components
+  (prototype)/     # Prototype / stub components (temporary, not shipped)
+  (dev)/           # Development-only utilities (excluded from production)
+```
+
+- Routes define screens. Each route file is a self-contained entry point
+- Hooks with independent contracts go in `hooks/`. Route-local hooks stay in the route file
+- Components shared across 2+ routes go in `components/`. Single-route components stay in the route file or a colocated file
+
+### Tauri IPC
+
+- Tauri command wrappers go in `commands/` (to be created when IPC is introduced)
+- Each wrapper provides a typed function around `invoke()`
+- Domain logic stays in Rust. The TS side only handles invocation and result mapping
+
+> **Note**: This structure is minimal for M1. M1.5 / M2 で Features / Bases レイヤーの導入を検討する。
+> 参考: [Fintan Santoku Application Structure](https://fintan-contents.github.io/mobile-app-crib-notes/react-native/santoku/application-architecture/application-structure/overview/)
+
+### Dependency Direction
+
+- `routes/` → `hooks/`, `components/`, `commands/`
+- `hooks/` → `commands/`（Tauri API 呼び出しを含む場合）
+- `components/` → 他ディレクトリに依存しない（props 経由で受け取る）
+- `(prototype)/` → どこからも import しない（routes のみが参照可）
+
+## File Organization
+
+### 1 File = 1 Export
+
+各ファイルは1つの論理モジュールを表し、1つの primary export を持つ。
+
+- ファイル名 = primary export 名（`ProfileCard.tsx` → `export const ProfileCard`）
+- 密接に関連する定数・型は同一ファイルに同居して良い（例: hook と hook が使う定数）
+- 無関係な export を1ファイルに混ぜない
+
+参考: [Fintan Santoku TypeScript コーディング規約](https://fintan-contents.github.io/mobile-app-crib-notes/react-native/santoku/development/implement/style-guide/typescript-style-guide/)
+
+## Naming Conventions
+
+### Files
+
+**ファイル名 = primary export 名** が原則。
+
+| 対象 | ファイル名規約 | 例 |
+|---|---|---|
+| ディレクトリ | kebab-case | `hooks/`, `components/form/` |
+| Route ファイル | TanStack Router 規約に従う | `popover.tsx`, `__root.tsx` |
+| Component | PascalCase (= export 名) | `ProfileCard.tsx` |
+| Hook | camelCase `use` prefix (= export 名) | `useAutoResize.ts` |
+| Function | camelCase (= export 名) | `createResizeHandler.ts` |
+| Type-only | PascalCase (= export 名) | `ConnectionProfile.ts` |
+| Tauri command wrapper | camelCase (= export 名) | `getConnections.ts` |
+| Test (node) | 対象 + `.test` | `useAutoResize.test.ts` |
+| Test (browser) | 対象 + `.spec` | `useAutoResize.spec.tsx` |
+| Story | 対象 + `.stories` | `ProfileCard.stories.tsx` |
+
+### Exports
+
+| 対象 | 規約 | 例 |
+|---|---|---|
+| React component | PascalCase, named export | `export const ProfileCard = ...` |
+| Hook | camelCase `use` prefix, named export | `export function useAutoResize()` |
+| Pure function | camelCase, named export | `export function getMaxHeight()` |
+| Type / Interface | PascalCase, named export | `export interface ConnectionProfile` |
+| Constant | UPPER_SNAKE_CASE | `const MAX_HEIGHT_RATIO = 0.85` |
+| Module-local constant | camelCase or UPPER_SNAKE_CASE | 文脈に応じて |
+
+### Stereotype Suffixes
+
+明示的なサフィックスで責務を示す。コードを読まなくてもファイルの役割がわかるようにする。
+
+| ステレオタイプ | サフィックス | 例 |
+|---|---|---|
+| Hook | `use` prefix | `useAutoResize` |
+| Function | なし（動詞始まり） | `createResizeHandler`, `getMaxHeight` |
+| Context Provider | `Provider` | `ThemeProvider` |
+| Error class | `Error` | `ConnectionError` |
+| Layout component | `Layout` | `PopoverLayout` |
+
+> **Note**: ステレオタイプは M2 以降で必要に応じて拡張する（Form, Service 等）。
+
 ## React-Specific (if applicable)
 
 ### Type React Components Properly
