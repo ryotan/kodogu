@@ -403,6 +403,6 @@ pub enum DomainError {
 
 - `serde` for serialization
 - `tokio` or `async-std` for async runtime
-- `thiserror`/`anyhow` for errors
+- `suzunari-error`/`snafu` for errors
 - `clap` for CLI parsing
 - **Why**: Ecosystem best practices

@@ -1,10 +1,12 @@
+use suzunari_error::*;
 use tauri::AppHandle;
 
-#[derive(Debug, thiserror::Error)]
+#[suzunari_error]
+#[snafu(context(suffix(Error)))]
 pub(crate) enum DeepLinkSetupError {
     #[cfg_attr(target_os = "macos", allow(dead_code))]
-    #[error("Failed to initialize deep-link plugin")]
-    PluginInitializationError(tauri_plugin_deep_link::Error),
+    #[snafu(display("Failed to initialize deep-link plugin"))]
+    PluginInitialization { source: tauri_plugin_deep_link::Error },
 }
 
 pub(crate) fn setup(
@@ -12,11 +14,12 @@ pub(crate) fn setup(
 ) -> Result<(), DeepLinkSetupError> {
     #[cfg(any(windows, target_os = "linux"))]
     {
-        use crate::init::deep_link::DeepLinkSetupError::PluginInitializationError;
+        use snafu::ResultExt;
         use tracing::info;
-        info!("Registering deep link handler");
+
         use tauri_plugin_deep_link::DeepLinkExt;
-        app.deep_link().register_all().map_err(PluginInitializationError)?;
+        info!("Registering deep link handler");
+        app.deep_link().register_all().context(PluginInitializationError)?;
     }
     Ok(())
 }

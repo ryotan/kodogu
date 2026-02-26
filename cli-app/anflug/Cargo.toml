@@ -22,7 +22,7 @@ confy = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 snafu = { workspace = true }
-suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
+suzunari-error = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 validator = { workspace = true, features = ["derive"] }
 

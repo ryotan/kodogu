@@ -3,6 +3,12 @@ use tauri::{Manager, Wry};
 
 pub(crate) fn plugin() -> TauriPlugin<Wry> {
     tauri_plugin_single_instance::init(|app, _args, _cwd| {
-        let _ = app.get_webview_window("main").expect("no main window").set_focus();
+        if let Some(window) = app.get_webview_window("main") {
+            if let Err(e) = window.set_focus() {
+                tracing::warn!("Failed to focus main window on duplicate launch: {e}");
+            }
+        } else {
+            tracing::warn!("Main window not found on duplicate instance launch");
+        }
     })
 }

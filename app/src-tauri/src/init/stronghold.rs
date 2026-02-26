@@ -1,15 +1,15 @@
-use crate::init::stronghold::StrongholdSetupError::{
-    LocalDataDirNotFoundError, PluginInitializationError,
-};
+use snafu::ResultExt;
+use suzunari_error::*;
 use tauri::{AppHandle, Manager};
 use tracing::info;
 
-#[derive(Debug, thiserror::Error)]
+#[suzunari_error]
+#[snafu(context(suffix(Error)))]
 pub(crate) enum StrongholdSetupError {
-    #[error("Local data directory was not found")]
-    LocalDataDirNotFoundError(tauri::Error),
-    #[error("Failed to initialize stronghold plugin")]
-    PluginInitializationError(tauri::Error),
+    #[snafu(display("Local data directory was not found"))]
+    LocalDataDirNotFound { source: tauri::Error },
+    #[snafu(display("Failed to initialize stronghold plugin"))]
+    PluginInitialization { source: tauri::Error },
 }
 
 pub(crate) fn setup(app: &AppHandle) -> Result<(), StrongholdSetupError> {
@@ -17,9 +17,9 @@ pub(crate) fn setup(app: &AppHandle) -> Result<(), StrongholdSetupError> {
     let salt_path = app
         .path()
         .app_local_data_dir()
-        .map_err(LocalDataDirNotFoundError)?
+        .context(LocalDataDirNotFoundError)?
         .join("stronghold-salt.txt");
     app.plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())
-        .map_err(PluginInitializationError)?;
+        .context(PluginInitializationError)?;
     Ok(())
 }
