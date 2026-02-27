@@ -1,0 +1,14 @@
+/* Make the native window background transparent so that during resize,
+   the gap between the window edge and the WebView repaint shows through
+   to the desktop instead of flashing white.
+   Requires `transparent: true` + `macOSPrivateApi: true` in tauri.conf.json. */
+html,
+body {
+  background-color: transparent;
+}
+
+/* Radix Themes paints --color-background on the .radix-themes root.
+   Override it to transparent so the native window transparency is preserved. */
+.radix-themes {
+  --color-background: transparent !important;
+}

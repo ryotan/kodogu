@@ -220,6 +220,21 @@ const CardBody = ({children}: {children: React.ReactNode}) => (
   </div>
 );
 
+// Animates height from 0 to auto using CSS grid-template-rows trick.
+// Spreads resize over multiple frames so ResizeObserver fires gradually,
+// keeping per-frame window size delta small enough to be imperceptible.
+const AnimatedPanel = ({open, children}: {open: boolean; children: React.ReactNode}) => (
+  <div
+    style={{
+      display: 'grid',
+      gridTemplateRows: open ? '1fr' : '0fr',
+      transition: 'grid-template-rows 0.2s ease-out',
+    }}
+  >
+    <div style={{overflow: 'hidden', minHeight: 0}}>{children}</div>
+  </div>
+);
+
 const ConnectionDetails = ({
   project,
   region,
@@ -297,7 +312,7 @@ export const StubCardList = () => {
           role='primary'
           tag='prod'
         />
-        {isOpen('card1') && (
+        <AnimatedPanel open={isOpen('card1')}>
           <CardBody>
             <ConnectionDetails
               address='127.0.0.1'
@@ -316,7 +331,7 @@ export const StubCardList = () => {
               <span style={{fontFamily: fontMono, fontSize: 11, color: colors.textSecondary}}>00:32:10</span>
             </div>
           </CardBody>
-        )}
+        </AnimatedPanel>
       </div>
       <div
         style={{
@@ -334,7 +349,7 @@ export const StubCardList = () => {
           role='replica'
           tag='prod'
         />
-        {isOpen('card2') && (
+        <AnimatedPanel open={isOpen('card2')}>
           <CardBody>
             <ConnectionDetails
               address='127.0.0.1'
@@ -366,7 +381,7 @@ export const StubCardList = () => {
               60分以上接続中です。不要な場合は切断してください。
             </div>
           </CardBody>
-        )}
+        </AnimatedPanel>
       </div>
       <SectionLabel>未接続</SectionLabel>
       <div
@@ -385,7 +400,7 @@ export const StubCardList = () => {
           role='primary'
           tag='staging'
         />
-        {isOpen('card3') && (
+        <AnimatedPanel open={isOpen('card3')}>
           <CardBody>
             <ConnectionDetails
               address='127.0.0.1'
@@ -404,7 +419,7 @@ export const StubCardList = () => {
               <span style={{fontSize: 11, color: colors.textSecondary}}>2026-02-24 09:15</span>
             </div>
           </CardBody>
-        )}
+        </AnimatedPanel>
       </div>
       <div
         style={{
@@ -422,7 +437,7 @@ export const StubCardList = () => {
           role='replica'
           tag='dev'
         />
-        {isOpen('card4') && (
+        <AnimatedPanel open={isOpen('card4')}>
           <CardBody>
             <ConnectionDetails
               address='127.0.0.1'
@@ -453,7 +468,7 @@ export const StubCardList = () => {
               <div style={{padding: '5px 8px', color: colors.statusPrimary, fontWeight: 500}}>認証エラー</div>
             </div>
           </CardBody>
-        )}
+        </AnimatedPanel>
       </div>
     </>
   );

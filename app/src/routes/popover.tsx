@@ -1,4 +1,5 @@
 import {createFileRoute} from '@tanstack/react-router';
+import './popover.css';
 
 import {PlusIcon} from '@radix-ui/react-icons';
 import {Flex, IconButton, Theme} from '@radix-ui/themes';
@@ -21,7 +22,7 @@ const PopoverLayout = () => {
   const {ref: containerRef, maxHeight} = useAutoResize();
 
   return (
-    <Theme appearance='dark'>
+    <Theme appearance='dark' hasBackground={false}>
       <div
         ref={containerRef}
         style={{

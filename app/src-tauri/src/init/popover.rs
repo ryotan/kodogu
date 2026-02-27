@@ -1,5 +1,10 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
+/// Set `KODOGU_POPOVER_KEEP_OPEN=1` to prevent the popover from hiding on focus loss.
+/// Useful for inspecting the popover with DevTools.
+static KEEP_OPEN: std::sync::LazyLock<bool> =
+    std::sync::LazyLock::new(|| std::env::var("KODOGU_POPOVER_KEEP_OPEN").is_ok_and(|v| v == "1"));
+
 use snafu::OptionExt;
 use suzunari_error::*;
 use tauri::{
@@ -82,6 +87,7 @@ fn ensure_focus_listener(window: &WebviewWindow) {
     let w = window.clone();
     window.on_window_event(move |event| {
         if let WindowEvent::Focused(false) = event
+            && !*KEEP_OPEN
             && let Err(e) = w.hide()
         {
             tracing::error!("Failed to hide popover on focus loss: {e}");
