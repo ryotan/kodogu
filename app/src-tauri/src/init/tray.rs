@@ -1,6 +1,7 @@
-use snafu::{OptionExt, ResultExt};
+use snafu::ResultExt;
 use suzunari_error::*;
 use tauri::AppHandle;
+use tauri::image::Image;
 use tauri::menu::{Menu, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 
@@ -9,12 +10,11 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}
 pub(crate) enum TraySetupError {
     #[snafu(display("Failed to build tray icon"))]
     Build { source: tauri::Error },
-    #[snafu(display("Default window icon is not configured in tauri.conf.json"))]
-    IconNotConfigured,
 }
 
 pub(crate) fn setup(app: &AppHandle) -> Result<(), TraySetupError> {
-    let icon = app.default_window_icon().context(IconNotConfiguredError)?.clone();
+    let icon =
+        Image::from_bytes(include_bytes!("../../icons/tray-icon.png")).context(BuildError)?;
 
     let quit = PredefinedMenuItem::quit(app, Some("Quit KoDoGu")).context(BuildError)?;
     let menu = Menu::with_items(app, &[&quit]).context(BuildError)?;
