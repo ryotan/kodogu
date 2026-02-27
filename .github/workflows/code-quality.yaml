@@ -26,7 +26,9 @@ jobs:
           cache-workspace-crates: true
 
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
+        uses: taiki-e/install-action@33905240d7e6eae0f03cd84e089df3d41e9047b5 # v2
+        with:
+          tool: cargo-llvm-cov
 
       - name: Install additional problem matchers
         run: echo "::add-matcher::.github/problem-matchers.json"
