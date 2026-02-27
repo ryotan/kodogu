@@ -10,6 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "KoDoGu (Dev)",
@@ -33,7 +34,8 @@
         "skipTaskbar": true,
         "visible": false,
         "preventOverflow": true,
-        "acceptFirstMouse": true
+        "acceptFirstMouse": true,
+        "transparent": true
       }
     ],
     "security": {
