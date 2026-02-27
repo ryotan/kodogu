@@ -1,21 +1,30 @@
+use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{LazyLock, Mutex};
 
 /// Set `KODOGU_POPOVER_KEEP_OPEN=1` to prevent the popover from hiding on focus loss.
 /// Useful for inspecting the popover with DevTools.
-static KEEP_OPEN: std::sync::LazyLock<bool> =
-    std::sync::LazyLock::new(|| std::env::var("KODOGU_POPOVER_KEEP_OPEN").is_ok_and(|v| v == "1"));
+static KEEP_OPEN: LazyLock<bool> =
+    LazyLock::new(|| env::var("KODOGU_POPOVER_KEEP_OPEN").is_ok_and(|v| v == "1"));
 
 use snafu::OptionExt;
 use suzunari_error::*;
 use tauri::{
-    AppHandle, Manager, PhysicalPosition, Rect, WebviewWindow, WebviewWindowBuilder, WindowEvent,
+    AppHandle, LogicalSize, Manager, PhysicalPosition, Rect, WebviewWindow, WebviewWindowBuilder,
+    WindowEvent,
 };
 
 const POPOVER_LABEL: &str = "popover";
+const BOTTOM_MARGIN: f64 = 8.0;
+const FALLBACK_MAX_HEIGHT: f64 = 600.0;
 
-/// Tracks whether the focus-loss listener has been registered on the popover window.
+/// Tracks whether the window event listener has been registered on the popover window.
 /// Reset to `false` when the window is re-created (see `toggle_inner`'s `None` branch).
-static FOCUS_LISTENER_REGISTERED: AtomicBool = AtomicBool::new(false);
+static LISTENER_REGISTERED: AtomicBool = AtomicBool::new(false);
+
+/// Maximum logical height the popover window may occupy.
+/// Updated on show, focus, and move. Read by `resize_popover` to cap the actual size.
+static MAX_HEIGHT: Mutex<f64> = Mutex::new(FALLBACK_MAX_HEIGHT);
 
 #[suzunari_error]
 #[snafu(context(suffix(Error)))]
@@ -26,18 +35,54 @@ pub(crate) enum PopoverError {
     Tauri { source: tauri::Error },
 }
 
+/// Tauri command: JS calls this to resize the popover window.
+/// The actual height is capped at the current `MAX_HEIGHT`.
+#[tauri::command]
+pub(crate) fn resize_popover(app: AppHandle, width: f64, height: f64) {
+    if width <= 0.0 || height <= 0.0 || width.is_nan() || height.is_nan() {
+        tracing::debug!("[resize_popover] skipped: invalid dimensions ({width}, {height})");
+        return;
+    }
+    let max = *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned");
+    let capped = height.min(max);
+    tracing::debug!("[resize_popover] requested={height}, max={max}, capped={capped}");
+    if let Some(win) = app.get_webview_window(POPOVER_LABEL)
+        && let Err(e) = win.set_size(LogicalSize::new(width, capped))
+    {
+        tracing::error!("Failed to resize popover: {e}");
+    }
+}
+
 /// Initial setup for the popover window.
-/// Registers a focus-loss listener that auto-hides the popover.
+/// Registers event listeners that auto-hide the popover and track max height.
 ///
 /// Returns `()` (not `Result`) intentionally. Windows configured with `visible: false`
 /// may not exist at setup time due to Tauri's initialization order. In that case,
 /// `toggle()` lazily creates the window via `create_window` and registers the listener there.
 pub(crate) fn setup(app: &AppHandle) {
     match app.get_webview_window(POPOVER_LABEL) {
-        Some(window) => ensure_focus_listener(&window),
+        Some(window) => {
+            init_max_height(&window);
+            ensure_window_listeners(&window);
+        }
         None => tracing::warn!(
-            "popover window not found during setup — focus-loss listener was not registered"
+            "popover window not found during setup — event listeners were not registered"
         ),
+    }
+}
+
+/// Sets an initial MAX_HEIGHT from the primary monitor so that pre-render
+/// resize_popover calls are capped to a reasonable value instead of the fallback.
+/// show_at_tray will refine this with the actual window position.
+fn init_max_height(window: &WebviewWindow) {
+    if let Ok(Some(monitor)) = window.primary_monitor() {
+        let scale = monitor.scale_factor();
+        let max = monitor.size().height as f64 / scale - BOTTOM_MARGIN;
+        tracing::debug!(
+            "[init_max_height] scale={scale}, mon_h={}, max={max}",
+            monitor.size().height
+        );
+        *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned") = max;
     }
 }
 
@@ -50,10 +95,6 @@ pub(crate) fn toggle(app: &AppHandle, tray_rect: Rect) {
 }
 
 fn toggle_inner(app: &AppHandle, tray_rect: Rect) -> Result<(), PopoverError> {
-    // Tray icon events are dispatched on the main thread, so concurrent calls
-    // to toggle_inner cannot interleave. The None branch's create_window would
-    // also return Err if a same-label window already exists, providing an
-    // additional safety net.
     match app.get_webview_window(POPOVER_LABEL) {
         Some(window)
             if window
@@ -66,33 +107,71 @@ fn toggle_inner(app: &AppHandle, tray_rect: Rect) -> Result<(), PopoverError> {
             window.hide()?
         }
         Some(window) => {
-            ensure_focus_listener(&window);
+            ensure_window_listeners(&window);
             show_at_tray(&window, tray_rect)?;
         }
         None => {
-            FOCUS_LISTENER_REGISTERED.store(false, Ordering::Relaxed);
+            LISTENER_REGISTERED.store(false, Ordering::Relaxed);
             let window = create_window(app)?;
-            ensure_focus_listener(&window);
+            ensure_window_listeners(&window);
             show_at_tray(&window, tray_rect)?;
         }
     }
     Ok(())
 }
 
-/// Registers a focus-loss listener that hides the window, unless already registered.
-fn ensure_focus_listener(window: &WebviewWindow) {
-    if FOCUS_LISTENER_REGISTERED.swap(true, Ordering::Relaxed) {
+/// Registers window event listeners, unless already registered.
+/// - Focused(true): recalculate max height
+/// - Focused(false): hide popover (unless KEEP_OPEN)
+/// - Moved: recalculate max height
+fn ensure_window_listeners(window: &WebviewWindow) {
+    if LISTENER_REGISTERED.swap(true, Ordering::Relaxed) {
         return;
     }
     let w = window.clone();
-    window.on_window_event(move |event| {
-        if let WindowEvent::Focused(false) = event
-            && !*KEEP_OPEN
-            && let Err(e) = w.hide()
-        {
-            tracing::error!("Failed to hide popover on focus loss: {e}");
+    window.on_window_event(move |event| match event {
+        WindowEvent::Focused(focused) => {
+            if *focused {
+                refresh_max_height_from_position(&w);
+            } else if !*KEEP_OPEN && let Err(e) = w.hide() {
+                tracing::error!("Failed to hide popover on focus loss: {e}");
+            }
         }
+        WindowEvent::Moved(position) => {
+            refresh_max_height(&w, position);
+        }
+        _ => {}
     });
+}
+
+/// Updates `MAX_HEIGHT` from the window's current outer position.
+fn refresh_max_height_from_position(window: &WebviewWindow) {
+    match window.outer_position() {
+        Ok(pos) => refresh_max_height(window, &pos),
+        Err(e) => tracing::error!("Failed to get outer position: {e}"),
+    }
+}
+
+/// Updates `MAX_HEIGHT` based on the given window position and monitor geometry.
+/// Only touches a plain variable — no window side effects.
+fn refresh_max_height(window: &WebviewWindow, position: &PhysicalPosition<i32>) {
+    let Ok(monitor) = window.monitor_from_point(position.x as f64, position.y as f64) else {
+        return;
+    };
+    let Some(m) = monitor else { return };
+
+    let scale = m.scale_factor();
+    let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / scale;
+    let window_top = position.y as f64 / scale;
+    let max = (monitor_bottom - window_top - BOTTOM_MARGIN).max(200.0);
+
+    tracing::debug!(
+        "[refresh_max_height] physical_y={}, scale={scale}, window_top={window_top}, \
+         mon_bottom={monitor_bottom}, max={max}",
+        position.y,
+    );
+
+    *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned") = max;
 }
 
 /// Calculates window placement coordinates directly below the tray icon.
@@ -119,30 +198,44 @@ fn calculate_position(
 }
 
 /// Calculates and applies window position from the tray icon rect, then shows the window.
+/// Also refreshes MAX_HEIGHT so the first JS resize_popover call is properly capped.
 fn show_at_tray(window: &WebviewWindow, tray_rect: Rect) -> tauri::Result<()> {
     // Tauri's tray_rect uses logical coordinates. We convert to physical with
     // scale_factor 1.0 because the popover window may not yet be positioned on
     // the target monitor, making its scale_factor unreliable.
-    // HiDPI offset is tracked as Technical Debt #3.
+    // HiDPI offset is tracked as Technical Debt #12.
     let tray_pos: PhysicalPosition<i32> = tray_rect.position.to_physical(1.0);
     let tray_size: tauri::PhysicalSize<i32> = tray_rect.size.to_physical(1.0);
-    let window_width = window.outer_size()?.width as i32;
+    let window_size = window.outer_size()?;
 
-    let monitor_bounds =
-        window.monitor_from_point(tray_pos.x as f64, tray_pos.y as f64)?.map(|m| {
-            let left = m.position().x;
-            let right = left + m.size().width as i32;
-            (left, right)
-        });
+    let monitor = window.monitor_from_point(tray_pos.x as f64, tray_pos.y as f64)?;
+    let monitor_bounds = monitor.as_ref().map(|m| {
+        let left = m.position().x;
+        let right = left + m.size().width as i32;
+        (left, right)
+    });
 
     let (x, y) = calculate_position(
         tray_pos.x,
         tray_pos.y,
         tray_size.width,
         tray_size.height,
-        window_width,
+        window_size.width as i32,
         monitor_bounds,
     );
+
+    // Refresh MAX_HEIGHT from the calculated window position.
+    // y is in logical coordinates (via to_physical(1.0) — Tech Debt #3),
+    // so we convert monitor coordinates to logical for consistency.
+    if let Some(m) = &monitor {
+        let scale = m.scale_factor();
+        let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / scale;
+        let max = (monitor_bottom - y as f64 - BOTTOM_MARGIN).max(200.0);
+        tracing::debug!(
+            "[show_at_tray] scale={scale}, y={y}, mon_bottom={monitor_bottom}, max={max}",
+        );
+        *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned") = max;
+    }
 
     tracing::debug!(
         "tray rect: pos=({}, {}), size=({}, {}), window pos=({x}, {y})",

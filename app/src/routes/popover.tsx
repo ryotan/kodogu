@@ -19,16 +19,15 @@ const shell = {
 // =============================================================================
 
 const PopoverLayout = () => {
-  const {ref: containerRef, maxHeight} = useAutoResize();
+  const {ref: contentRef} = useAutoResize();
 
   return (
     <Theme appearance='dark' hasBackground={false}>
       <div
-        ref={containerRef}
         style={{
           display: 'flex',
           flexDirection: 'column',
-          maxHeight,
+          height: '100dvh',
           background: shell.surface,
           backdropFilter: 'blur(24px) saturate(180%)',
           WebkitBackdropFilter: 'blur(24px) saturate(180%)',
@@ -48,9 +47,11 @@ const PopoverLayout = () => {
           </IconButton>
         </Flex>
 
-        {/* Card list (scrolls only when exceeding maxHeight) */}
-        <div style={{overflowY: 'auto', minHeight: 0, padding: '6px 0'}}>
-          <StubCardList />
+        {/* Card list — scrolls when the native max-size constraint is active */}
+        <div style={{flex: 1, overflowY: 'auto', minHeight: 0}}>
+          <div ref={contentRef} style={{padding: '6px 0'}}>
+            <StubCardList />
+          </div>
         </div>
 
         {/* Footer */}

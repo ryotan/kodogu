@@ -1,42 +1,39 @@
-import {describe, expect, it, vi} from 'vitest';
-import {render, renderHook} from 'vitest-browser-react';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {render} from 'vitest-browser-react';
 
-vi.mock('@tauri-apps/api/window', () => ({
-  getCurrentWindow: () => ({
-    setSize: vi.fn().mockResolvedValue(undefined),
-  }),
-}));
+const mockInvoke = vi.fn().mockResolvedValue(undefined);
 
-vi.mock('@tauri-apps/api/dpi', () => ({
-  LogicalSize: class LogicalSize {
-    constructor(
-      public width: number,
-      public height: number,
-    ) {}
-  },
+beforeEach(() => {
+  mockInvoke.mockClear();
+});
+
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: (...args: unknown[]) => mockInvoke(...args),
 }));
 
 const {useAutoResize} = await import('#hooks/useAutoResize');
 
-// Test component that connects ref to real DOM
-const TestComponent = () => {
-  const {ref, maxHeight} = useAutoResize();
-  return <div data-max-height={maxHeight} data-testid='container' ref={ref} style={{height: 200}} />;
+// Simulates the popover layout: outer (viewport) > scroll area > content (ref).
+const TestComponent = ({contentHeight}: {contentHeight: number}) => {
+  const {ref} = useAutoResize();
+  return (
+    <div style={{height: 500, display: 'flex', flexDirection: 'column'}}>
+      <div style={{height: 40, flexShrink: 0}}>header</div>
+      <div style={{flex: 1, overflow: 'auto', minHeight: 0}}>
+        <div ref={ref} style={{height: contentHeight}} data-testid='content' />
+      </div>
+      <div style={{height: 40, flexShrink: 0}}>footer</div>
+    </div>
+  );
 };
 
 describe('useAutoResize', () => {
-  it('returns a ref and a positive maxHeight', async () => {
-    const {result} = await renderHook(() => useAutoResize());
+  it('calls resize_popover when content renders', async () => {
+    await render(<TestComponent contentHeight={200} />);
 
-    expect(result.current.ref).toBeDefined();
-    expect(result.current.maxHeight).toBeGreaterThan(0);
-  });
-
-  it('maxHeight is 85% of screen.availHeight', async () => {
-    const expected = Math.floor(screen.availHeight * 0.85);
-    const {result} = await renderHook(() => useAutoResize());
-
-    expect(result.current.maxHeight).toBe(expected);
+    await vi.waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('resize_popover', expect.objectContaining({height: expect.any(Number)}));
+    });
   });
 
   it('cleans up ResizeObserver on unmount', async () => {
@@ -50,7 +47,7 @@ describe('useAutoResize', () => {
     };
 
     try {
-      const result = await render(<TestComponent />);
+      const result = await render(<TestComponent contentHeight={200} />);
       await result.unmount();
       expect(disconnectSpy).toHaveBeenCalled();
     } finally {

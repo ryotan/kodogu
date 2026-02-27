@@ -10,5 +10,5 @@ body {
 /* Radix Themes paints --color-background on the .radix-themes root.
    Override it to transparent so the native window transparency is preserved. */
 .radix-themes {
-  --color-background: transparent !important;
+  --color-background: transparent;
 }
