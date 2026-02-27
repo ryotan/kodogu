@@ -22,37 +22,44 @@ export function useAutoResize(): {ref: RefObject<HTMLDivElement | null>} {
     }
 
     let lastHeight = 0;
+    let rafId = 0;
 
     const observer = new ResizeObserver(() => {
-      const contentHeight = content.offsetHeight;
-      if (contentHeight === lastHeight) {
-        return;
-      }
-      lastHeight = contentHeight;
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const contentHeight = content.offsetHeight;
+        if (contentHeight === lastHeight) {
+          return;
+        }
+        lastHeight = contentHeight;
 
-      const scrollArea = content.parentElement;
-      if (!scrollArea) {
-        return;
-      }
+        const scrollArea = content.parentElement;
+        if (!scrollArea) {
+          return;
+        }
 
-      const chromeHeight = Math.max(0, window.innerHeight - scrollArea.clientHeight);
-      const desiredHeight = contentHeight + chromeHeight;
+        const chromeHeight = Math.max(0, window.innerHeight - scrollArea.clientHeight);
+        const desiredHeight = contentHeight + chromeHeight;
 
-      console.debug('[useAutoResize]', {
-        contentHeight,
-        innerHeight: window.innerHeight,
-        scrollClientH: scrollArea.clientHeight,
-        chromeHeight,
-        desiredHeight,
-      });
+        console.debug('[useAutoResize]', {
+          contentHeight,
+          innerHeight: window.innerHeight,
+          scrollClientH: scrollArea.clientHeight,
+          chromeHeight,
+          desiredHeight,
+        });
 
-      invoke('resize_popover', {width: window.innerWidth, height: desiredHeight}).catch((e: unknown) => {
-        console.error('Failed to resize popover window', e);
+        invoke('resize_popover', {width: window.innerWidth, height: desiredHeight}).catch((e: unknown) => {
+          console.error('Failed to resize popover window', e);
+        });
       });
     });
 
     observer.observe(content);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
   }, []);
 
   return {ref};
