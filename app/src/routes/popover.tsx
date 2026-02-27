@@ -47,7 +47,7 @@ const PopoverLayout = () => {
           </IconButton>
         </Flex>
 
-        {/* Card list — scrolls when the native max-size constraint is active */}
+        {/* Card list — scrolls when Rust-side max height cap is active */}
         <div style={{flex: 1, overflowY: 'auto', minHeight: 0}}>
           <div ref={contentRef} style={{padding: '6px 0'}}>
             <StubCardList />

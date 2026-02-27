@@ -39,17 +39,20 @@ pub(crate) enum PopoverError {
 /// The actual height is capped at the current `MAX_HEIGHT`.
 #[tauri::command]
 pub(crate) fn resize_popover(app: AppHandle, width: f64, height: f64) {
-    if width <= 0.0 || height <= 0.0 || width.is_nan() || height.is_nan() {
+    if !width.is_finite() || !height.is_finite() || width <= 0.0 || height <= 0.0 {
         tracing::debug!("[resize_popover] skipped: invalid dimensions ({width}, {height})");
         return;
     }
-    let max = *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned");
+    let max = *MAX_HEIGHT.lock().unwrap_or_else(|e| e.into_inner());
     let capped = height.min(max);
     tracing::debug!("[resize_popover] requested={height}, max={max}, capped={capped}");
-    if let Some(win) = app.get_webview_window(POPOVER_LABEL)
-        && let Err(e) = win.set_size(LogicalSize::new(width, capped))
-    {
-        tracing::error!("Failed to resize popover: {e}");
+    match app.get_webview_window(POPOVER_LABEL) {
+        Some(win) => {
+            if let Err(e) = win.set_size(LogicalSize::new(width, capped)) {
+                tracing::error!("Failed to resize popover: {e}");
+            }
+        }
+        None => tracing::debug!("[resize_popover] popover window not found, skipping resize"),
     }
 }
 
@@ -82,7 +85,7 @@ fn init_max_height(window: &WebviewWindow) {
             "[init_max_height] scale={scale}, mon_h={}, max={max}",
             monitor.size().height
         );
-        *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned") = max;
+        *MAX_HEIGHT.lock().unwrap_or_else(|e| e.into_inner()) = max;
     }
 }
 
@@ -155,23 +158,29 @@ fn refresh_max_height_from_position(window: &WebviewWindow) {
 /// Updates `MAX_HEIGHT` based on the given window position and monitor geometry.
 /// Only touches a plain variable — no window side effects.
 fn refresh_max_height(window: &WebviewWindow, position: &PhysicalPosition<i32>) {
-    let Ok(monitor) = window.monitor_from_point(position.x as f64, position.y as f64) else {
+    // monitor_from_point expects logical coordinates, so convert physical → logical
+    // using the window's scale factor.
+    let scale = window.scale_factor().unwrap_or(1.0);
+    let logical_x = position.x as f64 / scale;
+    let logical_y = position.y as f64 / scale;
+
+    let Ok(monitor) = window.monitor_from_point(logical_x, logical_y) else {
         return;
     };
     let Some(m) = monitor else { return };
 
-    let scale = m.scale_factor();
-    let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / scale;
-    let window_top = position.y as f64 / scale;
+    let mon_scale = m.scale_factor();
+    let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / mon_scale;
+    let window_top = position.y as f64 / mon_scale;
     let max = (monitor_bottom - window_top - BOTTOM_MARGIN).max(200.0);
 
     tracing::debug!(
-        "[refresh_max_height] physical_y={}, scale={scale}, window_top={window_top}, \
+        "[refresh_max_height] physical_y={}, scale={mon_scale}, window_top={window_top}, \
          mon_bottom={monitor_bottom}, max={max}",
         position.y,
     );
 
-    *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned") = max;
+    *MAX_HEIGHT.lock().unwrap_or_else(|e| e.into_inner()) = max;
 }
 
 /// Calculates window placement coordinates directly below the tray icon.
@@ -238,7 +247,7 @@ fn show_at_tray(window: &WebviewWindow, tray_rect: Rect) -> tauri::Result<()> {
         let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / s;
         let max = (monitor_bottom - y as f64 - BOTTOM_MARGIN).max(200.0);
         tracing::debug!("[show_at_tray] scale={s}, y={y}, mon_bottom={monitor_bottom}, max={max}",);
-        *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned") = max;
+        *MAX_HEIGHT.lock().unwrap_or_else(|e| e.into_inner()) = max;
     }
 
     tracing::debug!(
