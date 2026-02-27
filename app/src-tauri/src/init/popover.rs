@@ -10,8 +10,8 @@ static KEEP_OPEN: LazyLock<bool> =
 use snafu::OptionExt;
 use suzunari_error::*;
 use tauri::{
-    AppHandle, LogicalSize, Manager, PhysicalPosition, Rect, WebviewWindow, WebviewWindowBuilder,
-    WindowEvent,
+    AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, Rect, WebviewWindow,
+    WebviewWindowBuilder, WindowEvent,
 };
 
 const POPOVER_LABEL: &str = "popover";
@@ -199,41 +199,45 @@ fn calculate_position(
 
 /// Calculates and applies window position from the tray icon rect, then shows the window.
 /// Also refreshes MAX_HEIGHT so the first JS resize_popover call is properly capped.
+///
+/// All position calculations use logical coordinates (CSS px).
+/// The tray icon resides on the primary monitor's menu bar, so we use
+/// that monitor's scale factor to normalize physical values to logical.
 fn show_at_tray(window: &WebviewWindow, tray_rect: Rect) -> tauri::Result<()> {
-    // Tauri's tray_rect uses logical coordinates. We convert to physical with
-    // scale_factor 1.0 because the popover window may not yet be positioned on
-    // the target monitor, making its scale_factor unreliable.
-    // HiDPI offset is tracked as Technical Debt #12.
-    let tray_pos: PhysicalPosition<i32> = tray_rect.position.to_physical(1.0);
-    let tray_size: tauri::PhysicalSize<i32> = tray_rect.size.to_physical(1.0);
-    let window_size = window.outer_size()?;
+    let scale = window.primary_monitor()?.map(|m| m.scale_factor()).unwrap_or(1.0);
 
-    let monitor = window.monitor_from_point(tray_pos.x as f64, tray_pos.y as f64)?;
+    // tray_rect → logical
+    let tray_pos = tray_rect.position.to_logical::<f64>(scale);
+    let tray_size = tray_rect.size.to_logical::<f64>(scale);
+
+    // window size: physical → logical
+    let window_size = window.outer_size()?;
+    let window_width = (window_size.width as f64 / scale) as i32;
+
+    // monitor bounds: physical → logical
+    let monitor = window.monitor_from_point(tray_pos.x, tray_pos.y)?;
     let monitor_bounds = monitor.as_ref().map(|m| {
-        let left = m.position().x;
-        let right = left + m.size().width as i32;
+        let s = m.scale_factor();
+        let left = (m.position().x as f64 / s) as i32;
+        let right = left + (m.size().width as f64 / s) as i32;
         (left, right)
     });
 
     let (x, y) = calculate_position(
-        tray_pos.x,
-        tray_pos.y,
-        tray_size.width,
-        tray_size.height,
-        window_size.width as i32,
+        tray_pos.x as i32,
+        tray_pos.y as i32,
+        tray_size.width as i32,
+        tray_size.height as i32,
+        window_width,
         monitor_bounds,
     );
 
-    // Refresh MAX_HEIGHT from the calculated window position.
-    // y is in logical coordinates (via to_physical(1.0) — Tech Debt #3),
-    // so we convert monitor coordinates to logical for consistency.
+    // Refresh MAX_HEIGHT (logical px, consistent with resize_popover).
     if let Some(m) = &monitor {
-        let scale = m.scale_factor();
-        let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / scale;
+        let s = m.scale_factor();
+        let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / s;
         let max = (monitor_bottom - y as f64 - BOTTOM_MARGIN).max(200.0);
-        tracing::debug!(
-            "[show_at_tray] scale={scale}, y={y}, mon_bottom={monitor_bottom}, max={max}",
-        );
+        tracing::debug!("[show_at_tray] scale={s}, y={y}, mon_bottom={monitor_bottom}, max={max}",);
         *MAX_HEIGHT.lock().expect("MAX_HEIGHT poisoned") = max;
     }
 
@@ -245,7 +249,7 @@ fn show_at_tray(window: &WebviewWindow, tray_rect: Rect) -> tauri::Result<()> {
         tray_size.height,
     );
 
-    window.set_position(PhysicalPosition::new(x, y))?;
+    window.set_position(LogicalPosition::new(x, y))?;
     window.show()?;
     window.set_focus()
 }
