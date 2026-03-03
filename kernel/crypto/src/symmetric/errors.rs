@@ -14,42 +14,49 @@ pub enum SymmetricCiphers {
 
 /// Symmetric cipher error.
 #[suzunari_error]
-#[snafu(visibility(pub), context(suffix(Error)))]
+#[suzu(visibility(pub), context(suffix(Error)))]
 pub enum SymmetricCipherError {
     /// Invalid key length
-    #[snafu(display("{cipher:?}: invalid key length {actual} bytes (expected {expected} bytes)"))]
+    #[suzu(display("{cipher:?}: invalid key length {actual} bytes (expected {expected} bytes)"))]
     InvalidKeyLength {
         cipher: SymmetricCiphers,
         expected: usize,
         actual: usize,
+        #[suzu(from)]
         source: TryFromSliceError,
     },
 
     /// Invalid IV length
-    #[snafu(display("{cipher:?}: invalid IV length {actual} bytes (expected {expected} bytes)"))]
+    #[suzu(display("{cipher:?}: invalid IV length {actual} bytes (expected {expected} bytes)"))]
     InvalidIvLength {
         cipher: SymmetricCiphers,
         expected: usize,
         actual: usize,
+        #[suzu(from)]
         source: TryFromSliceError,
     },
 
     /// Invalid nonce length
-    #[snafu(display(
+    #[suzu(display(
         "{cipher:?}: invalid nonce length {actual} bytes (expected {expected} bytes)"
     ))]
     InvalidNonceLength {
         cipher: SymmetricCiphers,
         expected: usize,
         actual: usize,
+        #[suzu(from)]
         source: TryFromSliceError,
     },
 
     /// Padding error during encryption or decryption
-    #[snafu(display("{cipher:?}: padding error"))]
-    Padding { cipher: SymmetricCiphers, source: UnpadError },
+    #[suzu(display("{cipher:?}: padding error"))]
+    Padding {
+        cipher: SymmetricCiphers,
+        #[suzu(from)]
+        source: UnpadError,
+    },
 
     /// Ciphertext is too short for decryption
-    #[snafu(display("{cipher:?}: ciphertext too short ({size} bytes)"))]
+    #[suzu(display("{cipher:?}: ciphertext too short ({size} bytes)"))]
     CiphertextTooShort { cipher: SymmetricCiphers, size: usize },
 }

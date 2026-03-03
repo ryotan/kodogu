@@ -41,9 +41,8 @@ Types: `feature/`, `fix/`, `hotfix/`, `release/`, `chore/`
 
 ## Error Handling Rules
 
-- **Always use `#[suzunari_error]`** for defining error types. Do NOT define errors with raw `#[derive(Snafu)]` alone or
-  hand-written `impl Error`.
-- **Always propagate errors with `?` and `.context()`** (`snafu::ResultExt`). Do NOT use `unwrap()`, `expect()`,
+- **Always use `#[suzunari_error]`** for defining error types. Do NOT define errors with hand-written `impl Error`.
+- **Always propagate errors with `?` and `.context()`** (`suzunari_error::ResultExt`). Do NOT use `unwrap()`, `expect()`,
   `.build()`, or `.fail()` in production code.
 - **Test code**: `unwrap()` is acceptable. But prefer `.context()` propagation even in tests when it improves clarity.
 

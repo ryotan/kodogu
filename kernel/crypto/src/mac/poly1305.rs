@@ -3,8 +3,8 @@ use super::traits::{Mac, MacGenerator, MacVerifier};
 use super::types::{MacTag, Poly1305Key};
 use poly1305::Poly1305 as Poly1305Impl;
 use poly1305::universal_hash::KeyInit;
-use snafu::ResultExt;
 use subtle::ConstantTimeEq;
+use suzunari_error::ResultExt;
 
 // Poly1305 固定サイズ
 const POLY1305_TAG_SIZE: usize = 16;

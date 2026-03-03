@@ -21,7 +21,6 @@ clap = { workspace = true, features = ["derive", "env", "unicode"] }
 confy = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-snafu = { workspace = true }
 suzunari-error = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 validator = { workspace = true, features = ["derive"] }

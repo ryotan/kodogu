@@ -8,7 +8,7 @@ use sha2::{
     Digest, Sha256, Sha384,
     digest::{FixedOutputReset, OutputSizeUser},
 };
-use snafu::{ResultExt, ensure};
+use suzunari_error::{ResultExt, ensure};
 use zeroize::Zeroizing;
 
 // ========================================

@@ -3,7 +3,7 @@ use super::errors::{
 };
 use super::types::AuthenticationTag;
 use crate::Nonce;
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 /// Validates key length and converts to a fixed-size array.
 pub(crate) fn validate_key_length<const N: usize>(

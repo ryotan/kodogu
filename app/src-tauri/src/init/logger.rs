@@ -5,14 +5,14 @@ use tracing::Level;
 use tracing_subscriber::fmt::time::OffsetTime;
 
 #[suzunari_error]
-#[snafu(context(suffix(Error)))]
+#[suzu(context(suffix(Error)))]
 pub(crate) enum LoggerSetupError {
     #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(dead_code))]
-    #[snafu(display("Log directory was not found"))]
+    #[suzu(display("Log directory was not found"))]
     LogDirectoryNotFound { source: tauri::Error },
 
     #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(dead_code))]
-    #[snafu(display("Failed to create the log file"))]
+    #[suzu(display("Failed to create the log file"))]
     LogFileCreation { source: std::io::Error },
 }
 
@@ -27,7 +27,6 @@ pub(crate) fn setup(
 
     #[cfg(all(desktop, not(debug_assertions)))]
     let writer = {
-        use snafu::ResultExt;
         use std::{fs::File, sync::Mutex};
         use tauri::Manager;
         let log_file = File::create(

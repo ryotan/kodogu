@@ -2,7 +2,7 @@ use super::errors::{Argon2InvalidParamsError, KdfError};
 use super::traits::PasswordDeriver;
 use super::types::{Argon2Params, DerivedKey, OutputLength};
 use argon2::{Algorithm, Argon2 as Argon2Impl, Params as Argon2InternalParams, Version};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 use zeroize::Zeroizing;
 
 /// Argon2id key derivation function (RFC 9106).

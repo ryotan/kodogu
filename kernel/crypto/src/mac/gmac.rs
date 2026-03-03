@@ -4,7 +4,7 @@ use super::types::MacTag;
 use crate::{Aes256GcmKey, Nonce};
 use aes_gcm::aead::Aead;
 use aes_gcm::{Aes256Gcm, KeyInit};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 // GMAC 固定サイズ
 const GMAC_NONCE_SIZE: usize = 12;

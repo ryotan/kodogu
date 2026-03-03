@@ -195,7 +195,7 @@ kernel/crypto/src/
 
 ### その他
 
-- `snafu` + `suzunari-error` - エラーハンドリング
+- `suzunari-error` - エラーハンドリング
 - `zeroize` - メモリ安全性
 - `rand` - 暗号学的乱数生成
 

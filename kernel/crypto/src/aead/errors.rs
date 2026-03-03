@@ -14,42 +14,47 @@ pub enum AeadCiphers {
 
 /// AEAD cipher error.
 #[suzunari_error]
-#[snafu(visibility(pub), context(suffix(Error)))]
+#[suzu(visibility(pub), context(suffix(Error)))]
 pub enum AeadError {
     /// Invalid key length
-    #[snafu(display("{cipher:?}: invalid key length {actual} bytes (expected {expected} bytes)"))]
+    #[suzu(display("{cipher:?}: invalid key length {actual} bytes (expected {expected} bytes)"))]
     InvalidKeyLength {
         cipher: AeadCiphers,
         expected: usize,
         actual: usize,
+        #[suzu(from)]
         source: TryFromSliceError,
     },
 
     /// Invalid nonce length
-    #[snafu(display(
-        "{cipher:?}: invalid nonce length {actual} bytes (expected {expected} bytes)"
-    ))]
+    #[suzu(display("{cipher:?}: invalid nonce length {actual} bytes (expected {expected} bytes)"))]
     InvalidNonceLength {
         cipher: AeadCiphers,
         expected: usize,
         actual: usize,
+        #[suzu(from)]
         source: TryFromSliceError,
     },
 
     /// Authentication failed during decryption
-    #[snafu(display("{cipher:?}: authentication failed"))]
-    AuthenticationFailed { cipher: AeadCiphers, source: aead::Error },
+    #[suzu(display("{cipher:?}: authentication failed"))]
+    AuthenticationFailed {
+        cipher: AeadCiphers,
+        #[suzu(from)]
+        source: aead::Error,
+    },
 
     /// Invalid authentication tag length
-    #[snafu(display("{cipher:?}: invalid tag length {actual} bytes (expected {expected} bytes)"))]
+    #[suzu(display("{cipher:?}: invalid tag length {actual} bytes (expected {expected} bytes)"))]
     InvalidTagLength {
         cipher: AeadCiphers,
         expected: usize,
         actual: usize,
+        #[suzu(from)]
         source: TryFromSliceError,
     },
 
     /// Ciphertext too short for decryption
-    #[snafu(display("{cipher:?}: ciphertext too short ({size} bytes, minimum {min_size} bytes)"))]
+    #[suzu(display("{cipher:?}: ciphertext too short ({size} bytes, minimum {min_size} bytes)"))]
     CiphertextTooShort { cipher: AeadCiphers, size: usize, min_size: usize },
 }

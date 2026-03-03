@@ -1,14 +1,13 @@
-use snafu::ResultExt;
 use suzunari_error::*;
 use tauri::{AppHandle, Manager};
 use tracing::info;
 
 #[suzunari_error]
-#[snafu(context(suffix(Error)))]
+#[suzu(context(suffix(Error)))]
 pub(crate) enum StrongholdSetupError {
-    #[snafu(display("Local data directory was not found"))]
+    #[suzu(display("Local data directory was not found"))]
     LocalDataDirNotFound { source: tauri::Error },
-    #[snafu(display("Failed to initialize stronghold plugin"))]
+    #[suzu(display("Failed to initialize stronghold plugin"))]
     PluginInitialization { source: tauri::Error },
 }
 

@@ -2,7 +2,7 @@ use super::errors::{KdfError, ScryptDerivationFailedError, ScryptInvalidParamsEr
 use super::traits::PasswordDeriver;
 use super::types::{DerivedKey, OutputLength, ScryptParams};
 use scrypt::{Params as ScryptInternalParams, scrypt as scrypt_fn};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 use zeroize::Zeroizing;
 
 /// Scrypt key derivation function (RFC 7914).

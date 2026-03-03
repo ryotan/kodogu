@@ -8,7 +8,6 @@ use std::time::Instant;
 static KEEP_OPEN: LazyLock<bool> =
     LazyLock::new(|| env::var("KODOGU_POPOVER_KEEP_OPEN").is_ok_and(|v| v == "1"));
 
-use snafu::OptionExt;
 use suzunari_error::*;
 use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, Rect, WebviewWindow,
@@ -35,11 +34,11 @@ static LAST_TOGGLE_MS: AtomicU64 = AtomicU64::new(0);
 const TOGGLE_DEBOUNCE_MS: u64 = 300;
 
 #[suzunari_error]
-#[snafu(context(suffix(Error)))]
+#[suzu(context(suffix(Error)))]
 pub(crate) enum PopoverError {
-    #[snafu(display("Popover window config not found in tauri.conf.json (label: {label})"))]
+    #[suzu(display("Popover window config not found in tauri.conf.json (label: {label})"))]
     ConfigNotFound { label: String },
-    #[snafu(transparent)]
+    #[suzu(transparent)]
     Tauri { source: tauri::Error },
 }
 

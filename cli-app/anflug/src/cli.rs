@@ -1,17 +1,17 @@
 use clap::{Parser, ValueEnum};
-use snafu::ensure;
 use std::path::PathBuf;
 use suzunari_error::*;
 
 #[suzunari_error]
+#[suzu(context(suffix(Error)))]
 pub enum CliError {
-    #[snafu(display("Either provide a message as argument or use --input-file"))]
+    #[suzu(display("Either provide a message as argument or use --input-file"))]
     NoMessageOrInput,
-    #[snafu(display("Cannot specify both message and --input-file"))]
+    #[suzu(display("Cannot specify both message and --input-file"))]
     BothMessageAndInput,
-    #[snafu(display("Cannot use --append-mode with --pattern"))]
+    #[suzu(display("Cannot use --append-mode with --pattern"))]
     AppendModeWithPattern,
-    #[snafu(display("--insert-before requires --pattern"))]
+    #[suzu(display("--insert-before requires --pattern"))]
     InsertBeforeWithoutPattern,
 }
 
@@ -76,13 +76,13 @@ pub enum MatchMode {
 
 impl Cli {
     pub fn validate(&self) -> Result<(), CliError> {
-        ensure!(!(self.message.is_none() && self.input_file.is_none()), NoMessageOrInputSnafu);
+        ensure!(!(self.message.is_none() && self.input_file.is_none()), NoMessageOrInputError);
 
-        ensure!(!(self.message.is_some() && self.input_file.is_some()), BothMessageAndInputSnafu);
+        ensure!(!(self.message.is_some() && self.input_file.is_some()), BothMessageAndInputError);
 
-        ensure!(!(self.append_mode && self.pattern.is_some()), AppendModeWithPatternSnafu);
+        ensure!(!(self.append_mode && self.pattern.is_some()), AppendModeWithPatternError);
 
-        ensure!(!(self.insert_before && self.pattern.is_none()), InsertBeforeWithoutPatternSnafu);
+        ensure!(!(self.insert_before && self.pattern.is_none()), InsertBeforeWithoutPatternError);
 
         Ok(())
     }

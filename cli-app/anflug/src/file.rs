@@ -1,5 +1,4 @@
 use regex::Regex;
-use snafu::ResultExt;
 use std::fs;
 use std::path::Path;
 use suzunari_error::*;
@@ -8,26 +7,27 @@ use crate::cli::MatchMode;
 use crate::config::Config;
 
 #[suzunari_error]
+#[suzu(context(suffix(Error)))]
 pub enum FileError {
-    #[snafu(display("Failed to read file: {}", path.display()))]
+    #[suzu(display("Failed to read file: {}", path.display()))]
     ReadFile { source: std::io::Error, path: std::path::PathBuf },
-    #[snafu(display("Failed to read input file: {}", path.display()))]
+    #[suzu(display("Failed to read input file: {}", path.display()))]
     ReadInputFile { source: std::io::Error, path: std::path::PathBuf },
-    #[snafu(display("Failed to write to file: {}", path.display()))]
+    #[suzu(display("Failed to write to file: {}", path.display()))]
     WriteFile { source: std::io::Error, path: std::path::PathBuf },
-    #[snafu(display("Failed to create backup: {}", path.display()))]
+    #[suzu(display("Failed to create backup: {}", path.display()))]
     CreateBackup { source: std::io::Error, path: std::path::PathBuf },
-    #[snafu(display("Failed to create directory: {}", path.display()))]
+    #[suzu(display("Failed to create directory: {}", path.display()))]
     CreateDirectory { source: std::io::Error, path: std::path::PathBuf },
-    #[snafu(display("Invalid regex pattern: {}", pattern))]
+    #[suzu(display("Invalid regex pattern: {}", pattern))]
     InvalidRegex { source: regex::Error, pattern: String },
-    #[snafu(display("Directory does not exist: {}", path.display()))]
+    #[suzu(display("Directory does not exist: {}", path.display()))]
     DirectoryNotExists { path: std::path::PathBuf },
-    #[snafu(display("Pattern not found"))]
+    #[suzu(display("Pattern not found"))]
     PatternNotFound,
-    #[snafu(display("Invalid no_directory setting: {}", setting))]
+    #[suzu(display("Invalid no_directory setting: {}", setting))]
     InvalidNoDirectorySetting { setting: String },
-    #[snafu(display("Invalid no_match setting: {}", setting))]
+    #[suzu(display("Invalid no_match setting: {}", setting))]
     InvalidNoMatchSetting { setting: String },
 }
 
@@ -173,7 +173,7 @@ impl FileProcessor {
         // Read existing file content or create empty if doesn't exist
         let existing_content = if file_path.exists() {
             fs::read_to_string(file_path)
-                .context(ReadFileSnafu { path: file_path.to_path_buf() })?
+                .context(ReadFileError { path: file_path.to_path_buf() })?
         } else {
             self.ensure_parent_directory(file_path)?;
             String::new()
@@ -204,7 +204,7 @@ impl FileProcessor {
 
     /// Read content from an input file
     pub fn read_input_file(&self, path: &Path) -> Result<String, FileError> {
-        fs::read_to_string(path).context(ReadInputFileSnafu { path: path.to_path_buf() })
+        fs::read_to_string(path).context(ReadInputFileError { path: path.to_path_buf() })
     }
 
     /// Append content to existing content with proper newline handling
@@ -228,14 +228,14 @@ impl FileProcessor {
 
     /// Write content to file
     fn write_file(&self, file_path: &Path, content: &str) -> Result<(), FileError> {
-        fs::write(file_path, content).context(WriteFileSnafu { path: file_path.to_path_buf() })
+        fs::write(file_path, content).context(WriteFileError { path: file_path.to_path_buf() })
     }
 
     /// Create a backup of the file
     fn create_backup(&self, file_path: &Path) -> Result<(), FileError> {
         let backup_path = self.get_backup_path(file_path);
         fs::copy(file_path, &backup_path)
-            .context(CreateBackupSnafu { path: backup_path.clone() })?;
+            .context(CreateBackupError { path: backup_path.clone() })?;
         Ok(())
     }
 
@@ -277,13 +277,13 @@ impl FileProcessor {
         match action {
             "create" => {
                 fs::create_dir_all(parent)
-                    .context(CreateDirectorySnafu { path: parent.to_path_buf() })?;
+                    .context(CreateDirectoryError { path: parent.to_path_buf() })?;
             }
             "error" => {
-                return DirectoryNotExistsSnafu { path: parent.to_path_buf() }.fail();
+                return DirectoryNotExistsError { path: parent.to_path_buf() }.fail();
             }
             _ => {
-                return InvalidNoDirectorySettingSnafu { setting: action.to_string() }.fail();
+                return InvalidNoDirectorySettingError { setting: action.to_string() }.fail();
             }
         }
         Ok(())
@@ -320,7 +320,7 @@ impl FileProcessor {
 
     /// Compile regex pattern
     fn compile_regex(&self, pattern: &str) -> Result<Regex, FileError> {
-        Regex::new(pattern).context(InvalidRegexSnafu { pattern: pattern.to_string() })
+        Regex::new(pattern).context(InvalidRegexError { pattern: pattern.to_string() })
     }
 
     /// Split content preserving line endings
@@ -362,8 +362,8 @@ impl FileProcessor {
 
         match no_match_action.as_str() {
             "append_end" => Ok(self.append_content(existing_content, new_content)),
-            "error" => PatternNotFoundSnafu.fail(),
-            _ => InvalidNoMatchSettingSnafu { setting: no_match_action }.fail(),
+            "error" => PatternNotFoundError.fail(),
+            _ => InvalidNoMatchSettingError { setting: no_match_action }.fail(),
         }
     }
 

@@ -45,7 +45,7 @@ use crate::{
     InvalidCharacterSetError,
 };
 use bs58::Alphabet;
-use snafu::{ResultExt, ensure};
+use suzunari_error::{ResultExt, ensure};
 
 /// Base58 codec using Bitcoin alphabet.
 ///

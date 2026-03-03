@@ -1,4 +1,3 @@
-use snafu::ResultExt;
 use suzunari_error::*;
 use tauri::AppHandle;
 use tauri::image::Image;
@@ -6,9 +5,9 @@ use tauri::menu::{Menu, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 
 #[suzunari_error]
-#[snafu(context(suffix(Error)))]
+#[suzu(context(suffix(Error)))]
 pub(crate) enum TraySetupError {
-    #[snafu(display("Failed to build tray icon"))]
+    #[suzu(display("Failed to build tray icon"))]
     Build { source: tauri::Error },
 }
 

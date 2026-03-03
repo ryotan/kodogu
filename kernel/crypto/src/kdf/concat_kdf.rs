@@ -2,7 +2,7 @@ use super::errors::{ConcatKdfDerivationFailedError, KdfAlgorithm, KdfError};
 use super::traits::KeyDeriver;
 use super::types::{DerivedKey, OutputLength};
 use sha2::{Sha256, Sha384};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 use zeroize::Zeroizing;
 
 // ========================================

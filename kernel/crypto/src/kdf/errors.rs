@@ -40,52 +40,64 @@ impl fmt::Display for KdfAlgorithm {
 ///
 /// Input validation errors for ANSI X9.63 KDF.
 #[suzunari_error]
-#[snafu(visibility(pub(crate)), context(suffix(Error)))]
+#[suzu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum X963KdfError {
     /// Secret is empty.
-    #[snafu(display("secret has zero length"))]
+    #[suzu(display("secret has zero length"))]
     NoSecret,
     /// Output buffer is empty.
-    #[snafu(display("output has zero length"))]
+    #[suzu(display("output has zero length"))]
     NoOutput,
     /// Input (secret + shared_info) is too large.
-    #[snafu(display("input is too big"))]
+    #[suzu(display("input is too big"))]
     InputOverflow,
     /// Requested output length is too large.
-    #[snafu(display("requested key length is too big"))]
+    #[suzu(display("requested key length is too big"))]
     CounterOverflow,
 }
 
 /// KDF operation error.
 #[suzunari_error]
-#[snafu(visibility(pub), context(suffix(Error)))]
+#[suzu(visibility(pub), context(suffix(Error)))]
 pub enum KdfError {
     /// HKDF output length exceeds algorithm maximum (255 * HashLen).
     ///
     /// SHA-256: max 8160 bytes, SHA-384: max 12240 bytes.
-    #[snafu(display(
+    #[suzu(display(
         "{algorithm}: output length {length} bytes exceeds algorithm maximum (255 * hash length)"
     ))]
-    HkdfOutputTooLong { algorithm: KdfAlgorithm, length: usize, source: hkdf::InvalidLength },
+    HkdfOutputTooLong {
+        algorithm: KdfAlgorithm,
+        length: usize,
+        #[suzu(from)]
+        source: hkdf::InvalidLength,
+    },
 
     /// Argon2id invalid parameters (includes salt/password/output validation).
-    #[snafu(display("Argon2id: invalid parameters: {source}"))]
-    Argon2InvalidParams { source: argon2::Error },
+    #[suzu(display("Argon2id: invalid parameters: {source}"))]
+    Argon2InvalidParams {
+        #[suzu(from)]
+        source: argon2::Error,
+    },
 
     /// Scrypt invalid parameters (invalid log_n / r / p combination, etc.).
-    #[snafu(display("Scrypt: invalid parameters: {source}"))]
+    #[suzu(display("Scrypt: invalid parameters: {source}"))]
     ScryptInvalidParams { source: ScryptInvalidParams },
 
     /// Scrypt key derivation failed (output length exceeded).
-    #[snafu(display("Scrypt: key derivation failed: {source}"))]
+    #[suzu(display("Scrypt: key derivation failed: {source}"))]
     ScryptDerivationFailed { source: ScryptInvalidOutputLen },
 
     /// ConcatKDF derivation failed (empty input or output length exceeded).
-    #[snafu(display("{algorithm}: ConcatKDF derivation failed: {source}"))]
-    ConcatKdfDerivationFailed { algorithm: KdfAlgorithm, source: concat_kdf::Error },
+    #[suzu(display("{algorithm}: ConcatKDF derivation failed: {source}"))]
+    ConcatKdfDerivationFailed {
+        algorithm: KdfAlgorithm,
+        #[suzu(from)]
+        source: concat_kdf::Error,
+    },
 
     /// X963KDF derivation failed (empty input or output length exceeded).
-    #[snafu(display("{algorithm}: X963KDF derivation failed: {source}"))]
+    #[suzu(display("{algorithm}: X963KDF derivation failed: {source}"))]
     X963KdfDerivationFailed { algorithm: KdfAlgorithm, source: X963KdfError },
 
     /// bcrypt-pbkdf derivation failed (invalid parameters or output length exceeded).
@@ -93,14 +105,17 @@ pub enum KdfError {
     /// Note: upstream `bcrypt_pbkdf::Error` distinguishes `InvalidRounds` / `InvalidParamLen` /
     /// `InvalidOutputLen`, but our `BcryptPbkdfParams` and zero-length guard already prevent
     /// these, so a single variant suffices.
-    #[snafu(display("bcrypt-pbkdf: derivation failed: {source}"))]
-    BcryptPbkdfDerivationFailed { source: bcrypt_pbkdf::Error },
+    #[suzu(display("bcrypt-pbkdf: derivation failed: {source}"))]
+    BcryptPbkdfDerivationFailed {
+        #[suzu(from)]
+        source: bcrypt_pbkdf::Error,
+    },
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use snafu::ensure;
+    use suzunari_error::ensure;
 
     #[test]
     fn test_kdf_algorithms_display() {

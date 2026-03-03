@@ -29,7 +29,6 @@ tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-http = { workspace = true }
 tauri-plugin-stronghold = { workspace = true }
-snafu = { workspace = true }
 suzunari-error = { workspace = true }
 time = { workspace = true, features = ["macros", "serde-human-readable"] }
 tracing = { workspace = true }

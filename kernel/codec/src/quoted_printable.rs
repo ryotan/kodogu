@@ -31,7 +31,7 @@
 
 use crate::{BinaryCodec, BinaryCodecError, QuotedPrintableDecodeError};
 use quoted_printable::ParseMode;
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 /// Quoted-Printable codec with robust (lenient) parsing
 ///
@@ -149,7 +149,7 @@ pub enum QuotedPrintable {
 ///
 ///     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
 ///         // Custom implementation
-///         use snafu::ResultExt;
+///         use suzunari_error::ResultExt;
 ///         use codec::QuotedPrintableDecodeError;
 ///         quoted_printable::decode(text.as_bytes(), quoted_printable::ParseMode::Robust)
 ///             .context(QuotedPrintableDecodeError)
