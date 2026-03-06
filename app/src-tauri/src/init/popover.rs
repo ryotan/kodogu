@@ -1,7 +1,7 @@
 use std::env;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 /// Set `KODOGU_POPOVER_KEEP_OPEN=1` to prevent the popover from hiding on focus loss.
 /// Useful for inspecting the popover with DevTools.
@@ -26,12 +26,11 @@ static LISTENER_REGISTERED: AtomicBool = AtomicBool::new(false);
 /// Updated on show, focus, and move. Read by `resize_popover` to cap the actual size.
 static MAX_HEIGHT: Mutex<f64> = Mutex::new(FALLBACK_MAX_HEIGHT);
 
-/// Monotonic epoch for lock-free toggle debounce.
-static TOGGLE_EPOCH: LazyLock<Instant> = LazyLock::new(Instant::now);
-/// Elapsed milliseconds since TOGGLE_EPOCH of the last accepted toggle call.
-static LAST_TOGGLE_MS: AtomicU64 = AtomicU64::new(0);
+/// Timestamp of the last accepted toggle call.
+/// `None` = never toggled (first call always passes through).
+static LAST_TOGGLE: Mutex<Option<Instant>> = Mutex::new(None);
 /// Minimum interval between accepted toggle calls (prevents double-click race).
-const TOGGLE_DEBOUNCE_MS: u64 = 300;
+const TOGGLE_DEBOUNCE: Duration = Duration::from_millis(300);
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
@@ -101,12 +100,20 @@ fn init_max_height(window: &WebviewWindow) {
 ///
 /// Debounces rapid successive calls (e.g. macOS double-click on tray icon)
 /// to prevent race conditions with window creation and visibility toggling.
+/// The first call always passes through; subsequent calls within TOGGLE_DEBOUNCE
+/// are suppressed.
 pub(crate) fn toggle(app: &AppHandle, tray_rect: Rect) {
-    let now_ms = TOGGLE_EPOCH.elapsed().as_millis() as u64;
-    let prev_ms = LAST_TOGGLE_MS.swap(now_ms, Ordering::Relaxed);
-    if now_ms.saturating_sub(prev_ms) < TOGGLE_DEBOUNCE_MS {
-        tracing::debug!("[toggle] debounced (interval={}ms)", now_ms.saturating_sub(prev_ms));
-        return;
+    let now = Instant::now();
+    {
+        let mut last = LAST_TOGGLE.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(prev) = *last {
+            let elapsed = now.duration_since(prev);
+            if elapsed < TOGGLE_DEBOUNCE {
+                tracing::debug!("[toggle] debounced ({}ms since last)", elapsed.as_millis());
+                return;
+            }
+        }
+        *last = Some(now);
     }
 
     if let Err(e) = toggle_inner(app, tray_rect) {
