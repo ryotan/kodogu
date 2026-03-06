@@ -42,7 +42,6 @@
     "@tauri-apps/plugin-deep-link": "catalog:default",
     "@tauri-apps/plugin-http": "catalog:default",
     "@tauri-apps/plugin-opener": "catalog:default",
-    "@tauri-apps/plugin-stronghold": "catalog:default",
     "@tauri-apps/plugin-window-state": "catalog:default",
     "arktype": "catalog:default",
     "immer": "catalog:default",

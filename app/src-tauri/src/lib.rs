@@ -14,7 +14,6 @@ pub fn run() {
         .plugin(tauri_plugin_window_state::Builder::new().with_denylist(&["popover"]).build())
         .setup(|app| {
             init::logger::setup(app.handle())?;
-            init::stronghold::setup(app.handle())?;
             init::deep_link::setup(app.handle())?;
             #[cfg(desktop)]
             {
