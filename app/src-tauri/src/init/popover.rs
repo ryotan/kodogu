@@ -116,7 +116,8 @@ pub(crate) fn setup<R: Runtime>(app: &AppHandle<R>) {
 fn init_max_height<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>) {
     if let Ok(Some(monitor)) = window.primary_monitor() {
         let scale = monitor.scale_factor();
-        let max = monitor.size().height as f64 / scale - BOTTOM_MARGIN;
+        let mon_size = monitor.size().to_logical::<f64>(scale);
+        let max = mon_size.height - BOTTOM_MARGIN;
         tracing::trace!(
             "[init_max_height] scale={scale}, mon_h={}, max={max}",
             monitor.size().height
@@ -231,17 +232,18 @@ fn refresh_max_height<R: Runtime>(
     // monitor_from_point expects logical coordinates, so convert physical → logical
     // using the window's scale factor.
     let scale = window.scale_factor().unwrap_or(1.0);
-    let logical_x = position.x as f64 / scale;
-    let logical_y = position.y as f64 / scale;
+    let logical_pos = position.to_logical::<f64>(scale);
 
-    let Ok(monitor) = window.monitor_from_point(logical_x, logical_y) else {
+    let Ok(monitor) = window.monitor_from_point(logical_pos.x, logical_pos.y) else {
         return;
     };
     let Some(m) = monitor else { return };
 
     let mon_scale = m.scale_factor();
-    let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / mon_scale;
-    let window_top = position.y as f64 / mon_scale;
+    let mon_pos = m.position().to_logical::<f64>(mon_scale);
+    let mon_size = m.size().to_logical::<f64>(mon_scale);
+    let monitor_bottom = mon_pos.y + mon_size.height;
+    let window_top = position.to_logical::<f64>(mon_scale).y;
     let max = (monitor_bottom - window_top - BOTTOM_MARGIN).max(200.0);
 
     tracing::trace!(
@@ -263,16 +265,21 @@ fn refresh_max_height<R: Runtime>(
 /// - x: Centers the window horizontally under the tray icon.
 /// - y: Positions at tray bottom edge + 4px gap.
 /// - Clamps x to monitor bounds when provided.
+///
+/// All arguments are in logical pixels (f64) to avoid sub-pixel rounding errors on
+/// non-integer DPI scales (e.g. 1.25×, 1.5×). Integer truncation before this function
+/// would cause the returned position to round incorrectly when Tauri converts it back
+/// to physical pixels (pos × scale_factor), potentially causing micro-vibrations.
 fn calculate_position(
-    tray_x: i32,
-    tray_y: i32,
-    tray_width: i32,
-    tray_height: i32,
-    window_width: i32,
-    monitor_bounds: Option<(i32, i32)>,
-) -> (i32, i32) {
-    let mut x = tray_x + tray_width / 2 - window_width / 2;
-    let y = tray_y + tray_height + 4;
+    tray_x: f64,
+    tray_y: f64,
+    tray_width: f64,
+    tray_height: f64,
+    window_width: f64,
+    monitor_bounds: Option<(f64, f64)>,
+) -> (f64, f64) {
+    let mut x = tray_x + tray_width / 2.0 - window_width / 2.0;
+    let y = tray_y + tray_height + 4.0;
 
     if let Some((mon_left, mon_right)) = monitor_bounds {
         x = x.max(mon_left).min(mon_right - window_width);
@@ -299,23 +306,22 @@ fn show_at_tray<R: Runtime>(
     let tray_size = tray_rect.size.to_logical::<f64>(scale);
 
     // window size: physical → logical
-    let window_size = window.outer_size()?;
-    let window_width = (window_size.width as f64 / scale) as i32;
+    let window_width = window.outer_size()?.to_logical::<f64>(scale).width;
 
     // monitor bounds: physical → logical
     let monitor = window.monitor_from_point(tray_pos.x, tray_pos.y)?;
     let monitor_bounds = monitor.as_ref().map(|m| {
         let s = m.scale_factor();
-        let left = (m.position().x as f64 / s) as i32;
-        let right = left + (m.size().width as f64 / s) as i32;
-        (left, right)
+        let mon_pos = m.position().to_logical::<f64>(s);
+        let mon_size = m.size().to_logical::<f64>(s);
+        (mon_pos.x, mon_pos.x + mon_size.width)
     });
 
     let (x, y) = calculate_position(
-        tray_pos.x as i32,
-        tray_pos.y as i32,
-        tray_size.width as i32,
-        tray_size.height as i32,
+        tray_pos.x,
+        tray_pos.y,
+        tray_size.width,
+        tray_size.height,
         window_width,
         monitor_bounds,
     );
@@ -323,8 +329,10 @@ fn show_at_tray<R: Runtime>(
     // Refresh max_height (logical px, consistent with resize_popover).
     if let Some(m) = &monitor {
         let s = m.scale_factor();
-        let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / s;
-        let max = (monitor_bottom - y as f64 - BOTTOM_MARGIN).max(200.0);
+        let mon_pos = m.position().to_logical::<f64>(s);
+        let mon_size = m.size().to_logical::<f64>(s);
+        let monitor_bottom = mon_pos.y + mon_size.height;
+        let max = (monitor_bottom - y - BOTTOM_MARGIN).max(200.0);
         tracing::trace!("[show_at_tray] scale={s}, y={y}, mon_bottom={monitor_bottom}, max={max}",);
         app.state::<PopoverState>().set_max_height(max);
     }
@@ -384,41 +392,54 @@ mod tests {
 
     #[test]
     fn centers_window_below_tray() {
-        // tray at (100, 0), size 24x24, window width 320
-        let (x, y) = calculate_position(100, 0, 24, 24, 320, None);
+        // tray at (100.0, 0.0), size 24x24, window width 320
+        let (x, y) = calculate_position(100.0, 0.0, 24.0, 24.0, 320.0, None);
         // x = 100 + 12 - 160 = -48 (no clamping without a monitor)
-        assert_eq!(x, -48);
-        assert_eq!(y, 28); // 0 + 24 + 4
+        assert_eq!(x, -48.0);
+        assert_eq!(y, 28.0); // 0 + 24 + 4
     }
 
     #[test]
     fn clamps_x_to_monitor_left() {
         // the window would go left of the monitor
-        let (x, _) = calculate_position(10, 0, 24, 24, 320, Some((0, 1440)));
+        let (x, _) = calculate_position(10.0, 0.0, 24.0, 24.0, 320.0, Some((0.0, 1440.0)));
         // unclamped: 10 + 12 - 160 = -138 → clamped to 0
-        assert_eq!(x, 0);
+        assert_eq!(x, 0.0);
     }
 
     #[test]
     fn clamps_x_to_monitor_right() {
         // tray near right edge
-        let (x, _) = calculate_position(1400, 0, 24, 24, 320, Some((0, 1440)));
+        let (x, _) = calculate_position(1400.0, 0.0, 24.0, 24.0, 320.0, Some((0.0, 1440.0)));
         // unclamped: 1400 + 12 - 160 = 1252 → min(1252, 1440-320=1120) = 1120
-        assert_eq!(x, 1120);
+        assert_eq!(x, 1120.0);
     }
 
     #[test]
     fn y_is_tray_bottom_plus_gap() {
-        let (_, y) = calculate_position(500, 25, 24, 24, 320, None);
-        assert_eq!(y, 53); // 25 + 24 + 4
+        let (_, y) = calculate_position(500.0, 25.0, 24.0, 24.0, 320.0, None);
+        assert_eq!(y, 53.0); // 25 + 24 + 4
     }
 
     #[test]
     fn handles_non_zero_monitor_left() {
         // secondary monitor starting at x=1440
-        let (x, _) = calculate_position(1450, 0, 24, 24, 320, Some((1440, 2880)));
+        let (x, _) = calculate_position(1450.0, 0.0, 24.0, 24.0, 320.0, Some((1440.0, 2880.0)));
         // unclamped: 1450 + 12 - 160 = 1302 → clamp(1440, 2880-320=2560) = 1440
-        assert_eq!(x, 1440);
+        assert_eq!(x, 1440.0);
+    }
+
+    #[test]
+    fn preserves_subpixel_precision_on_fractional_scale() {
+        // On 1.5× DPI, tray coords from Tauri are already fractional logical values.
+        // E.g. physical x=151 → logical 100.666...; window physical 480 → logical 320.0.
+        // The result must not be truncated to integers before being passed to set_position.
+        let tray_x = 151.0_f64 / 1.5; // ≈ 100.6667
+        let tray_w = 36.0_f64 / 1.5; // = 24.0
+        let win_w = 480.0_f64 / 1.5; // = 320.0
+        let (x, _) = calculate_position(tray_x, 0.0, tray_w, 24.0, win_w, None);
+        // x = 100.6667 + 12 - 160 = -47.3333...  (not -48 as integer truncation would give)
+        assert!((x - (tray_x + tray_w / 2.0 - win_w / 2.0)).abs() < f64::EPSILON);
     }
 
     #[test]
