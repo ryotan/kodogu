@@ -37,9 +37,7 @@ pub enum SymmetricCipherError {
     },
 
     /// Invalid nonce length
-    #[suzu(display(
-        "{cipher:?}: invalid nonce length {actual} bytes (expected {expected} bytes)"
-    ))]
+    #[suzu(display("{cipher:?}: invalid nonce length {actual} bytes (expected {expected} bytes)"))]
     InvalidNonceLength {
         cipher: SymmetricCiphers,
         expected: usize,

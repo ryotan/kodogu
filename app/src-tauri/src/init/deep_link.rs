@@ -14,9 +14,9 @@ pub(crate) fn setup(
 ) -> Result<(), DeepLinkSetupError> {
     #[cfg(any(windows, target_os = "linux"))]
     {
+        use tauri_plugin_deep_link::DeepLinkExt;
         use tracing::info;
 
-        use tauri_plugin_deep_link::DeepLinkExt;
         info!("Registering deep link handler");
         app.deep_link().register_all().context(PluginInitializationError)?;
     }

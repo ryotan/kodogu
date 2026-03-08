@@ -41,8 +41,8 @@ use crate::{
     Base85OverflowError, BinaryCodec, BinaryCodecError, BinaryCodecs, InvalidCharacterError,
     InvalidLengthError, InvalidWrapperError,
 };
-use suzunari_error::{OptionExt, ensure};
 use std::slice::ChunksExact;
+use suzunari_error::{OptionExt, ensure};
 
 // ============================================================================
 // Zero-Sized Types (ZST)
