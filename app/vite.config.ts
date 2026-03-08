@@ -27,7 +27,12 @@ const port =
 export default defineConfig(() => ({
   plugins: [
     paths(),
-    router({target: 'react', autoCodeSplitting: true, generatedRouteTree: './gen/router/routes.ts'}),
+    router({
+      target: 'react',
+      autoCodeSplitting: true,
+      generatedRouteTree: './gen/router/routes.ts',
+      routeFileIgnorePattern: '\\.(spec|test|stories)\\.[tj]sx?$',
+    }),
     react(),
   ],
 
