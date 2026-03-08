@@ -4,7 +4,7 @@ import './popover.css';
 import {PlusIcon} from '@radix-ui/react-icons';
 import {Flex, IconButton, Theme} from '@radix-ui/themes';
 
-import {StubCardList, StubFooter, StubHeader} from '#(prototype)/popover-content';
+import {StubCardList, StubHeader} from '#(prototype)/popover-content';
 import {useAutoResize} from '#hooks/useAutoResize';
 
 // Shell-level design tokens (window chrome).
@@ -52,19 +52,6 @@ const PopoverLayout = () => {
           <div ref={contentRef} style={{padding: '6px 0'}}>
             <StubCardList />
           </div>
-        </div>
-
-        {/* Footer */}
-        <div
-          style={{
-            borderTop: `1px solid ${shell.border}`,
-            padding: '8px 14px',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            flexShrink: 0,
-          }}
-        >
-          <StubFooter />
         </div>
       </div>
     </Theme>

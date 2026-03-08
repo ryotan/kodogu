@@ -15,7 +15,7 @@ if (!PopoverLayout) {
 }
 
 describe('PopoverLayout', () => {
-  it('renders header, card list, and footer sections', async () => {
+  it('renders header and card list sections', async () => {
     await render(<PopoverLayout />);
 
     // Header: connection count summary is rendered
@@ -23,8 +23,5 @@ describe('PopoverLayout', () => {
 
     // Card list: section labels from StubCardList are rendered
     await expect.element(page.getByText('接続中', {exact: true})).toBeVisible();
-
-    // Footer: Quit button from StubFooter is rendered
-    await expect.element(page.getByRole('button', {name: 'Quit'})).toBeVisible();
   });
 });

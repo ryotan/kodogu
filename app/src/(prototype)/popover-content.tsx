@@ -473,20 +473,3 @@ export const StubCardList = () => {
     </>
   );
 };
-
-export const StubFooter = () => (
-  <button
-    type='button'
-    style={{
-      fontSize: 12,
-      color: colors.textSecondary,
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      padding: '2px 4px',
-      borderRadius: 4,
-    }}
-  >
-    Quit
-  </button>
-);
