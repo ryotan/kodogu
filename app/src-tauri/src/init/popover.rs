@@ -114,15 +114,23 @@ pub(crate) fn setup<R: Runtime>(app: &AppHandle<R>) {
 /// `resize_popover` calls are capped to a reasonable value instead of the fallback.
 /// `show_at_tray` will refine this with the actual window position.
 fn init_max_height<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindow<R>) {
-    if let Ok(Some(monitor)) = window.primary_monitor() {
-        let scale = monitor.scale_factor();
-        let mon_size = monitor.size().to_logical::<f64>(scale);
-        let max = mon_size.height - BOTTOM_MARGIN;
-        tracing::trace!(
-            "[init_max_height] scale={scale}, mon_h={}, max={max}",
-            monitor.size().height
-        );
-        app.state::<PopoverState>().set_max_height(max);
+    match window.primary_monitor() {
+        Ok(Some(monitor)) => {
+            let scale = monitor.scale_factor();
+            let mon_size = monitor.size().to_logical::<f64>(scale);
+            let max = mon_size.height - BOTTOM_MARGIN;
+            tracing::trace!(
+                "[init_max_height] scale={scale}, mon_h={}, max={max}",
+                monitor.size().height
+            );
+            app.state::<PopoverState>().set_max_height(max);
+        }
+        Ok(None) => tracing::warn!(
+            "[init_max_height] primary monitor not found, retaining fallback max_height={FALLBACK_MAX_HEIGHT}"
+        ),
+        Err(e) => tracing::warn!(
+            "[init_max_height] failed to get primary monitor ({e}), retaining fallback max_height={FALLBACK_MAX_HEIGHT}"
+        ),
     }
 }
 
@@ -231,13 +239,27 @@ fn refresh_max_height<R: Runtime>(
 ) {
     // monitor_from_point expects logical coordinates, so convert physical → logical
     // using the window's scale factor.
-    let scale = window.scale_factor().unwrap_or(1.0);
+    let scale = window.scale_factor().unwrap_or_else(|e| {
+        tracing::warn!("[refresh_max_height] failed to get window scale factor ({e}), using 1.0");
+        1.0
+    });
     let logical_pos = position.to_logical::<f64>(scale);
 
-    let Ok(monitor) = window.monitor_from_point(logical_pos.x, logical_pos.y) else {
+    let monitor = match window.monitor_from_point(logical_pos.x, logical_pos.y) {
+        Ok(m) => m,
+        Err(e) => {
+            tracing::warn!("[refresh_max_height] monitor_from_point failed: {e}");
+            return;
+        }
+    };
+    let Some(m) = monitor else {
+        tracing::warn!(
+            "[refresh_max_height] no monitor found at ({}, {})",
+            logical_pos.x,
+            logical_pos.y
+        );
         return;
     };
-    let Some(m) = monitor else { return };
 
     let mon_scale = m.scale_factor();
     let mon_pos = m.position().to_logical::<f64>(mon_scale);
@@ -282,7 +304,9 @@ fn calculate_position(
     let y = tray_y + tray_height + 4.0;
 
     if let Some((mon_left, mon_right)) = monitor_bounds {
-        x = x.max(mon_left).min(mon_right - window_width);
+        // Clamp right bound to at least mon_left so that x never goes left of the monitor
+        // when the window is wider than the screen (mon_right - window_width < mon_left).
+        x = x.max(mon_left).min((mon_right - window_width).max(mon_left));
     }
 
     (x, y)
@@ -292,24 +316,59 @@ fn calculate_position(
 /// Also refreshes `max_height` so the first JS `resize_popover` call is properly capped.
 ///
 /// All position calculations use logical coordinates (CSS px).
-/// The tray icon resides on the primary monitor's menu bar, so we use
-/// that monitor's scale factor to normalize physical values to logical.
+/// We use the primary monitor's scale factor for an initial approximation to locate the
+/// tray's monitor via `monitor_from_point`, then switch to that monitor's actual scale
+/// factor for all final coordinate conversions. This avoids DPI mismatch when the tray
+/// resides on a non-primary monitor with a different scale factor.
 fn show_at_tray<R: Runtime>(
     app: &AppHandle<R>,
     window: &WebviewWindow<R>,
     tray_rect: Rect,
 ) -> tauri::Result<()> {
-    let scale = window.primary_monitor()?.map(|m| m.scale_factor()).unwrap_or(1.0);
+    // Step 1: Use primary monitor scale to approximate tray position and locate its monitor.
+    let primary_scale = match window.primary_monitor()? {
+        Some(m) => m.scale_factor(),
+        None => {
+            tracing::warn!(
+                "[show_at_tray] primary monitor not found, using scale=1.0 for tray position approximation"
+            );
+            1.0
+        }
+    };
+    let tray_pos_approx = tray_rect.position.to_logical::<f64>(primary_scale);
+    let monitor = window.monitor_from_point(tray_pos_approx.x, tray_pos_approx.y)?;
 
-    // tray_rect → logical
+    // Step 2: Use the tray monitor's actual scale for precise coordinate conversion.
+    // Falls back to primary_scale when the tray monitor cannot be determined.
+    let scale = match &monitor {
+        Some(m) => {
+            let s = m.scale_factor();
+            if (s - primary_scale).abs() > f64::EPSILON {
+                tracing::debug!(
+                    "[show_at_tray] tray monitor scale={s} differs from primary scale={primary_scale}"
+                );
+            }
+            s
+        }
+        None => {
+            tracing::warn!(
+                "[show_at_tray] no monitor found at tray position ({}, {}), \
+                 using primary scale={primary_scale}",
+                tray_pos_approx.x,
+                tray_pos_approx.y
+            );
+            primary_scale
+        }
+    };
+
+    // tray_rect → logical (using actual tray monitor scale)
     let tray_pos = tray_rect.position.to_logical::<f64>(scale);
     let tray_size = tray_rect.size.to_logical::<f64>(scale);
 
-    // window size: physical → logical
+    // window size: physical → logical (using actual tray monitor scale)
     let window_width = window.outer_size()?.to_logical::<f64>(scale).width;
 
     // monitor bounds: physical → logical
-    let monitor = window.monitor_from_point(tray_pos.x, tray_pos.y)?;
     let monitor_bounds = monitor.as_ref().map(|m| {
         let s = m.scale_factor();
         let mon_pos = m.position().to_logical::<f64>(s);
@@ -427,6 +486,14 @@ mod tests {
         let (x, _) = calculate_position(1450.0, 0.0, 24.0, 24.0, 320.0, Some((1440.0, 2880.0)));
         // unclamped: 1450 + 12 - 160 = 1302 → clamp(1440, 2880-320=2560) = 1440
         assert_eq!(x, 1440.0);
+    }
+
+    #[test]
+    fn clamps_x_to_monitor_left_when_window_wider_than_screen() {
+        // window (640) wider than monitor (320px), so right clamp goes negative.
+        // x should be clamped to mon_left (0), not mon_right - window_width (-320).
+        let (x, _) = calculate_position(100.0, 0.0, 24.0, 24.0, 640.0, Some((0.0, 320.0)));
+        assert_eq!(x, 0.0);
     }
 
     #[test]
