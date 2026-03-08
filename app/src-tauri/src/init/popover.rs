@@ -2,21 +2,25 @@ use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
 use std::time::{Duration, Instant};
-
-/// Set `KODOGU_POPOVER_KEEP_OPEN=1` to prevent the popover from hiding on focus loss.
-/// Useful for inspecting the popover with DevTools.
-static KEEP_OPEN: LazyLock<bool> =
-    LazyLock::new(|| env::var("KODOGU_POPOVER_KEEP_OPEN").is_ok_and(|v| v == "1"));
-
 use suzunari_error::*;
 use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, Rect, WebviewWindow,
     WebviewWindowBuilder, WindowEvent,
 };
 
+/// Window label used in tauri.conf.json to identify the popover window.
 const POPOVER_LABEL: &str = "popover";
+/// Minimum gap (logical px) between the popover bottom edge and the screen bottom edge.
 const BOTTOM_MARGIN: f64 = 8.0;
+/// Fallback max height (logical px) used before the actual monitor geometry is known.
 const FALLBACK_MAX_HEIGHT: f64 = 600.0;
+/// Minimum interval between accepted toggle calls (prevents double-click race).
+const TOGGLE_DEBOUNCE: Duration = Duration::from_millis(300);
+
+/// Set `KODOGU_POPOVER_KEEP_OPEN=1` to prevent the popover from hiding on focus loss.
+/// Useful for inspecting the popover with DevTools.
+static KEEP_OPEN: LazyLock<bool> =
+    LazyLock::new(|| env::var("KODOGU_POPOVER_KEEP_OPEN").is_ok_and(|v| v == "1"));
 
 /// Tracks whether the window event listener has been registered on the popover window.
 /// Reset to `false` when the window is re-created (see `toggle_inner`'s `None` branch).
@@ -29,8 +33,6 @@ static MAX_HEIGHT: Mutex<f64> = Mutex::new(FALLBACK_MAX_HEIGHT);
 /// Timestamp of the last accepted toggle call.
 /// `None` = never toggled (first call always passes through).
 static LAST_TOGGLE: Mutex<Option<Instant>> = Mutex::new(None);
-/// Minimum interval between accepted toggle calls (prevents double-click race).
-const TOGGLE_DEBOUNCE: Duration = Duration::from_millis(300);
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
@@ -43,23 +45,29 @@ pub(crate) enum PopoverError {
 
 /// Tauri command: JS calls this to resize the popover window.
 /// The actual height is capped at the current `MAX_HEIGHT`.
+/// No-op on non-macOS platforms (popover is macOS-only).
 #[tauri::command]
 pub(crate) fn resize_popover(app: AppHandle, width: f64, height: f64) {
-    if !width.is_finite() || !height.is_finite() || width <= 0.0 || height <= 0.0 {
-        tracing::debug!("[resize_popover] skipped: invalid dimensions ({width}, {height})");
-        return;
-    }
-    let max = *MAX_HEIGHT.lock().unwrap_or_else(|e| e.into_inner());
-    let capped = height.min(max);
-    tracing::debug!("[resize_popover] requested={height}, max={max}, capped={capped}");
-    match app.get_webview_window(POPOVER_LABEL) {
-        Some(win) => {
-            if let Err(e) = win.set_size(LogicalSize::new(width, capped)) {
-                tracing::error!("Failed to resize popover: {e}");
-            }
+    #[cfg(target_os = "macos")]
+    {
+        if !width.is_finite() || !height.is_finite() || width <= 0.0 || height <= 0.0 {
+            tracing::trace!("[resize_popover] skipped: invalid dimensions ({width}, {height})");
+            return;
         }
-        None => tracing::debug!("[resize_popover] popover window not found, skipping resize"),
+        let max = *MAX_HEIGHT.lock().unwrap_or_else(|e| e.into_inner());
+        let capped = height.min(max);
+        tracing::trace!("[resize_popover] requested={height}, max={max}, capped={capped}");
+        match app.get_webview_window(POPOVER_LABEL) {
+            Some(win) => {
+                if let Err(e) = win.set_size(LogicalSize::new(width, capped)) {
+                    tracing::error!("Failed to resize popover: {e}");
+                }
+            }
+            None => tracing::trace!("[resize_popover] popover window not found, skipping resize"),
+        }
     }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, width, height);
 }
 
 /// Initial setup for the popover window.
@@ -69,6 +77,7 @@ pub(crate) fn resize_popover(app: AppHandle, width: f64, height: f64) {
 /// may not exist at setup time due to Tauri's initialization order. In that case,
 /// `toggle()` lazily creates the window via `create_window` and registers the listener there.
 pub(crate) fn setup(app: &AppHandle) {
+    #[cfg(target_os = "macos")]
     match app.get_webview_window(POPOVER_LABEL) {
         Some(window) => {
             init_max_height(&window);
@@ -78,16 +87,18 @@ pub(crate) fn setup(app: &AppHandle) {
             "popover window not found during setup — event listeners were not registered"
         ),
     }
+    #[cfg(not(target_os = "macos"))]
+    let _ = app;
 }
 
 /// Sets an initial MAX_HEIGHT from the primary monitor so that pre-render
 /// resize_popover calls are capped to a reasonable value instead of the fallback.
-/// show_at_tray will refine this with the actual window position.
+/// `show_at_tray` will refine this with the actual window position.
 fn init_max_height(window: &WebviewWindow) {
     if let Ok(Some(monitor)) = window.primary_monitor() {
         let scale = monitor.scale_factor();
         let max = monitor.size().height as f64 / scale - BOTTOM_MARGIN;
-        tracing::debug!(
+        tracing::trace!(
             "[init_max_height] scale={scale}, mon_h={}, max={max}",
             monitor.size().height
         );
@@ -98,27 +109,32 @@ fn init_max_height(window: &WebviewWindow) {
 /// Toggles popover visibility on tray click (show/hide).
 /// `tray_rect` is the position and size of the clicked tray icon.
 ///
-/// Debounces rapid successive calls (e.g. macOS double-click on tray icon)
+/// Debounces rapid successive calls (e.g., macOS double-click on tray icon)
 /// to prevent race conditions with window creation and visibility toggling.
 /// The first call always passes through; subsequent calls within TOGGLE_DEBOUNCE
 /// are suppressed.
 pub(crate) fn toggle(app: &AppHandle, tray_rect: Rect) {
-    let now = Instant::now();
+    #[cfg(target_os = "macos")]
     {
-        let mut last = LAST_TOGGLE.lock().unwrap_or_else(|e| e.into_inner());
-        if let Some(prev) = *last {
-            let elapsed = now.duration_since(prev);
-            if elapsed < TOGGLE_DEBOUNCE {
-                tracing::debug!("[toggle] debounced ({}ms since last)", elapsed.as_millis());
-                return;
+        let now = Instant::now();
+        {
+            let mut last = LAST_TOGGLE.lock().unwrap_or_else(|e| e.into_inner());
+            if let Some(prev) = *last {
+                let elapsed = now.duration_since(prev);
+                if elapsed < TOGGLE_DEBOUNCE {
+                    tracing::trace!("[toggle] debounced ({}ms since last)", elapsed.as_millis());
+                    return;
+                }
             }
+            *last = Some(now);
         }
-        *last = Some(now);
-    }
 
-    if let Err(e) = toggle_inner(app, tray_rect) {
-        tracing::error!("Failed to toggle popover visibility: {e}");
+        if let Err(e) = toggle_inner(app, tray_rect) {
+            tracing::error!("Failed to toggle popover visibility: {e}");
+        }
     }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, tray_rect);
 }
 
 fn toggle_inner(app: &AppHandle, tray_rect: Rect) -> Result<(), PopoverError> {
@@ -201,7 +217,7 @@ fn refresh_max_height(window: &WebviewWindow, position: &PhysicalPosition<i32>) 
     let window_top = position.y as f64 / mon_scale;
     let max = (monitor_bottom - window_top - BOTTOM_MARGIN).max(200.0);
 
-    tracing::debug!(
+    tracing::trace!(
         "[refresh_max_height] physical_y={}, scale={mon_scale}, window_top={window_top}, \
          mon_bottom={monitor_bottom}, max={max}",
         position.y,
@@ -211,6 +227,11 @@ fn refresh_max_height(window: &WebviewWindow, position: &PhysicalPosition<i32>) 
 }
 
 /// Calculates window placement coordinates directly below the tray icon.
+///
+/// Assumes macOS layout where the menu bar (and tray) is always at the top of the screen,
+/// so the popup always appears below the tray within the visible area.
+/// y clamping is intentionally omitted; on other OSes the tray may be at the bottom,
+/// requiring a fundamentally different positioning strategy.
 ///
 /// - x: Centers the window horizontally under the tray icon.
 /// - y: Positions at tray bottom edge + 4px gap.
@@ -273,11 +294,11 @@ fn show_at_tray(window: &WebviewWindow, tray_rect: Rect) -> tauri::Result<()> {
         let s = m.scale_factor();
         let monitor_bottom = (m.position().y as f64 + m.size().height as f64) / s;
         let max = (monitor_bottom - y as f64 - BOTTOM_MARGIN).max(200.0);
-        tracing::debug!("[show_at_tray] scale={s}, y={y}, mon_bottom={monitor_bottom}, max={max}",);
+        tracing::trace!("[show_at_tray] scale={s}, y={y}, mon_bottom={monitor_bottom}, max={max}",);
         *MAX_HEIGHT.lock().unwrap_or_else(|e| e.into_inner()) = max;
     }
 
-    tracing::debug!(
+    tracing::trace!(
         "tray rect: pos=({}, {}), size=({}, {}), window pos=({x}, {y})",
         tray_pos.x,
         tray_pos.y,
@@ -311,14 +332,14 @@ mod tests {
     fn centers_window_below_tray() {
         // tray at (100, 0), size 24x24, window width 320
         let (x, y) = calculate_position(100, 0, 24, 24, 320, None);
-        // x = 100 + 12 - 160 = -48 (no clamping without monitor)
+        // x = 100 + 12 - 160 = -48 (no clamping without a monitor)
         assert_eq!(x, -48);
         assert_eq!(y, 28); // 0 + 24 + 4
     }
 
     #[test]
     fn clamps_x_to_monitor_left() {
-        // window would go left of monitor
+        // the window would go left of the monitor
         let (x, _) = calculate_position(10, 0, 24, 24, 320, Some((0, 1440)));
         // unclamped: 10 + 12 - 160 = -138 → clamped to 0
         assert_eq!(x, 0);
