@@ -8,7 +8,7 @@ beforeEach(() => {
 });
 
 vi.mock('@tauri-apps/api/core', () => ({
-  invoke: (...args: unknown[]) => mockInvoke(...args),
+  invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
 }));
 
 const {useAutoResize} = await import('#hooks/useAutoResize');
@@ -20,7 +20,7 @@ const TestComponent = ({contentHeight}: {contentHeight: number}) => {
     <div style={{height: 500, display: 'flex', flexDirection: 'column'}}>
       <div style={{height: 40, flexShrink: 0}}>header</div>
       <div style={{flex: 1, overflow: 'auto', minHeight: 0}}>
-        <div ref={ref} style={{height: contentHeight}} data-testid='content' />
+        <div data-testid='content' ref={ref} style={{height: contentHeight}} />
       </div>
       <div style={{height: 40, flexShrink: 0}}>footer</div>
     </div>
@@ -32,7 +32,10 @@ describe('useAutoResize', () => {
     await render(<TestComponent contentHeight={200} />);
 
     await vi.waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('resize_popover', expect.objectContaining({height: expect.any(Number)}));
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'resize_popover',
+        expect.objectContaining({height: expect.any(Number) as unknown}),
+      );
     });
   });
 
