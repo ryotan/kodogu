@@ -39,6 +39,39 @@ describe('useAutoResize', () => {
     });
   });
 
+  it('calls resize_popover with the correct height: content + chrome', async () => {
+    await render(<TestComponent contentHeight={200} />);
+
+    await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(1));
+
+    // Compute expected height from actual DOM layout.
+    // chrome = everything outside the scroll area (header + footer + borders).
+    const content = document.querySelector('[data-testid="content"]') as HTMLElement;
+    const scrollArea = content.parentElement!;
+    const chromeHeight = Math.max(0, window.innerHeight - scrollArea.clientHeight);
+
+    expect(mockInvoke).toHaveBeenCalledWith('resize_popover', {
+      width: window.innerWidth,
+      height: 200 + chromeHeight,
+    });
+  });
+
+  it('calls resize_popover again when content height changes', async () => {
+    const result = await render(<TestComponent contentHeight={200} />);
+
+    await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(1));
+
+    await result.rerender(<TestComponent contentHeight={400} />);
+
+    await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(2));
+
+    // The height delta must match the content height delta exactly.
+    // chrome height is constant between renders, so the difference is purely content.
+    const firstHeight = (mockInvoke.mock.calls[0][1] as {height: number}).height;
+    const secondHeight = (mockInvoke.mock.calls[1][1] as {height: number}).height;
+    expect(secondHeight - firstHeight).toBe(200);
+  });
+
   it('cleans up ResizeObserver on unmount', async () => {
     const disconnectSpy = vi.fn();
     const OriginalResizeObserver = window.ResizeObserver;
