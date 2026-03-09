@@ -1,6 +1,6 @@
 [tools]
 node = "24.14.0"
-bun = "1.3.9"
+bun = "1.3.10"
 java = "microsoft-17.35.1"
 
 [tasks."cargo:fix"]
