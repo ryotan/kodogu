@@ -28,7 +28,7 @@ const PopoverPendingLayout = () => (
 );
 
 const PopoverLayout = () => {
-  const {ref: contentRef} = useAutoResize();
+  const {resizeCallbackRef} = useAutoResize();
 
   return (
     <Theme appearance='dark' hasBackground={false}>
@@ -58,7 +58,7 @@ const PopoverLayout = () => {
 
         {/* Card list — scrolls when Rust-side max height cap is active */}
         <div style={{flex: 1, overflowY: 'auto', minHeight: 0}}>
-          <div ref={contentRef} style={{padding: '6px 0'}}>
+          <div ref={resizeCallbackRef} style={{padding: '6px 0'}}>
             <StubCardList />
           </div>
         </div>

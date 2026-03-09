@@ -59,7 +59,7 @@
         "eslint-plugin-react": "^7.37.4",
         "eslint-plugin-react-hooks": "^7.0.1",
         "eslint-plugin-storybook": "^10",
-        "immer": "^11.1.4",
+        "mutative": "^1.1.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "storybook": "^10",

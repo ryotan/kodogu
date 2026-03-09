@@ -15,12 +15,12 @@ const {useAutoResize} = await import('#hooks/useAutoResize');
 
 // Simulates the popover layout: outer (viewport) > scroll area > content (ref).
 const TestComponent = ({contentHeight}: {contentHeight: number}) => {
-  const {ref} = useAutoResize();
+  const {resizeCallbackRef} = useAutoResize();
   return (
     <div style={{height: 500, display: 'flex', flexDirection: 'column'}}>
       <div style={{height: 40, flexShrink: 0}}>header</div>
       <div style={{flex: 1, overflow: 'auto', minHeight: 0}}>
-        <div data-testid='content' ref={ref} style={{height: contentHeight}} />
+        <div data-testid='content' ref={resizeCallbackRef} style={{height: contentHeight}} />
       </div>
       <div style={{height: 40, flexShrink: 0}}>footer</div>
     </div>

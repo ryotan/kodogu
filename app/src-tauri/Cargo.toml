@@ -20,15 +20,18 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { workspace = true, features = [] }
 
 [dependencies]
-tauri = { workspace = true, features = ["image-png", "tracing", "tray-icon", "macos-private-api"] }
-tauri-plugin-opener = { workspace = true }
+dirs = { workspace = true }
+openidconnect = { workspace = true }
+redb = { workspace = true }
+rmp-serde = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-openidconnect = { workspace = true }
+suzunari-error = { workspace = true }
+tauri = { workspace = true, features = ["image-png", "tracing", "tray-icon", "macos-private-api"] }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-http = { workspace = true }
-suzunari-error = { workspace = true }
+tauri-plugin-opener = { workspace = true }
 time = { workspace = true, features = ["macros", "serde-human-readable"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["time", "env-filter"] }

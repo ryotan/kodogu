@@ -1,20 +1,22 @@
 use crate::init::popover::resize_popover;
+use suzunari_error::{DisplayError, StackReport};
 
+mod config;
 mod init;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+mod store;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_window_state::Builder::new().with_denylist(&["popover"]).build())
         .setup(|app| {
-            init::logger::setup(app.handle())?;
-            init::deep_link::setup(app.handle())?;
+            init::logger::setup(app.handle())
+                .map_err(StackReport::from)
+                .map_err(DisplayError::new)?;
+            init::deep_link::setup(app.handle())
+                .map_err(StackReport::from)
+                .map_err(DisplayError::new)?;
+
             #[cfg(desktop)]
             {
                 #[cfg(target_os = "macos")]
@@ -23,9 +25,14 @@ pub fn run() {
                 {
                     tracing::warn!("Failed to set activation policy to Accessory: {e}");
                 }
+                init::store::setup(app.handle())
+                    .map_err(StackReport::from)
+                    .map_err(DisplayError::new)?;
                 init::popover::setup(app.handle());
-                init::tray::setup(app.handle())?;
-                init::menu::setup(app)?;
+                init::tray::setup(app.handle())
+                    .map_err(StackReport::from)
+                    .map_err(DisplayError::new)?;
+                init::menu::setup(app).map_err(StackReport::from).map_err(DisplayError::new)?;
             }
             Ok(())
         });
@@ -40,7 +47,11 @@ pub fn run() {
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, resize_popover])
+        .invoke_handler(tauri::generate_handler![
+            resize_popover,
+            config::get_config,
+            config::set_config,
+        ])
         .run(tauri::generate_context!())
         .expect("Tauri application failed to start or encountered a fatal runtime error");
 }

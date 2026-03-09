@@ -5,6 +5,7 @@
       <w>Fcmms</w>
       <w>Gmac</w>
       <w>Hiaj</w>
+      <w>Neue</w>
       <w>Rlol</w>
       <w>Stvz</w>
       <w>Tsunagi</w>
@@ -26,6 +27,8 @@
       <w>arktype</w>
       <w>axyz</w>
       <w>bcde</w>
+      <w>bincode</w>
+      <w>bitcode</w>
       <w>budneghjklm</w>
       <w>bunx</w>
       <w>chacha</w>
@@ -67,11 +70,14 @@
       <w>pqrst</w>
       <w>priv</w>
       <w>raycast</w>
+      <w>redb</w>
       <w>roundtrip</w>
       <w>rpshnaf</w>
+      <w>rusqlite</w>
       <w>rustfmt</w>
       <w>saltsaltsaltsalt</w>
       <w>secp</w>
+      <w>serde</w>
       <w>spki</w>
       <w>suzunari</w>
       <w>taiki</w>
