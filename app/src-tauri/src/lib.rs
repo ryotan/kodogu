@@ -1,11 +1,6 @@
-mod init;
-
-#[cfg(target_os = "macos")]
 use crate::init::popover::resize_popover;
 
-#[cfg(not(target_os = "macos"))]
-#[tauri::command]
-fn resize_popover(_app: tauri::AppHandle, _width: f64, _height: f64) {}
+mod init;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -20,8 +15,9 @@ pub fn run() {
         .setup(|app| {
             init::logger::setup(app.handle())?;
             init::deep_link::setup(app.handle())?;
-            #[cfg(target_os = "macos")]
+            #[cfg(desktop)]
             {
+                #[cfg(target_os = "macos")]
                 if let Err(e) =
                     app.handle().set_activation_policy(tauri::ActivationPolicy::Accessory)
                 {
