@@ -18,6 +18,15 @@ const shell = {
 // Popover shell — window management and layout skeleton
 // =============================================================================
 
+// Shown by TanStack Router while the route loader is in flight.
+// This component reuses the pre-React loading styles from index.html
+// so the visual is seamless: HTML spinner → React spinner → actual content.
+const PopoverPendingLayout = () => (
+  <div className='pre-react-loading'>
+    <div className='pre-react-spinner' />
+  </div>
+);
+
 const PopoverLayout = () => {
   const {ref: contentRef} = useAutoResize();
 
@@ -60,4 +69,5 @@ const PopoverLayout = () => {
 
 export const Route = createFileRoute('/popover')({
   component: PopoverLayout,
+  pendingComponent: PopoverPendingLayout,
 });

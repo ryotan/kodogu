@@ -5,10 +5,48 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tauri + React + Typescript</title>
+    <!-- Pre-React loading overlay: shown before JS executes, covering the blank WebView.
+         React.createRoot() replaces the entire #root content on first render,
+         so this is removed automatically without any explicit cleanup. -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+      }
+      .pre-react-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(28, 28, 30, 0.92);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        backdrop-filter: blur(24px) saturate(180%);
+      }
+      .pre-react-spinner {
+        width: 18px;
+        height: 18px;
+        border: 1.5px solid rgba(255, 255, 255, 0.12);
+        border-top-color: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        animation: pre-react-spin 0.7s linear infinite;
+      }
+      @keyframes pre-react-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
 
   <body class="rt-reset">
-    <div id="root"></div>
+    <div id="root">
+      <div class="pre-react-loading">
+        <div class="pre-react-spinner"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
