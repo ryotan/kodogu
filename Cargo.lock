@@ -5235,18 +5235,18 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "snafu"
-version = "0.8.9"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e84b3f4eacbf3a1ce05eac6763b4d629d60cbc94d632e4092c54ade71f1e1a2"
+checksum = "d1d4bced6a69f90b2056c03dcff2c4737f98d6fb9e0853493996e1d253ca29c6"
 dependencies = [
  "snafu-derive",
 ]
 
 [[package]]
 name = "snafu-derive"
-version = "0.8.9"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1c97747dbf44bb1ca44a561ece23508e99cb592e862f22222dcf42f51d1e451"
+checksum = "54254b8531cafa275c5e096f62d48c81435d1015405a91198ddb11e967301d40"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -5373,9 +5373,9 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "suzunari-error"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "199146c577c56b51a723b7b65a8598dd9cc7adc8b75a79381914988ff335b837"
+checksum = "600520cd5af79841b4a4cad0213835700eb2fe12b4260a33f71a90c247bad6fc"
 dependencies = [
  "snafu",
  "suzunari-error-macro-impl",
@@ -5383,9 +5383,9 @@ dependencies = [
 
 [[package]]
 name = "suzunari-error-macro-impl"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f78bb1f9915e6d7e35d57c163793f516f401d5cdac5dbebd7bf9f859f1c024a9"
+checksum = "e76806ee1ad311822e615489b97fcc8b0209c6948f7812f488283ec14160e7d6"
 dependencies = [
  "proc-macro2",
  "quote",
