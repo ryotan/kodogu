@@ -4,8 +4,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 use suzunari_error::*;
 use tauri::{
-    AppHandle, LogicalPosition, LogicalSize, Manager, Rect, Runtime, WebviewWindow,
-    WebviewWindowBuilder, WindowEvent,
+    AppHandle, LogicalSize, Manager, Rect, Runtime, WebviewWindow, WebviewWindowBuilder,
+    WindowEvent,
 };
 
 #[cfg(target_os = "macos")]
@@ -188,93 +188,96 @@ fn ensure_window_listeners<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindo
 }
 
 /// Positions the window near the tray icon rect, then shows it.
-/// On macOS, uses tray-aware positioning (below the menu bar tray).
-/// On other platforms, shows the window without repositioning (to be implemented per platform).
+/// On macOS, positions below the menu bar tray icon.
+/// On other platforms, shows the window at its current position.
 fn show_at_tray<R: Runtime>(
     app: &AppHandle<R>,
     window: &WebviewWindow<R>,
     tray_rect: Rect,
 ) -> tauri::Result<()> {
-    let primary_scale = match window.primary_monitor()? {
-        Some(m) => m.scale_factor(),
-        None => {
-            tracing::warn!(
-                "[show_at_tray] primary monitor not found, using scale=1.0 for tray position approximation"
-            );
-            1.0
-        }
-    };
-    let tray_pos_approx = tray_rect.position.to_logical::<f64>(primary_scale);
-    let monitor = window.monitor_from_point(tray_pos_approx.x, tray_pos_approx.y)?;
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::LogicalPosition;
 
-    let scale = match &monitor {
-        Some(m) => {
-            let s = m.scale_factor();
-            if (s - primary_scale).abs() > f64::EPSILON {
-                tracing::debug!(
-                    "[show_at_tray] tray monitor scale={s} differs from primary scale={primary_scale}"
+        let primary_scale = match window.primary_monitor()? {
+            Some(m) => m.scale_factor(),
+            None => {
+                tracing::warn!(
+                    "[show_at_tray] primary monitor not found, using scale=1.0 for tray position approximation"
                 );
+                1.0
             }
-            s
-        }
-        None => {
-            tracing::warn!(
-                "[show_at_tray] no monitor found at tray position ({}, {}), \
-                 using primary scale={primary_scale}",
-                tray_pos_approx.x,
-                tray_pos_approx.y
+        };
+        let tray_pos_approx = tray_rect.position.to_logical::<f64>(primary_scale);
+        let monitor = window.monitor_from_point(tray_pos_approx.x, tray_pos_approx.y)?;
+
+        let scale = match &monitor {
+            Some(m) => {
+                let s = m.scale_factor();
+                if (s - primary_scale).abs() > f64::EPSILON {
+                    tracing::debug!(
+                        "[show_at_tray] tray monitor scale={s} differs from primary scale={primary_scale}"
+                    );
+                }
+                s
+            }
+            None => {
+                tracing::warn!(
+                    "[show_at_tray] no monitor found at tray position ({}, {}), \
+                     using primary scale={primary_scale}",
+                    tray_pos_approx.x,
+                    tray_pos_approx.y
+                );
+                primary_scale
+            }
+        };
+
+        let tray_pos = tray_rect.position.to_logical::<f64>(scale);
+        let tray_size = tray_rect.size.to_logical::<f64>(scale);
+        let window_width = window.outer_size()?.to_logical::<f64>(scale).width;
+
+        let monitor_bounds = monitor.as_ref().map(|m| {
+            let s = m.scale_factor();
+            let mon_pos = m.position().to_logical::<f64>(s);
+            let mon_size = m.size().to_logical::<f64>(s);
+            (mon_pos.x, mon_pos.x + mon_size.width)
+        });
+
+        let (x, y) = macos::calculate_position(
+            tray_pos.x,
+            tray_pos.y,
+            tray_size.width,
+            tray_size.height,
+            window_width,
+            monitor_bounds,
+        );
+
+        if let Some(m) = &monitor {
+            let s = m.scale_factor();
+            let mon_pos = m.position().to_logical::<f64>(s);
+            let mon_size = m.size().to_logical::<f64>(s);
+            let monitor_bottom = mon_pos.y + mon_size.height;
+            let max = (monitor_bottom - y - macos::BOTTOM_MARGIN).max(200.0);
+            tracing::trace!(
+                "[show_at_tray] scale={s}, y={y}, mon_bottom={monitor_bottom}, max={max}"
             );
-            primary_scale
+            app.state::<PopoverState>().set_max_height(max);
         }
-    };
 
-    let tray_pos = tray_rect.position.to_logical::<f64>(scale);
-    let tray_size = tray_rect.size.to_logical::<f64>(scale);
-    let window_width = window.outer_size()?.to_logical::<f64>(scale).width;
+        tracing::trace!(
+            "tray rect: pos=({}, {}), size=({}, {}), window pos=({x}, {y})",
+            tray_pos.x,
+            tray_pos.y,
+            tray_size.width,
+            tray_size.height,
+        );
 
-    let monitor_bounds = monitor.as_ref().map(|m| {
-        let s = m.scale_factor();
-        let mon_pos = m.position().to_logical::<f64>(s);
-        let mon_size = m.size().to_logical::<f64>(s);
-        (mon_pos.x, mon_pos.x + mon_size.width)
-    });
-
-    #[cfg(target_os = "macos")]
-    let (x, y) = macos::calculate_position(
-        tray_pos.x,
-        tray_pos.y,
-        tray_size.width,
-        tray_size.height,
-        window_width,
-        monitor_bounds,
-    );
-    #[cfg(not(target_os = "macos"))]
-    let (x, y) = {
-        let _ = (tray_pos, tray_size, window_width, monitor_bounds);
-        (0.0, 0.0) // TODO: implement tray-relative positioning for non-macOS
-    };
-
-    // Refresh max_height based on final window position.
-    #[cfg(target_os = "macos")]
-    if let Some(m) = &monitor {
-        let s = m.scale_factor();
-        let mon_pos = m.position().to_logical::<f64>(s);
-        let mon_size = m.size().to_logical::<f64>(s);
-        let monitor_bottom = mon_pos.y + mon_size.height;
-        let max = (monitor_bottom - y - macos::BOTTOM_MARGIN).max(200.0);
-        tracing::trace!("[show_at_tray] scale={s}, y={y}, mon_bottom={monitor_bottom}, max={max}");
-        app.state::<PopoverState>().set_max_height(max);
+        window.set_position(LogicalPosition::new(x, y))?;
     }
 
-    tracing::trace!(
-        "tray rect: pos=({}, {}), size=({}, {}), window pos=({x}, {y})",
-        tray_pos_approx.x,
-        tray_pos_approx.y,
-        tray_rect.size.to_logical::<f64>(primary_scale).width,
-        tray_rect.size.to_logical::<f64>(primary_scale).height,
-    );
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, tray_rect);
 
-    window.set_position(LogicalPosition::new(x, y))?;
     window.show()?;
     window.set_focus()
 }
