@@ -1,0 +1,121 @@
+/* ── Shared Inline Elements ──────────────────── */
+
+.bot-collapser--chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--fgColor-muted, #656d76);
+  transition: transform 0.15s ease-out;
+}
+
+.bot-collapser--author {
+  font-weight: 600;
+  color: var(--fgColor-default, #1f2328);
+  white-space: nowrap;
+}
+
+.bot-collapser--badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 0 6px;
+  border-radius: 10px;
+  border: 1px solid var(--borderColor-default, #d0d7de);
+  color: var(--fgColor-muted, #656d76);
+  line-height: 18px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bot-collapser--group-count {
+  font-weight: 500;
+  padding: 0 8px;
+  border-radius: 10px;
+  background: var(--bgColor-neutral-muted, #afb8c133);
+  color: var(--fgColor-muted, #656d76);
+  line-height: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bot-collapser--time {
+  color: var(--fgColor-muted, #656d76);
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Toggle Chevron (インライン) ──────────────── */
+
+.bot-collapser--toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 2px;
+  color: var(--fgColor-muted, #656d76);
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.bot-collapser--toggle:hover {
+  background: var(--bgColor-neutral-muted, #afb8c133);
+}
+
+/* 展開時にシェブロンを回転 */
+.js-timeline-item.bot-collapser--expanded .bot-collapser--toggle .bot-collapser--chevron {
+  transform: rotate(90deg);
+}
+
+/* ── Summary (折り畳み時、ヘッダー内で h3 を置換) ── */
+
+.bot-collapser--summary {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.bot-collapser--sep {
+  color: var(--fgColor-muted, #656d76);
+  flex-shrink: 0;
+}
+
+.bot-collapser--preview-text {
+  color: var(--fgColor-muted, #656d76);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ── Collapsed State ─────────────────────────── */
+/* h3 ↔ summary の切り替え。ボディの非表示は JS の max-height で制御。 */
+
+.js-timeline-item.bot-collapser--collapsed .timeline-comment-header > h3 {
+  display: none !important;
+}
+
+.js-timeline-item.bot-collapser--collapsed .bot-collapser--summary {
+  display: flex !important;
+}
+
+/* ── Group Hidden (tail アイテム非表示) ────────── */
+
+.bot-collapser--group-hidden {
+  display: none !important;
+}
+
+/* ── Group Active: 展開時のアクセントライン ────── */
+
+.js-timeline-item.bot-collapser--group-active .timeline-comment {
+  border-left: 3px solid var(--borderColor-accent-emphasis, #0969da) !important;
+}

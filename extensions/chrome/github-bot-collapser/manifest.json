@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub Bot Comment Collapser",
+  "version": "0.1.0",
+  "description": "Collapse bot comments on GitHub Pull Requests",
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/pull/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}
