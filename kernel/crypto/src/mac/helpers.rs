@@ -1,5 +1,5 @@
 use super::errors::{InvalidKeyLengthError, MacAlgorithms, MacError};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 /// 鍵長を検証し、固定サイズ配列に変換する。
 pub(crate) fn validate_key_length<const N: usize>(

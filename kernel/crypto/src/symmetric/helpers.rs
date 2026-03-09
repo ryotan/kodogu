@@ -3,7 +3,7 @@ use super::errors::{
     SymmetricCiphers,
 };
 use crate::{InitializationVector, Nonce};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 /// Validates AES key length and converts to the fixed-size array.
 pub(crate) fn validate_key_length<const N: usize>(

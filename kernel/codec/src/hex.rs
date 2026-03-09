@@ -28,7 +28,7 @@ use crate::{
     HexOddLengthError, InvalidCharacterSetError,
 };
 use data_encoding::{Encoding, HEXLOWER, HEXLOWER_PERMISSIVE, HEXUPPER, Specification};
-use snafu::{ResultExt, ensure};
+use suzunari_error::{ResultExt, ensure};
 
 /// Hex codec that encodes as lowercase and accepts any case when decoding
 ///

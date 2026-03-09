@@ -75,7 +75,7 @@
 //! - [Unicode Standard](https://www.unicode.org/standard/standard.html)
 
 use crate::{TextCodec, TextCodecError};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 /// UTF-8 text encoding codec
 ///

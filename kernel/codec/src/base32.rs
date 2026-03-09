@@ -46,7 +46,7 @@ use crate::{
 };
 use data_encoding::{BASE32, BASE32HEX, Encoding, Specification};
 use data_encoding_macro::new_encoding;
-use snafu::{ResultExt, ensure};
+use suzunari_error::{ResultExt, ensure};
 
 /// RFC 4648 Base32 encoding with alphabet A-Z2-7.
 ///

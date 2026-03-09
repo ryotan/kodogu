@@ -1,17 +1,19 @@
+use suzunari_error::*;
 use tauri::AppHandle;
 use time::macros::{format_description, offset};
 use tracing::Level;
 use tracing_subscriber::fmt::time::OffsetTime;
 
-#[derive(Debug, thiserror::Error)]
+#[suzunari_error]
+#[suzu(context(suffix(Error)))]
 pub(crate) enum LoggerSetupError {
     #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(dead_code))]
-    #[error("Log directory was not found")]
-    LogDirectoryNotFoundError(tauri::Error),
+    #[suzu(display("Log directory was not found"))]
+    LogDirectoryNotFound { source: tauri::Error },
 
     #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(dead_code))]
-    #[error("Failed to create the log file")]
-    LogFileCreationError(std::io::Error),
+    #[suzu(display("Failed to create the log file"))]
+    LogFileCreation { source: std::io::Error },
 }
 
 pub(crate) fn setup(
@@ -25,15 +27,12 @@ pub(crate) fn setup(
 
     #[cfg(all(desktop, not(debug_assertions)))]
     let writer = {
-        use crate::init::logger::LoggerSetupError::{
-            LogDirectoryNotFoundError, LogFileCreationError,
-        };
         use std::{fs::File, sync::Mutex};
         use tauri::Manager;
         let log_file = File::create(
-            app.path().app_log_dir().map_err(LogDirectoryNotFoundError)?.join("kodogu.log"),
+            app.path().app_log_dir().context(LogDirectoryNotFoundError)?.join("kodogu.log"),
         )
-        .map_err(LogFileCreationError)?;
+        .context(LogFileCreationError)?;
         Mutex::new(log_file)
     };
 

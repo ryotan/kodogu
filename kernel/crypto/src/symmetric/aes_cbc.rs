@@ -3,7 +3,7 @@ use super::helpers::{validate_iv_length, validate_key_length};
 use super::traits::{BlockCipher, BlockDecryptor, BlockEncryptor};
 use crate::{Ciphertext, InitializationVector, Plaintext};
 use cbc::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, block_padding::Pkcs7};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 const AES_BLOCK_SIZE: usize = 16;
 const AES_128_KEY_SIZE: usize = 16;

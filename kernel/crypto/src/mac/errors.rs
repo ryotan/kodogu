@@ -16,10 +16,10 @@ pub enum MacAlgorithms {
 
 /// MAC operation error.
 #[suzunari_error]
-#[snafu(visibility(pub), context(suffix(Error)))]
+#[suzu(visibility(pub), context(suffix(Error)))]
 pub enum MacError {
     /// Invalid key length
-    #[snafu(display(
+    #[suzu(display(
         "{algorithm:?}: invalid key length {actual} bytes (expected {expected} bytes)"
     ))]
     InvalidKeyLength {
@@ -30,7 +30,7 @@ pub enum MacError {
     },
 
     /// Invalid nonce length (for GMAC)
-    #[snafu(display(
+    #[suzu(display(
         "{algorithm:?}: invalid nonce length {actual} bytes (expected {expected} bytes)"
     ))]
     InvalidNonceLength {
@@ -44,16 +44,16 @@ pub enum MacError {
     ///
     /// 検証失敗時のエラー。タイミング攻撃を防ぐため、
     /// 失敗理由の詳細は意図的に提供しない。
-    #[snafu(display("{algorithm:?}: verification failed"))]
+    #[suzu(display("{algorithm:?}: verification failed"))]
     VerificationFailed { algorithm: MacAlgorithms, source: hmac::digest::MacError },
 
     /// Invalid tag length
-    #[snafu(display(
+    #[suzu(display(
         "{algorithm:?}: invalid tag length {actual} bytes (expected {expected} bytes)"
     ))]
     InvalidTagLength { algorithm: MacAlgorithms, expected: usize, actual: usize },
 
     /// MAC initialization failed
-    #[snafu(display("{algorithm:?}: key initialization failed"))]
+    #[suzu(display("{algorithm:?}: key initialization failed"))]
     KeyInitFailed { algorithm: MacAlgorithms, source: InvalidLength },
 }

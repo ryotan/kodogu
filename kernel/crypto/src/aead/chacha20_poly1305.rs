@@ -7,7 +7,7 @@ use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{
     ChaCha20Poly1305 as ChaCha20Poly1305Impl, XChaCha20Poly1305 as XChaCha20Poly1305Impl,
 };
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 const CHACHA20_POLY1305_NONCE_SIZE: usize = 12;
 const XCHACHA20_POLY1305_NONCE_SIZE: usize = 24;

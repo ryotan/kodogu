@@ -4,7 +4,7 @@ use super::traits::{Mac, MacGenerator, MacVerifier};
 use super::types::{CmacAes128Key, CmacAes256Key, MacTag};
 use aes::{Aes128, Aes256};
 use cmac::{Cmac, Mac as CmacMac};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 // CMAC 出力サイズ（AES ブロックサイズ = 16 bytes）
 const CMAC_OUTPUT_SIZE: usize = 16;

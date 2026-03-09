@@ -3,7 +3,7 @@ use super::traits::KeyDeriver;
 use super::types::{DerivedKey, HkdfInput, OutputLength};
 use hkdf::Hkdf;
 use sha2::{Sha256, Sha384};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 use zeroize::Zeroizing;
 
 // ========================================

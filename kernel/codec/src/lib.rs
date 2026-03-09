@@ -173,55 +173,55 @@ pub enum BinaryCodecs {
 
 /// Error type for binary codec operations (Base64, Hex, etc.)
 #[suzunari_error]
-#[snafu(visibility(pub), context(suffix(Error)))]
+#[suzu(visibility(pub), context(suffix(Error)))]
 pub enum BinaryCodecError {
     // Common errors across encodings
-    #[snafu(display("Invalid {encoding:?} character '{char}' at position {position}"))]
+    #[suzu(display("Invalid {encoding:?} character '{char}' at position {position}"))]
     InvalidCharacter { encoding: BinaryCodecs, char: char, position: usize },
 
-    #[snafu(display("Invalid {encoding:?} length: {length}"))]
+    #[suzu(display("Invalid {encoding:?} length: {length}"))]
     InvalidLength { encoding: BinaryCodecs, length: usize },
 
-    #[snafu(display("Invalid {encoding:?} padding"))]
+    #[suzu(display("Invalid {encoding:?} padding"))]
     InvalidPadding { encoding: BinaryCodecs },
 
-    #[snafu(display("Invalid {encoding:?} character set: {message}"))]
+    #[suzu(display("Invalid {encoding:?} character set: {message}"))]
     InvalidCharacterSet { encoding: BinaryCodecs, message: String },
 
     // Hex specific
-    #[snafu(display("Odd length hex string: {length}"))]
+    #[suzu(display("Odd length hex string: {length}"))]
     HexOddLength { length: usize },
 
     // Base85 specific
-    #[snafu(display("Base85 overflow at position {position}"))]
+    #[suzu(display("Base85 overflow at position {position}"))]
     Base85Overflow { position: usize },
 
-    #[snafu(display("Invalid Base85 wrapper (missing <~...~> or xbtoa Begin/End)"))]
+    #[suzu(display("Invalid Base85 wrapper (missing <~...~> or xbtoa Begin/End)"))]
     InvalidWrapper,
 
     // URL encoding specific (for future url_encoding module)
-    #[snafu(display("Invalid percent encoding at position {position}"))]
+    #[suzu(display("Invalid percent encoding at position {position}"))]
     UrlInvalidPercent { position: usize },
 
-    #[snafu(display("Invalid UTF-8 in decoded URL"))]
+    #[suzu(display("Invalid UTF-8 in decoded URL"))]
     UrlInvalidUtf8 { source: FromUtf8Error },
 
     // data-encoding library errors
-    #[snafu(display("Data encoding specification error"))]
+    #[suzu(display("Data encoding specification error"))]
     DataEncodingSpec { source: SpecificationError },
 
-    #[snafu(display("Data encoding decode error for {variant}"))]
+    #[suzu(display("Data encoding decode error for {variant}"))]
     DataEncodingDecode { source: DecodeError, variant: String },
 
     // bs58 library errors
-    #[snafu(display("Base58 decode error"))]
+    #[suzu(display("Base58 decode error"))]
     Base58Decode { source: bs58::decode::Error },
 
-    #[snafu(display("Base58 alphabet error"))]
+    #[suzu(display("Base58 alphabet error"))]
     Base58Alphabet { source: bs58::alphabet::Error },
 
     // Quoted-Printable specific
-    #[snafu(display("Quoted-Printable decode error"))]
+    #[suzu(display("Quoted-Printable decode error"))]
     QuotedPrintableDecode { source: ::quoted_printable::QuotedPrintableError },
 }
 
@@ -270,18 +270,18 @@ pub enum TextCodecs {
 
 /// Error type for text codec operations (UTF-8, Shift-JIS, etc.)
 #[suzunari_error]
-#[snafu(visibility(pub), context(suffix(Error)))]
+#[suzu(visibility(pub), context(suffix(Error)))]
 pub enum TextCodecError {
     // UTF-8 specific
-    #[snafu(display("Invalid UTF-8 sequence"))]
+    #[suzu(display("Invalid UTF-8 sequence"))]
     Utf8Invalid { source: FromUtf8Error },
 
     // Invalid byte sequence in text encoding
-    #[snafu(display("Invalid byte sequence for {encoding:?} at position {position}"))]
+    #[suzu(display("Invalid byte sequence for {encoding:?} at position {position}"))]
     InvalidSequence { encoding: TextCodecs, position: usize },
 
     // Unmappable character in encoding
-    #[snafu(display(
+    #[suzu(display(
         "Character '{char}' cannot be encoded as {encoding:?} (Unicode code point U+{code_point:04X})"
     ))]
     UnmappableCharacter { encoding: TextCodecs, char: char, code_point: u32 },

@@ -10,11 +10,26 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
-        "title": "KoDoGu (Dev)",
-        "width": 800,
-        "height": 600
+        "label": "popover",
+        "url": "/popover",
+        "title": "",
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay",
+        "closable": false,
+        "minimizable": false,
+        "maximizable": false,
+        "resizable": false,
+        "width": 480,
+        "height": 480,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "preventOverflow": true,
+        "acceptFirstMouse": true,
+        "transparent": true
       }
     ],
     "security": {

@@ -27,7 +27,12 @@ const port =
 export default defineConfig(() => ({
   plugins: [
     paths(),
-    router({target: 'react', autoCodeSplitting: true, generatedRouteTree: './gen/router/routes.ts'}),
+    router({
+      target: 'react',
+      autoCodeSplitting: true,
+      generatedRouteTree: './gen/router/routes.ts',
+      routeFileIgnorePattern: '\\.(spec|test|stories)\\.[tj]sx?$',
+    }),
     react(),
   ],
 
@@ -50,10 +55,37 @@ export default defineConfig(() => ({
   test: {
     coverage: {
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['**/*.d.ts', '**/*.test.{ts,tsx}', '**/*.stories.{ts,tsx}', '**/*.mock.{ts,tsx}', '**/(dev)/**'],
+      exclude: [
+        '**/*.d.ts',
+        '**/*.test.{ts,tsx}',
+        '**/*.spec.{ts,tsx}',
+        '**/*.stories.{ts,tsx}',
+        '**/*.mock.{ts,tsx}',
+        '**/(dev)/**',
+      ],
     },
     projects: [
-      'vite.config.ts',
+      {
+        extends: 'vite.config.ts',
+        test: {
+          name: 'unit',
+          include: ['src/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        extends: 'vite.config.ts',
+        test: {
+          name: 'browser',
+          include: ['src/**/*.spec.{ts,tsx}'],
+          browser: {
+            enabled: true,
+            headless: true,
+            screenshotFailures: false,
+            provider: playwright(),
+            instances: [{browser: 'chromium' as const}],
+          },
+        },
+      },
       {
         extends: 'vite.config.ts',
         plugins: [

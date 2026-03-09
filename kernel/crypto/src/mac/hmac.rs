@@ -3,7 +3,7 @@ use super::traits::{Mac, MacGenerator, MacVerifier};
 use super::types::{HmacSha256Key, HmacSha384Key, HmacSha512Key, MacTag};
 use hmac::{Hmac, Mac as HmacMac};
 use sha2::{Sha256, Sha384, Sha512};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 // HMAC 出力サイズ
 const HMAC_SHA256_OUTPUT_SIZE: usize = 32;

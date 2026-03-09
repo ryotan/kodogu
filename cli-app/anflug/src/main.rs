@@ -4,7 +4,6 @@ pub mod file;
 pub mod template;
 
 use clap::Parser;
-use snafu::ResultExt;
 use std::path::PathBuf;
 use suzunari_error::*;
 
@@ -18,19 +17,21 @@ const DEFAULT_FILE_PATTERN: &str = "notes-{date}.md";
 const DEFAULT_TEMPLATE: &str = "{message}";
 
 #[suzunari_error]
+#[suzu(context(suffix(Error)))]
 pub enum MainError {
-    #[snafu(transparent)]
+    #[suzu(transparent)]
     Cli { source: cli::CliError },
-    #[snafu(display("Failed to load configuration: {source}"))]
+    #[suzu(display("Failed to load configuration: {source}"))]
     Config { source: confy::ConfyError },
-    #[snafu(display("Failed to read input file: {source}"))]
+    #[suzu(display("Failed to read input file: {source}"))]
     InputFile { source: file::FileError },
-    #[snafu(display("Failed to process template: {source}"))]
+    #[suzu(display("Failed to process template: {source}"))]
     Template { source: template::TemplateError },
-    #[snafu(display("Failed to process file: {source}"))]
+    #[suzu(display("Failed to process file: {source}"))]
     File { source: file::FileError },
 }
 
+#[suzunari_error::report]
 fn main() -> Result<(), MainError> {
     let args = Cli::parse();
 
@@ -38,7 +39,7 @@ fn main() -> Result<(), MainError> {
     args.validate()?;
 
     // Load configuration
-    let config = load_config(args.config.clone()).context(ConfigSnafu)?;
+    let config = load_config(args.config.clone()).context(ConfigError)?;
 
     // Initialize processors
     let template_processor = TemplateProcessor::new(&config);
@@ -46,7 +47,7 @@ fn main() -> Result<(), MainError> {
 
     // Get message content
     let message = if let Some(input_file) = &args.input_file {
-        file_processor.read_input_file(input_file).context(InputFileSnafu)?
+        file_processor.read_input_file(input_file).context(InputFileError)?
     } else {
         // Validation ensures message is Some when input_file is None
         args.message
@@ -61,7 +62,7 @@ fn main() -> Result<(), MainError> {
 
     // Process template
     let processed_content =
-        template_processor.process(&template, &message).context(TemplateSnafu)?;
+        template_processor.process(&template, &message).context(TemplateError)?;
 
     // Determine output file
     let file_pattern = args
@@ -69,7 +70,7 @@ fn main() -> Result<(), MainError> {
         .or_else(|| config.file.clone())
         .unwrap_or_else(|| DEFAULT_FILE_PATTERN.to_string());
 
-    let output_file = template_processor.process_filename(&file_pattern).context(TemplateSnafu)?;
+    let output_file = template_processor.process_filename(&file_pattern).context(TemplateError)?;
 
     let output_path = PathBuf::from(output_file);
 
@@ -114,7 +115,7 @@ fn main() -> Result<(), MainError> {
 
     file_processor
         .process_file(&output_path, &processed_content, &options)
-        .context(FileSnafu)?;
+        .context(FileError)?;
 
     if !args.dry_run {
         println!("Successfully appended to: {}", output_path.display());

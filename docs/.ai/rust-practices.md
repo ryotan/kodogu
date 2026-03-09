@@ -38,27 +38,26 @@ See [coding-practices.md](./coding-practices.md#error-handling) for error classi
 > ```toml
 > [dependencies]
 > suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
-> suzunari-error-macro-impl = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
-> snafu = "0.8"
 > ```
 
 - Apply `#[suzunari_error]` macro to error enums
-- Combines snafu error handling with stack trace context
 - Provides automatic stack trace propagation through error chains
 - Implement the error hierarchy pattern:
 
 ```rust
 #[suzunari_error]
+#[suzu(context(suffix(Error)))]
 pub enum ApplicationError {
-    #[snafu(display("Domain error: {source}"))]
+    #[suzu(display("Domain error: {source}"))]
     Domain { source: DomainError },
-    #[snafu(display("Infrastructure error: {source}"))]
+    #[suzu(display("Infrastructure error: {source}"))]
     Infrastructure { source: InfrastructureError },
 }
 
 #[suzunari_error]
+#[suzu(context(suffix(Error)))]
 pub enum DomainError {
-    #[snafu(display("Order not found: {id}"))]
+    #[suzu(display("Order not found: {id}"))]
     OrderNotFound { id: String },
 }
 ```
@@ -403,6 +402,6 @@ pub enum DomainError {
 
 - `serde` for serialization
 - `tokio` or `async-std` for async runtime
-- `thiserror`/`anyhow` for errors
+- `suzunari-error` for errors
 - `clap` for CLI parsing
 - **Why**: Ecosystem best practices

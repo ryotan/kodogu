@@ -4,8 +4,9 @@ use suzunari_error::*;
 use crate::config::{Config, DateFormats};
 
 #[suzunari_error]
+#[suzu(context(suffix(Error)))]
 pub enum TemplateError {
-    #[snafu(display("Failed to format datetime"))]
+    #[suzu(display("Failed to format datetime"))]
     DateTimeFormat,
 }
 

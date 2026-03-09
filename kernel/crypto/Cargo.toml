@@ -14,18 +14,17 @@ path = "src/lib.rs"
 [dependencies]
 # Error handling (project standard)
 suzunari-error = { workspace = true }
-snafu = { workspace = true }
 
 # Cryptography (adapter layer only)
 aes = { workspace = true }
-aes-gcm = { workspace = true, features = ["std"] }
-aes-gcm-siv = { workspace = true, features = ["std"] }
+aes-gcm = { workspace = true }
+aes-gcm-siv = { workspace = true }
 argon2 = { workspace = true }
 bcrypt-pbkdf = { workspace = true }
-cbc = { workspace = true, features = ["std"] }
+cbc = { workspace = true, features = ['alloc'] }
 concat-kdf = { workspace = true }
 chacha20 = { workspace = true }
-chacha20poly1305 = { workspace = true, features = ["std"] }
+chacha20poly1305 = { workspace = true }
 cmac = { workspace = true }
 ctr = { workspace = true }
 ed25519-dalek = { workspace = true, features = ["pkcs8", "pem"] }

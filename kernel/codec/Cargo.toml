@@ -14,7 +14,6 @@ path = "src/lib.rs"
 [dependencies]
 # Error handling
 suzunari-error = { workspace = true }
-snafu = { workspace = true }
 
 # Base encodings
 data-encoding = { workspace = true }       # Base16, 32, 64

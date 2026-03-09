@@ -1,15 +1,15 @@
 use core::fmt::{Debug, Formatter};
-use snafu::ensure;
 use subtle::ConstantTimeEq;
+use suzunari_error::ensure;
 use suzunari_error::suzunari_error;
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 /// Error for [`OutputLength::try_new`].
 #[suzunari_error]
-#[snafu(visibility(pub(crate)), context(suffix(Error)))]
+#[suzu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum OutputLengthError {
     /// Length is zero.
-    #[snafu(display("output length must be greater than 0"))]
+    #[suzu(display("output length must be greater than 0"))]
     Zero,
 }
 
@@ -160,10 +160,10 @@ impl HkdfInput {
 
 /// Error for [`Pbkdf2Params::try_new`].
 #[suzunari_error]
-#[snafu(visibility(pub(crate)), context(suffix(Error)))]
+#[suzu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum Pbkdf2ParamsError {
     /// `iterations` is zero.
-    #[snafu(display("iterations must be greater than 0"))]
+    #[suzu(display("iterations must be greater than 0"))]
     IterationsZero,
 }
 
@@ -204,16 +204,16 @@ impl Pbkdf2Params {
 
 /// Error for [`Argon2Params::try_new`].
 #[suzunari_error]
-#[snafu(visibility(pub(crate)), context(suffix(Error)))]
+#[suzu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum Argon2ParamsError {
     /// `memory_kib` is zero.
-    #[snafu(display("memory_kib must be greater than 0"))]
+    #[suzu(display("memory_kib must be greater than 0"))]
     MemoryKibZero,
     /// `time` is zero.
-    #[snafu(display("time must be greater than 0"))]
+    #[suzu(display("time must be greater than 0"))]
     TimeZero,
     /// `parallelism` is zero.
-    #[snafu(display("parallelism must be greater than 0"))]
+    #[suzu(display("parallelism must be greater than 0"))]
     ParallelismZero,
 }
 
@@ -285,13 +285,13 @@ impl Argon2Params {
 
 /// Error for [`ScryptParams::try_new`].
 #[suzunari_error]
-#[snafu(visibility(pub(crate)), context(suffix(Error)))]
+#[suzu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum ScryptParamsError {
     /// `r` is zero.
-    #[snafu(display("r must be greater than 0"))]
+    #[suzu(display("r must be greater than 0"))]
     RZero,
     /// `p` is zero.
-    #[snafu(display("p must be greater than 0"))]
+    #[suzu(display("p must be greater than 0"))]
     PZero,
 }
 
@@ -354,10 +354,10 @@ impl ScryptParams {
 
 /// Error for [`BcryptPbkdfParams::try_new`].
 #[suzunari_error]
-#[snafu(visibility(pub(crate)), context(suffix(Error)))]
+#[suzu(visibility(pub(crate)), context(suffix(Error)))]
 pub enum BcryptPbkdfParamsError {
     /// `rounds` is zero.
-    #[snafu(display("rounds must be greater than 0"))]
+    #[suzu(display("rounds must be greater than 0"))]
     RoundsZero,
 }
 

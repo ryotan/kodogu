@@ -5,7 +5,7 @@ use super::types::{AdditionalData, Aes128GcmKey, Aes256GcmKey, AuthenticationTag
 use crate::{Ciphertext, Nonce, Plaintext};
 use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes128Gcm as Aes128GcmImpl, Aes256Gcm as Aes256GcmImpl};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 const AES_GCM_NONCE_SIZE: usize = 12;
 const AES_GCM_TAG_SIZE: usize = 16;

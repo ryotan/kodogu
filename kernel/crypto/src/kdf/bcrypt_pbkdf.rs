@@ -1,7 +1,7 @@
 use super::errors::{BcryptPbkdfDerivationFailedError, KdfError};
 use super::traits::PasswordDeriver;
 use super::types::{BcryptPbkdfParams, DerivedKey, OutputLength};
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 use zeroize::Zeroizing;
 
 /// bcrypt-pbkdf key derivation function (OpenBSD bcrypt_pbkdf).

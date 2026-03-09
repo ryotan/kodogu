@@ -42,7 +42,6 @@
     "@tauri-apps/plugin-deep-link": "catalog:default",
     "@tauri-apps/plugin-http": "catalog:default",
     "@tauri-apps/plugin-opener": "catalog:default",
-    "@tauri-apps/plugin-stronghold": "catalog:default",
     "@tauri-apps/plugin-window-state": "catalog:default",
     "arktype": "catalog:default",
     "immer": "catalog:default",
@@ -81,6 +80,7 @@
     "typescript-eslint": "catalog:default",
     "vite": "catalog:default",
     "vite-tsconfig-paths": "catalog:default",
-    "vitest": "catalog:default"
+    "vitest": "catalog:default",
+    "vitest-browser-react": "catalog:default"
   }
 }

@@ -47,7 +47,7 @@ use crate::{
 use data_encoding::{
     BASE64, BASE64_MIME, BASE64_MIME_PERMISSIVE, BASE64URL, Encoding, Specification,
 };
-use snafu::{ResultExt, ensure};
+use suzunari_error::{ResultExt, ensure};
 
 /// Standard Base64 encoding (RFC 4648)
 ///
