@@ -1,7 +1,5 @@
 import type {ComponentProps, FC} from 'react';
 
-import {useStore} from '@tanstack/react-store';
-
 import {CheckCircledIcon, CrossCircledIcon} from '@radix-ui/react-icons';
 import {Flex, Popover, Text, TextField} from '@radix-ui/themes';
 
@@ -45,7 +43,7 @@ const ErrorPopover: FC<ErrorPopoverProps> = ({errors}) => {
 
 export const InputText: FC<InputTextProps> = ({label, ...props}) => {
   const field = useFieldContext<string>();
-  const errors = useStore(field.store, state => state.meta.errors as unknown[]);
+  const errors = field.state.meta.errors;
   return (
     <label htmlFor='name'>
       <Flex align='center' direction='row' gap='1' justify='between'>
