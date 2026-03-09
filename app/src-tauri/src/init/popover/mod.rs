@@ -50,6 +50,7 @@ impl PopoverState {
         *self.max_height.lock().unwrap_or_else(|e| e.into_inner())
     }
 
+    #[cfg(target_os = "macos")]
     fn set_max_height(&self, max: f64) {
         *self.max_height.lock().unwrap_or_else(|e| e.into_inner()) = max;
     }
@@ -163,6 +164,7 @@ fn ensure_window_listeners<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindo
         return;
     }
     let keep_open = state.keep_open;
+    #[cfg(target_os = "macos")]
     let app = app.clone();
     let w = window.clone();
     window.on_window_event(move |event| match event {
