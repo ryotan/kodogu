@@ -46,8 +46,11 @@ describe('useAutoResize', () => {
 
     // Compute expected height from actual DOM layout.
     // chrome = everything outside the scroll area (header + footer + borders).
-    const content = document.querySelector('[data-testid="content"]') as HTMLElement;
-    const scrollArea = content.parentElement!;
+    const content = document.querySelector('[data-testid="content"]');
+    const scrollArea = content?.parentElement;
+    if (scrollArea == null) {
+      throw new Error('no scroll area');
+    }
     const chromeHeight = Math.max(0, window.innerHeight - scrollArea.clientHeight);
 
     expect(mockInvoke).toHaveBeenCalledWith('resize_popover', {
