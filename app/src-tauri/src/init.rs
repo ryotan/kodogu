@@ -1,6 +1,9 @@
 pub(crate) mod deep_link;
 pub(crate) mod logger;
+#[cfg(target_os = "macos")]
 pub(crate) mod menu;
+#[cfg(target_os = "macos")]
 pub(crate) mod popover;
 pub(crate) mod single_instance;
+#[cfg(target_os = "macos")]
 pub(crate) mod tray;
