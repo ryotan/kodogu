@@ -31,6 +31,7 @@ pub enum MainError {
     File { source: file::FileError },
 }
 
+#[suzunari_error::report]
 fn main() -> Result<(), MainError> {
     let args = Cli::parse();
 
