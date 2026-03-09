@@ -15,7 +15,7 @@ pub fn run() {
         .setup(|app| {
             init::logger::setup(app.handle())?;
             init::deep_link::setup(app.handle())?;
-            #[cfg(desktop)]
+            #[cfg(target_os = "macos")]
             {
                 if let Err(e) =
                     app.handle().set_activation_policy(tauri::ActivationPolicy::Accessory)

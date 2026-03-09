@@ -3,9 +3,11 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 use suzunari_error::*;
+#[cfg(target_os = "macos")]
+use tauri::LogicalSize;
 use tauri::{
-    AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, Rect, Runtime,
-    WebviewWindow, WebviewWindowBuilder, WindowEvent,
+    AppHandle, LogicalPosition, Manager, PhysicalPosition, Rect, Runtime, WebviewWindow,
+    WebviewWindowBuilder, WindowEvent,
 };
 
 /// Window label used in tauri.conf.json to identify the popover window.
