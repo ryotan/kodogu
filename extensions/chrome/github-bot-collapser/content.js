@@ -22,11 +22,17 @@ let groupCounter = 0;
 
 function isBotComment(el) {
   const label = el.querySelector(".timeline-comment-header .Label");
-  return label !== null && label.textContent.trim().toLowerCase() === "bot";
+  if (label === null) return false;
+  const text = label.textContent.trim().toLowerCase();
+  return text === "bot" || text === "ai";
 }
 
 function getBotAuthorName(el) {
   return el.querySelector(".timeline-comment-header .author")?.textContent.trim() ?? "bot";
+}
+
+function getBadgeLabel(el) {
+  return el.querySelector(".timeline-comment-header .Label")?.textContent.trim() ?? "bot";
 }
 
 function getRelativeTime(el) {
@@ -128,7 +134,7 @@ function createToggleSpan() {
   return span;
 }
 
-function createSummary(authorName, preview) {
+function createSummary(authorName, badgeLabel, preview) {
   const el = document.createElement("div");
   el.className = "bot-collapser--summary";
 
@@ -140,8 +146,8 @@ function createSummary(authorName, preview) {
   el.appendChild(authorEl);
 
   const badge = document.createElement("span");
-  badge.className = "bot-collapser--badge";
-  badge.textContent = "bot";
+  badge.className = "bot-collapser--badge Label Label--secondary";
+  badge.textContent = badgeLabel;
   el.appendChild(badge);
 
   if (preview) {
@@ -159,7 +165,7 @@ function createSummary(authorName, preview) {
   return el;
 }
 
-function createGroupSummary(authorName, count, timeRange) {
+function createGroupSummary(authorName, badgeLabel, count, timeRange) {
   const el = document.createElement("div");
   el.className = "bot-collapser--summary";
 
@@ -171,8 +177,8 @@ function createGroupSummary(authorName, count, timeRange) {
   el.appendChild(authorEl);
 
   const badge = document.createElement("span");
-  badge.className = "bot-collapser--badge";
-  badge.textContent = "bot";
+  badge.className = "bot-collapser--badge Label Label--secondary";
+  badge.textContent = badgeLabel;
   el.appendChild(badge);
 
   const countEl = document.createElement("span");
@@ -254,7 +260,7 @@ function processItem(item) {
   if (item.hasAttribute(PROCESSED_ATTR)) return;
   item.setAttribute(PROCESSED_ATTR, "true");
 
-  const summary = createSummary(getBotAuthorName(item), getCommentPreview(item));
+  const summary = createSummary(getBotAuthorName(item), getBadgeLabel(item), getCommentPreview(item));
   const comment = item.querySelector(".timeline-comment");
   const switchState = createSingleToggle(item, comment);
 
@@ -360,7 +366,7 @@ function wrapGroup(run) {
 
   // UI の構築とトグル接続
   const headComment = headItem.querySelector(".timeline-comment");
-  const groupSummary = createGroupSummary(author, items.length, timeRange);
+  const groupSummary = createGroupSummary(author, getBadgeLabel(headItem), items.length, timeRange);
   const toggleGroup = createGroupToggle(headItem, headComment, items, tailItems);
 
   installToggleUI(headItem, groupSummary, toggleGroup);

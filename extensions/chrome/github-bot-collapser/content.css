@@ -15,14 +15,6 @@
 }
 
 .bot-collapser--badge {
-  font-size: 10px;
-  font-weight: 500;
-  padding: 0 6px;
-  border-radius: 10px;
-  border: 1px solid var(--borderColor-default, #d0d7de);
-  color: var(--fgColor-muted, #656d76);
-  line-height: 18px;
-  white-space: nowrap;
   flex-shrink: 0;
 }
 
@@ -106,6 +98,11 @@
 
 .js-timeline-item.bot-collapser--collapsed .bot-collapser--summary {
   display: flex !important;
+}
+
+/* レビューヘッダー等、.timeline-comment もアバターも含まない TimelineItem を折り畳み時に非表示 */
+.js-timeline-item.bot-collapser--collapsed .TimelineItem:not(:has(.timeline-comment)):not(:has(.TimelineItem-avatar)) {
+  display: none !important;
 }
 
 /* ── Group Hidden (tail アイテム非表示) ────────── */
