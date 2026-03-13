@@ -191,7 +191,7 @@ fn ensure_window_listeners<R: Runtime>(app: &AppHandle<R>, window: &WebviewWindo
 
 /// Positions the window near the tray icon rect, then shows it.
 /// On macOS, positions below the menu bar tray icon.
-/// On other platforms, shows the window at its current position.
+/// On other platforms, it shows the window at its current position.
 fn show_at_tray<R: Runtime>(
     app: &AppHandle<R>,
     window: &WebviewWindow<R>,

@@ -30,6 +30,9 @@ impl<T: Debug + Serialize + DeserializeOwned + Send + Sync + 'static> Value for 
     where
         Self: 'a,
     {
+        // RATIONALE: redb::Value trait requires infallible conversion — Result is not supported.
+        // Deserialization failure here means the database contains corrupted or incompatible data,
+        // which is unrecoverable at this layer. Panic is intentional.
         rmp_serde::from_slice(data).expect("redb contains invalid MessagePack data")
     }
 
@@ -37,10 +40,15 @@ impl<T: Debug + Serialize + DeserializeOwned + Send + Sync + 'static> Value for 
     where
         Self: 'a + 'b,
     {
+        // RATIONALE: redb::Value trait requires infallible conversion — Result is not supported.
+        // Serialization of a well-typed Rust value should never fail; panic here would indicate
+        // a serde implementation bug.
         rmp_serde::to_vec_named(value).expect("MessagePack serialization failed")
     }
 
     fn type_name() -> TypeName {
-        TypeName::new("MessagePack")
+        // Include the concrete type name so redb can distinguish MessagePack<A> from MessagePack<B>
+        // and reject mismatched table accesses at runtime.
+        TypeName::new(&format!("MessagePack<{}>", std::any::type_name::<T>()))
     }
 }

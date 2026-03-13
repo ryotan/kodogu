@@ -44,7 +44,7 @@ describe('useAutoResize', () => {
 
     await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(1));
 
-    // Compute expected height from actual DOM layout.
+    // Compute expected height from the actual DOM layout.
     // chrome = everything outside the scroll area (header + footer + borders).
     const content = document.querySelector('[data-testid="content"]');
     const scrollArea = content?.parentElement;

@@ -9,7 +9,7 @@ declare const _brand: unique symbol;
 type Brand<T, B> = T & {readonly [_brand]: B};
 
 export type Milliseconds = Brand<number, 'Milliseconds'>;
-export type LogicalPx = Brand<number, 'LogicalPx'>;
+export type LogicalPixel = Brand<number, 'LogicalPixel'>;
 export type CssColor = Brand<string, 'CssColor'>;
 export type CssFilter = Brand<string, 'CssFilter'>;
 export type CssFontFamily = Brand<string, 'CssFontFamily'>;
@@ -17,7 +17,7 @@ export type CssLength = Brand<string, 'CssLength'>;
 export type CssPadding = Brand<string, 'CssPadding'>;
 
 export const Milliseconds = (n: number): Milliseconds => n as Milliseconds;
-export const LogicalPx = (n: number): LogicalPx => n as LogicalPx;
+export const LogicalPixel = (n: number): LogicalPixel => n as LogicalPixel;
 export const CssColor = (s: string): CssColor => s as CssColor;
 export const CssFilter = (s: string): CssFilter => s as CssFilter;
 export const CssFontFamily = (s: string): CssFontFamily => s as CssFontFamily;
@@ -34,11 +34,11 @@ export type PopoverBehaviorConfig = {
 };
 
 export type PopoverLayoutConfig = {
-  initialWidth: LogicalPx;
-  bottomMargin: LogicalPx;
-  trayGap: LogicalPx;
-  fallbackMaxHeight: LogicalPx;
-  minMaxHeight: LogicalPx;
+  initialWidth: LogicalPixel;
+  bottomMargin: LogicalPixel;
+  trayGap: LogicalPixel;
+  fallbackMaxHeight: LogicalPixel;
+  minMaxHeight: LogicalPixel;
   headerHeight: CssLength;
   cardListPadding: CssPadding;
 };

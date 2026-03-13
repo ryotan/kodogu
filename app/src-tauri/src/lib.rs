@@ -42,16 +42,22 @@ pub fn run() {
         builder = builder.plugin(init::single_instance::plugin());
     }
 
+    // Desktop-only commands depend on state registered in init::store::setup and init::popover::setup,
+    // which only run under #[cfg(desktop)]. Register them conditionally to keep the invariant.
+    #[cfg(desktop)]
+    {
+        builder = builder.invoke_handler(tauri::generate_handler![
+            resize_popover,
+            config::get_config,
+            config::set_config,
+        ]);
+    }
+
     builder
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![
-            resize_popover,
-            config::get_config,
-            config::set_config,
-        ])
         .run(tauri::generate_context!())
         .expect("Tauri application failed to start or encountered a fatal runtime error");
 }

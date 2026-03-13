@@ -4,14 +4,20 @@ import './main.css';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 
-import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 import {createRouter, RouterProvider} from '@tanstack/react-router';
+
+import {AppBootstrap} from '#components/AppBootstrap';
+import {AppErrorPage} from '#components/AppErrorPage';
 
 // Import the generated route tree
 import {routeTree} from '!#router/routes';
 
 // Create a new router instance
-const router = createRouter({routeTree});
+const router = createRouter({
+  routeTree,
+  defaultErrorComponent: AppErrorPage,
+});
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {
@@ -28,7 +34,11 @@ if (root) {
   createRoot(root).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <QueryErrorResetBoundary>
+          <AppBootstrap>
+            <RouterProvider router={router} />
+          </AppBootstrap>
+        </QueryErrorResetBoundary>
       </QueryClientProvider>
     </StrictMode>,
   );

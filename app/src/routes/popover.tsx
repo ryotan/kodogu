@@ -5,10 +5,11 @@ import {PlusIcon} from '@radix-ui/react-icons';
 import {Flex, IconButton, Theme} from '@radix-ui/themes';
 
 import {StubCardList, StubHeader} from '#(prototype)/popover-content';
+import {PopoverPendingLayout} from '#components/PopoverPendingLayout';
 import {useAutoResize} from '#hooks/useAutoResize';
 
 // Shell-level design tokens (window chrome).
-// Will migrate to app-wide settings infrastructure in M1.5.
+// TODO: Replace with CSS variables from AppConfig (--kodogu-*) once Rust-side integration is complete.
 const shell = {
   surface: 'rgba(28, 28, 30, 0.92)',
   border: 'rgba(255, 255, 255, 0.08)',
@@ -17,15 +18,6 @@ const shell = {
 // =============================================================================
 // Popover shell — window management and layout skeleton
 // =============================================================================
-
-// Shown by TanStack Router while the route loader is in flight.
-// This component reuses the pre-React loading styles from index.html
-// so the visual is seamless: HTML spinner → React spinner → actual content.
-const PopoverPendingLayout = () => (
-  <div className='pre-react-loading'>
-    <div className='pre-react-spinner' />
-  </div>
-);
 
 const PopoverLayout = () => {
   const {resizeCallbackRef} = useAutoResize();

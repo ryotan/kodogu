@@ -55,7 +55,7 @@ newtype_u64! {
 
 newtype_f64! {
     /// Device-independent logical pixels.
-    LogicalPx
+    LogicalPixel
 }
 
 newtype_string! {
@@ -106,15 +106,15 @@ impl Default for PopoverBehaviorConfig {
 #[serde(default, rename_all = "camelCase")]
 pub(crate) struct PopoverLayoutConfig {
     /// Initial popover window width.
-    pub(crate) initial_width: LogicalPx,
+    pub(crate) initial_width: LogicalPixel,
     /// Minimum gap between the popover bottom and the screen bottom edge (macOS only).
-    pub(crate) bottom_margin: LogicalPx,
+    pub(crate) bottom_margin: LogicalPixel,
     /// Gap between the tray icon bottom edge and the popover top edge (macOS only).
-    pub(crate) tray_gap: LogicalPx,
+    pub(crate) tray_gap: LogicalPixel,
     /// Fallback max height used when monitor info is unavailable.
-    pub(crate) fallback_max_height: LogicalPx,
+    pub(crate) fallback_max_height: LogicalPixel,
     /// Lower bound for the computed max height, ensuring a minimum usable height.
-    pub(crate) min_max_height: LogicalPx,
+    pub(crate) min_max_height: LogicalPixel,
     /// Height of the header bar.
     pub(crate) header_height: CssLength,
     /// Padding for the card list container.
@@ -124,11 +124,11 @@ pub(crate) struct PopoverLayoutConfig {
 impl Default for PopoverLayoutConfig {
     fn default() -> Self {
         Self {
-            initial_width: LogicalPx(480.0),
-            bottom_margin: LogicalPx(8.0),
-            tray_gap: LogicalPx(4.0),
-            fallback_max_height: LogicalPx(600.0),
-            min_max_height: LogicalPx(200.0),
+            initial_width: LogicalPixel(480.0),
+            bottom_margin: LogicalPixel(8.0),
+            tray_gap: LogicalPixel(4.0),
+            fallback_max_height: LogicalPixel(600.0),
+            min_max_height: LogicalPixel(200.0),
             header_height: CssLength::from("40px"),
             card_list_padding: CssPadding::from("6px 0"),
         }
@@ -143,7 +143,7 @@ pub(crate) struct PopoverAppearanceConfig {
     pub(crate) surface_color: CssColor,
     /// Border color used for the header bottom separator.
     pub(crate) border_color: CssColor,
-    /// Backdrop filter applied to the popover for frosted glass effect.
+    /// Backdrop filter applied to the popover for a frosted glass effect.
     pub(crate) backdrop_filter: CssFilter,
     /// Font family for the entire popover.
     pub(crate) font_family: CssFontFamily,
@@ -192,12 +192,12 @@ pub(crate) struct AppConfig {
 /// Versioned storage envelope for `AppConfig`.
 ///
 /// Wrapping `AppConfig` in an enum from the first version ensures a version discriminant
-/// is always present in stored bytes, enabling future breaking schema changes.
+/// is always present in stored bytes, enabling future-breaking schema changes.
 ///
 /// When a breaking change is needed:
 ///   1. Rename `AppConfig` to `AppConfigV1`
 ///   2. Define the new `AppConfig`
-///   3. Add `V2(AppConfig)` variant
+///   3. Add the `V2(AppConfig)` variant
 ///   4. Implement migration in `AppConfigStore::load_from_db`
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "version", rename_all = "SCREAMING_SNAKE_CASE")]
@@ -238,6 +238,8 @@ impl AppConfigStore {
     pub(crate) fn new(db: Arc<Database>) -> Result<Self, ConfigError> {
         let store = Self { db, cached: RwLock::new(AppConfig::default()) };
         let config = store.load_from_db()?;
+        // Poison recovery: if a panicking thread held the lock, we still want the latest value.
+        // AppConfig is independently validated, so a poisoned cache is safe to overwrite.
         *store.cached.write().unwrap_or_else(|e| e.into_inner()) = config;
         Ok(store)
     }
@@ -282,13 +284,34 @@ impl AppConfigStore {
     }
 
     pub(crate) fn get(&self) -> AppConfig {
+        // Poison recovery: reading a potentially stale cache is acceptable — the value
+        // is always a valid AppConfig, and the next set() will overwrite it.
         self.cached.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     pub(crate) fn set(&self, config: AppConfig) -> Result<(), ConfigError> {
         self.write_to_db(&config)?;
+        // Poison recovery: same rationale as new() — overwriting with a freshly persisted value.
         *self.cached.write().unwrap_or_else(|e| e.into_inner()) = config;
         Ok(())
+    }
+}
+
+// =============================================================================
+// Command error type
+// =============================================================================
+
+/// Serializable error type returned from Tauri commands.
+///
+/// Serializes as a plain JSON string so callers can display the message directly.
+/// Using a newtype instead of `String` makes the intent explicit at the call site.
+#[derive(Debug, Serialize)]
+#[serde(transparent)]
+pub(crate) struct CommandError(String);
+
+impl From<ConfigError> for CommandError {
+    fn from(e: ConfigError) -> Self {
+        Self(StackReport::from(e).to_string())
     }
 }
 
@@ -307,6 +330,6 @@ pub(crate) fn get_config(state: State<'_, AppConfigStore>) -> AppConfig {
 pub(crate) fn set_config(
     state: State<'_, AppConfigStore>,
     config: AppConfig,
-) -> Result<(), String> {
-    state.set(config).map_err(|e| StackReport::from(e).to_string())
+) -> Result<(), CommandError> {
+    state.set(config).map_err(CommandError::from)
 }
