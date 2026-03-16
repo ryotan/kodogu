@@ -200,7 +200,7 @@ pub(crate) struct AppConfig {
 ///   3. Add the `V2(AppConfig)` variant
 ///   4. Implement migration in `AppConfigStore::load_from_db`
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "version", rename_all = "SCREAMING_SNAKE_CASE")]
+#[serde(tag = "version", content = "data", rename_all = "camelCase")]
 enum StoredAppConfig {
     V1(AppConfig),
 }
