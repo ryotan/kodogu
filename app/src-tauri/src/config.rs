@@ -333,3 +333,18 @@ pub(crate) fn set_config(
 ) -> Result<(), CommandError> {
     state.set(config).map_err(CommandError::from)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stored_app_config_msgpack_roundtrip() {
+        let original = StoredAppConfig::V1(AppConfig::default());
+        let bytes = rmp_serde::to_vec_named(&original).expect("serialize");
+        let decoded: StoredAppConfig = rmp_serde::from_slice(&bytes).expect("deserialize");
+        // Verify the inner config survived the roundtrip.
+        let StoredAppConfig::V1(config) = decoded;
+        assert_eq!(config.popover.behavior.toggle_debounce_ms.0, 300);
+    }
+}

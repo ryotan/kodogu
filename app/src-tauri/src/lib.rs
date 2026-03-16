@@ -1,12 +1,19 @@
 use crate::init::popover::resize_popover;
-use suzunari_error::{DisplayError, StackReport};
+use suzunari_error::*;
 
 mod config;
 mod init;
 mod store;
 
+#[suzunari_error]
+#[suzu(context(suffix(Error)))]
+pub enum RunError {
+    #[suzu(display("Tauri application failed to start"))]
+    TauriRun { source: tauri::Error },
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+pub fn run() -> Result<(), RunError> {
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_window_state::Builder::new().with_denylist(&["popover"]).build())
         .setup(|app| {
@@ -59,5 +66,7 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .run(tauri::generate_context!())
-        .expect("Tauri application failed to start or encountered a fatal runtime error");
+        .context(TauriRunError {})?;
+
+    Ok(())
 }
