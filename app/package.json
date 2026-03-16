@@ -46,7 +46,8 @@
     "arktype": "catalog:default",
     "mutative": "catalog:default",
     "react": "catalog:default",
-    "react-dom": "catalog:default"
+    "react-dom": "catalog:default",
+    "react-error-boundary": "^6.1.1"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:default",

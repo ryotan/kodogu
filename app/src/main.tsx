@@ -7,6 +7,8 @@ import {createRoot} from 'react-dom/client';
 import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 import {createRouter, RouterProvider} from '@tanstack/react-router';
 
+import {ErrorBoundary} from 'react-error-boundary';
+
 import {AppBootstrap} from '#components/AppBootstrap';
 import {AppErrorPage} from '#components/AppErrorPage';
 
@@ -27,7 +29,11 @@ declare module '@tanstack/react-router' {
   }
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {staleTime: Number.POSITIVE_INFINITY},
+  },
+});
 
 const root = document.getElementById('root');
 if (root) {
@@ -35,9 +41,21 @@ if (root) {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <QueryErrorResetBoundary>
-          <AppBootstrap>
-            <RouterProvider router={router} />
-          </AppBootstrap>
+          {({reset}) => (
+            <ErrorBoundary
+              fallbackRender={({error, resetErrorBoundary}) => (
+                <AppErrorPage
+                  error={error instanceof Error ? error : new Error(String(error))}
+                  reset={resetErrorBoundary}
+                />
+              )}
+              onReset={reset}
+            >
+              <AppBootstrap>
+                <RouterProvider router={router} />
+              </AppBootstrap>
+            </ErrorBoundary>
+          )}
         </QueryErrorResetBoundary>
       </QueryClientProvider>
     </StrictMode>,
