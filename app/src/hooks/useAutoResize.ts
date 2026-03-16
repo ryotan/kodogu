@@ -30,9 +30,7 @@ function measureDesiredWindowSize(content: Element): WindowSizeMeasurement | nul
   return {windowInnerWidth, windowInnerHeight, scrollAreaHeight, chromeHeight, contentHeight, desiredHeight};
 }
 
-function invokeResizePopoverCommand(measurement: WindowSizeMeasurement, timestamp: number) {
-  console.trace(`invoking resize_popover at ${timestamp}`, measurement);
-
+function invokeResizePopoverCommand(measurement: WindowSizeMeasurement) {
   invoke('resize_popover', {
     width: measurement.windowInnerWidth,
     height: measurement.desiredHeight,
@@ -69,14 +67,11 @@ export function useAutoResize(): {resizeCallbackRef: (content: HTMLElement | nul
     }
 
     attached.current = new ResizeObserver(entries => {
-      if (entries.length !== 1) {
-        console.error('Expected exactly one ResizeObserver entry');
-        return;
-      }
-
-      const content = entries[0].target;
+      // ResizeObserver may batch multiple entries; use the last one (most recent state).
+      const entry = entries[entries.length - 1];
+      const content = entry.target;
       cancelAnimationFrame(frameRequestId.current);
-      frameRequestId.current = requestAnimationFrame(timestamp => {
+      frameRequestId.current = requestAnimationFrame(() => {
         const measurement = measureDesiredWindowSize(content);
         // Only update if precondition is met
         if (!measurement) {
@@ -89,7 +84,7 @@ export function useAutoResize(): {resizeCallbackRef: (content: HTMLElement | nul
         }
         previousHeight.current = measurement.contentHeight;
 
-        invokeResizePopoverCommand(measurement, timestamp);
+        invokeResizePopoverCommand(measurement);
       });
     });
     attached.current.observe(content);

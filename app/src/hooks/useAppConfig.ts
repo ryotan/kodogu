@@ -1,7 +1,7 @@
 import {useSuspenseQuery} from '@tanstack/react-query';
 
+import {getConfig} from '#commands/appConfig';
 import type {AppConfig} from '#config';
-import {getConfig} from '#config';
 import {QueryKeys} from '#QueryKeys';
 
 export function useAppConfig<T = AppConfig>(select?: (config: AppConfig) => T): T {

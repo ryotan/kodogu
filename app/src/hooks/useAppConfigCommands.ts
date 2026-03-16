@@ -4,8 +4,8 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 
 import {create} from 'mutative';
 
+import {setConfig} from '#commands/appConfig';
 import type {AppConfig} from '#config';
-import {setConfig} from '#config';
 import {QueryKeys} from '#QueryKeys';
 
 type ConfigRecipe = (draft: AppConfig) => void;
@@ -31,12 +31,12 @@ export function useAppConfigCommands() {
       queryClient.setQueryData(queryKey, next);
       return {previous};
     },
+    // Re-fetch the authoritative state from Rust after a successful write.
+    onSuccess: () => queryClient.invalidateQueries({queryKey}),
     // Rollback to the previous value immediately, then re-fetch the authoritative state.
     onError: (_err, _next, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous);
-      }
-      queryClient.invalidateQueries({queryKey});
+      queryClient.setQueryData(queryKey, context?.previous);
+      return queryClient.invalidateQueries({queryKey});
     },
   });
 

@@ -1,5 +1,3 @@
-import {invoke} from '@tauri-apps/api/core';
-
 // =============================================================================
 // Value types — mirrors newtype definitions in app/src-tauri/src/config.rs.
 // Branded at compile time only; runtime values are plain primitives.
@@ -59,11 +57,3 @@ export type PopoverConfig = {
 export type AppConfig = {
   popover: PopoverConfig;
 };
-
-export function getConfig(): Promise<AppConfig> {
-  return invoke<AppConfig>('get_config');
-}
-
-export function setConfig(config: AppConfig): Promise<void> {
-  return invoke('set_config', {config});
-}
