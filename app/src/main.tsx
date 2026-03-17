@@ -36,28 +36,29 @@ const queryClient = new QueryClient({
 });
 
 const root = document.getElementById('root');
-if (root) {
-  createRoot(root).render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <QueryErrorResetBoundary>
-          {({reset}) => (
-            <ErrorBoundary
-              fallbackRender={({error, resetErrorBoundary}) => (
-                <AppErrorPage
-                  error={error instanceof Error ? error : new Error(String(error))}
-                  reset={resetErrorBoundary}
-                />
-              )}
-              onReset={reset}
-            >
-              <AppBootstrap>
-                <RouterProvider router={router} />
-              </AppBootstrap>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
-      </QueryClientProvider>
-    </StrictMode>,
-  );
+if (!root) {
+  throw new Error('#root element not found in index.html');
 }
+createRoot(root).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <QueryErrorResetBoundary>
+        {({reset}) => (
+          <ErrorBoundary
+            fallbackRender={({error, resetErrorBoundary}) => (
+              <AppErrorPage
+                error={error instanceof Error ? error : new Error(String(error))}
+                reset={resetErrorBoundary}
+              />
+            )}
+            onReset={reset}
+          >
+            <AppBootstrap>
+              <RouterProvider router={router} />
+            </AppBootstrap>
+          </ErrorBoundary>
+        )}
+      </QueryErrorResetBoundary>
+    </QueryClientProvider>
+  </StrictMode>,
+);

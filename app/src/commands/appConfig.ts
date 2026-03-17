@@ -7,5 +7,5 @@ export function getConfig(): Promise<AppConfig> {
 }
 
 export function setConfig(config: AppConfig): Promise<void> {
-  return invoke('set_config', {config});
+  return invoke<void>('set_config', {config});
 }
