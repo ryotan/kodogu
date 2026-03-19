@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 
 import {useQueryErrorResetBoundary} from '@tanstack/react-query';
 import type {ErrorComponentProps} from '@tanstack/react-router';
@@ -55,14 +55,17 @@ const StackFrameRow = ({frame}: {frame: StackFrame}) => {
 // Component
 // ---------------------------------------------------------------------------
 
+// Requires QueryErrorResetBoundary in ancestor — used in main.tsx ErrorBoundary
+// and as TanStack Router's defaultErrorComponent.
 export const AppErrorComponent = ({error, reset}: ErrorComponentProps) => {
   const {reset: resetQueries} = useQueryErrorResetBoundary();
   const [stackExpanded, setStackExpanded] = useState(false);
 
-  const err = error instanceof Error ? error : new Error(String(error));
-  // Strip the first line (error name + message) to avoid duplication
-  const frames = (err.stack?.split('\n').slice(1) ?? []).map(parseFrame).filter(f => f !== null);
-  const originFrame = frames.find(f => !f.isExternal);
+  const {frames, originFrame} = useMemo(() => {
+    // Strip the first line (error name + message) to avoid duplication
+    const parsed = (error.stack?.split('\n').slice(1) ?? []).map(parseFrame).filter((f): f is StackFrame => f !== null);
+    return {frames: parsed, originFrame: parsed.find(f => !f.isExternal)};
+  }, [error]);
 
   return (
     <Theme appearance='dark' hasBackground={false}>
@@ -71,11 +74,11 @@ export const AppErrorComponent = ({error, reset}: ErrorComponentProps) => {
 
         <div className={styles.header}>
           <span className={styles.badge}>Runtime Error</span>
-          <span className={styles.errorName}>{err.name}</span>
+          <span className={styles.errorName}>{error.name}</span>
         </div>
 
         <div className={styles.body}>
-          <p className={styles.message}>{err.message}</p>
+          <p className={styles.message}>{error.message}</p>
         </div>
 
         {originFrame && (
