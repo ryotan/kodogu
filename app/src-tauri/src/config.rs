@@ -346,6 +346,18 @@ pub(crate) async fn set_config(
 mod tests {
     use super::*;
 
+    use redb::backends::InMemoryBackend;
+
+    fn in_memory_db() -> Database {
+        Database::builder()
+            .create_with_backend(InMemoryBackend::new())
+            .expect("in-memory database")
+    }
+
+    // -------------------------------------------------------------------------
+    // StoredAppConfig serialization
+    // -------------------------------------------------------------------------
+
     #[test]
     fn stored_app_config_msgpack_roundtrip() {
         let original = StoredAppConfig::V1(AppConfig::default());
@@ -354,5 +366,59 @@ mod tests {
         // Verify the inner config survived the roundtrip.
         let StoredAppConfig::V1(config) = decoded;
         assert_eq!(config.popover.behavior.toggle_debounce_ms.0, 300);
+    }
+
+    #[test]
+    fn stored_app_config_serializes_with_version_and_data_keys() {
+        let stored = StoredAppConfig::V1(AppConfig::default());
+        let json = serde_json::to_value(&stored).expect("serialize to JSON");
+
+        // Adjacently tagged enum: { "version": "v1", "data": { ... } }
+        assert_eq!(json["version"], "v1");
+        assert!(json["data"].is_object(), "data key should contain an object");
+        assert!(json["data"]["popover"].is_object(), "data should contain popover config");
+    }
+
+    // -------------------------------------------------------------------------
+    // AppConfigStore
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn new_store_returns_default_config_on_empty_db() {
+        let store = AppConfigStore::new(in_memory_db()).expect("create store");
+        let config = store.get();
+        assert_eq!(config.popover.behavior.toggle_debounce_ms, Milliseconds(300));
+    }
+
+    #[test]
+    fn set_then_get_returns_updated_config() {
+        let store = AppConfigStore::new(in_memory_db()).expect("create store");
+
+        let mut config = store.get();
+        config.popover.behavior.toggle_debounce_ms = Milliseconds(500);
+        store.set(config).expect("persist config");
+
+        let loaded = store.get();
+        assert_eq!(loaded.popover.behavior.toggle_debounce_ms, Milliseconds(500));
+    }
+
+    #[test]
+    fn set_persists_to_db_and_survives_new_store() {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let db_path = dir.path().join("test.redb");
+
+        // Write with first store instance, then drop it.
+        {
+            let db = Database::create(&db_path).expect("create db");
+            let store = AppConfigStore::new(db).expect("create store");
+            let mut config = store.get();
+            config.popover.behavior.toggle_debounce_ms = Milliseconds(999);
+            store.set(config).expect("persist config");
+        }
+
+        // Read with a new store to verify DB persistence.
+        let db2 = Database::create(&db_path).expect("reopen db");
+        let store2 = AppConfigStore::new(db2).expect("create store 2");
+        assert_eq!(store2.get().popover.behavior.toggle_debounce_ms, Milliseconds(999));
     }
 }
