@@ -389,6 +389,27 @@ pub enum DomainError {
 - Teaches Rust idioms
 - **Why**: Catches common mistakes
 
+## Tauri Commands
+
+### Sync vs Async Commands
+
+- **Sync commands** (`#[tauri::command]`): Run on the main thread. Use only for trivial, non-blocking operations
+- **Async commands** (`#[tauri::command] async fn`): Run on the tokio runtime. Use for any I/O (file, database, network)
+
+```rust
+// Sync — only for trivial operations
+#[tauri::command]
+fn get_version() -> String { env!("CARGO_PKG_VERSION").to_string() }
+
+// Async — for anything involving I/O
+#[tauri::command]
+async fn get_config(store: State<'_, AppConfigStore>) -> Result<AppConfig, CommandError> {
+    store.get().context(GetConfigFailed)
+}
+```
+
+- **Why**: Sync commands block the main thread (UI freezes). Async commands run on the tokio thread pool
+
 ## Ecosystem Libraries
 
 ### Prefer Standard Library
