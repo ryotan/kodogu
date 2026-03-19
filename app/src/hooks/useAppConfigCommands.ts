@@ -16,7 +16,7 @@ type ConfigRecipe = (draft: AppConfig) => void;
  *
  * Usage:
  *   const {update} = useAppConfigCommands();
- *   update(draft => { draft.popover.appearance.surfaceColor = '#fff'; });
+ *   update(draft => { draft.popover.appearance.surfaceColor = CssColor('#fff'); });
  */
 export function useAppConfigCommands() {
   const queryClient = useQueryClient();

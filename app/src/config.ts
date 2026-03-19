@@ -1,6 +1,7 @@
 // =============================================================================
 // Value types — mirrors newtype definitions in app/src-tauri/src/config.rs.
 // Branded at compile time only; runtime values are plain primitives.
+// No runtime validation — Rust is the single source of truth for valid values.
 // =============================================================================
 
 declare const _brand: unique symbol;
@@ -25,35 +26,39 @@ export const CssPadding = (s: string): CssPadding => s as CssPadding;
 // =============================================================================
 // Config types — mirrors struct definitions in app/src-tauri/src/config.rs.
 // Fields are camelCase (Rust side uses #[serde(rename_all = "camelCase")]).
+//
+// No runtime validation on invoke<AppConfig> — the type parameter is
+// compile-time only. Rust's serde serialization is the source of truth.
+// TODO(KDG-27): Consider runtime parsing (e.g. arktype) once IPC error handling improves.
 // =============================================================================
 
 export type PopoverBehaviorConfig = {
-  toggleDebounceMs: Milliseconds;
+  readonly toggleDebounceMs: Milliseconds;
 };
 
 export type PopoverLayoutConfig = {
-  initialWidth: LogicalPixel;
-  bottomMargin: LogicalPixel;
-  trayGap: LogicalPixel;
-  fallbackMaxHeight: LogicalPixel;
-  minMaxHeight: LogicalPixel;
-  headerHeight: CssLength;
-  cardListPadding: CssPadding;
+  readonly initialWidth: LogicalPixel;
+  readonly bottomMargin: LogicalPixel;
+  readonly trayGap: LogicalPixel;
+  readonly fallbackMaxHeight: LogicalPixel;
+  readonly minMaxHeight: LogicalPixel;
+  readonly headerHeight: CssLength;
+  readonly cardListPadding: CssPadding;
 };
 
 export type PopoverAppearanceConfig = {
-  surfaceColor: CssColor;
-  borderColor: CssColor;
-  backdropFilter: CssFilter;
-  fontFamily: CssFontFamily;
+  readonly surfaceColor: CssColor;
+  readonly borderColor: CssColor;
+  readonly backdropFilter: CssFilter;
+  readonly fontFamily: CssFontFamily;
 };
 
 export type PopoverConfig = {
-  behavior: PopoverBehaviorConfig;
-  layout: PopoverLayoutConfig;
-  appearance: PopoverAppearanceConfig;
+  readonly behavior: PopoverBehaviorConfig;
+  readonly layout: PopoverLayoutConfig;
+  readonly appearance: PopoverAppearanceConfig;
 };
 
 export type AppConfig = {
-  popover: PopoverConfig;
+  readonly popover: PopoverConfig;
 };
