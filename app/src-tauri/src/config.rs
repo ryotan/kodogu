@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 use redb::{Database, ReadableDatabase, TableDefinition};
 use serde::{Deserialize, Serialize};
@@ -18,7 +18,7 @@ const CONFIG_KEY: &str = "app_config";
 macro_rules! newtype_string {
     ($(#[$meta:meta])* $name:ident) => {
         $(#[$meta])*
-        #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+        #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
         #[serde(transparent)]
         pub(crate) struct $name(pub(crate) String);
 
@@ -228,14 +228,14 @@ pub(crate) enum ConfigError {
 
 /// Manages a shared redb database handle and a cached in-memory copy of `AppConfig`.
 pub(crate) struct AppConfigStore {
-    db: Arc<Database>,
+    db: Database,
     cached: RwLock<AppConfig>,
 }
 
 impl AppConfigStore {
-    /// Creates a new store from a shared database handle and loads the stored config.
+    /// Creates a new store from a database handle and loads the stored config.
     /// On first launch when no config exists, writes and caches `AppConfig::default()`.
-    pub(crate) fn new(db: Arc<Database>) -> Result<Self, ConfigError> {
+    pub(crate) fn new(db: Database) -> Result<Self, ConfigError> {
         let store = Self { db, cached: RwLock::new(AppConfig::default()) };
         let config = store.load_from_db()?;
         // Poison recovery: if a panicking thread held the lock, we still want the latest value.
@@ -249,7 +249,9 @@ impl AppConfigStore {
 
         let table = match read_txn.open_table(CONFIG_TABLE) {
             Ok(t) => t,
-            // First launch: table does not exist yet
+            // First launch: table does not exist yet.
+            // Release the read transaction before write_to_db starts a write transaction —
+            // redb blocks if both are held by the same thread.
             Err(redb::TableError::TableDoesNotExist(_)) => {
                 drop(read_txn);
                 let default = AppConfig::default();
@@ -260,6 +262,7 @@ impl AppConfigStore {
         };
 
         let Some(guard) = table.get(CONFIG_KEY).context(StorageError {})? else {
+            // Release table (borrows read_txn) and read_txn before starting a write transaction.
             drop(table);
             drop(read_txn);
             let default = AppConfig::default();
@@ -305,6 +308,8 @@ impl AppConfigStore {
 ///
 /// Serializes as a plain JSON string so callers can display the message directly.
 /// Using a newtype instead of `String` makes the intent explicit at the call site.
+///
+/// TODO(KDG-27): Consider structured error format `{kind, message}` for typed JS-side handling.
 #[derive(Debug, Serialize)]
 #[serde(transparent)]
 pub(crate) struct CommandError(String);
@@ -326,8 +331,11 @@ pub(crate) fn get_config(state: State<'_, AppConfigStore>) -> AppConfig {
 }
 
 /// Persists the given configuration and updates the in-memory cache.
+///
+/// Async to avoid blocking the main thread — `begin_write()` may block
+/// if another write transaction is in progress.
 #[tauri::command]
-pub(crate) fn set_config(
+pub(crate) async fn set_config(
     state: State<'_, AppConfigStore>,
     config: AppConfig,
 ) -> Result<(), CommandError> {

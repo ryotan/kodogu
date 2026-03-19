@@ -1,6 +1,5 @@
 use std::fs::create_dir_all;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use redb::Database;
 use suzunari_error::*;
@@ -27,7 +26,7 @@ pub(crate) fn setup<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<(), StoreIn
 
     let db_path = data_dir.join("kodogu.redb");
     // Database::create opens an existing file or creates a new one if absent.
-    let db = Arc::new(Database::create(&db_path).context(DatabaseError { path: db_path.clone() })?);
+    let db = Database::create(&db_path).context(DatabaseError { path: db_path.clone() })?;
 
     app.manage(AppConfigStore::new(db).context(ConfigurationError {})?);
 

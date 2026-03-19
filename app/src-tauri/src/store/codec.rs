@@ -12,6 +12,7 @@ use serde::de::DeserializeOwned;
 #[derive(Debug)]
 pub(crate) struct MessagePack<T>(PhantomData<T>);
 
+// `Debug` bound: required by redb's `Value::SelfType` associated type.
 impl<T: Debug + Serialize + DeserializeOwned + Send + Sync + 'static> Value for MessagePack<T> {
     type SelfType<'a>
         = T
