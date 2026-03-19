@@ -45,6 +45,8 @@ pub(crate) fn setup(
         .with_line_number(true)
         .with_env_filter("kodogu_lib")
         .with_target(false)
+        // JST (+9) hardcoded: UtcOffset::current_local_offset() is unreliable in
+        // multi-threaded processes (returns Err). Acceptable for a Japanese-market app.
         .with_timer(OffsetTime::new(offset!(+9), fmt))
         .with_writer(writer)
         .with_ansi(cfg!(not(all(desktop, not(debug_assertions)))))
