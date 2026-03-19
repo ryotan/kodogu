@@ -6,12 +6,10 @@ import {create} from 'mutative';
 
 import {setConfig} from '#commands/appConfig';
 import type {AppConfig} from '#config';
-import {QueryKeys} from '#QueryKeys';
+
+import {appConfigQuery} from './useAppConfig';
 
 type ConfigRecipe = (draft: AppConfig) => void;
-
-// Stable reference — avoids recreating useCallback/useMutation closures every render.
-const queryKey = QueryKeys.appConfig();
 
 /**
  * Returns mutation helpers for updating and persisting AppConfig.
@@ -25,18 +23,23 @@ export function useAppConfigCommands() {
 
   const {mutate, isPending} = useMutation({
     mutationFn: setConfig,
+    scope: {id: 'app-config'},
     onMutate: async next => {
-      await queryClient.cancelQueries({queryKey});
-      const previous = queryClient.getQueryData<AppConfig>(queryKey);
-      queryClient.setQueryData(queryKey, next);
+      // Currently a no-op (staleTime: Infinity prevents background refetches),
+      // but guards against future staleTime changes.
+      await queryClient.cancelQueries({queryKey: appConfigQuery.queryKey});
+      const previous = queryClient.getQueryData(appConfigQuery.queryKey);
+      queryClient.setQueryData(appConfigQuery.queryKey, next);
       return {previous};
     },
-    // Re-fetch the authoritative state from Rust after a successful write.
-    onSuccess: () => queryClient.invalidateQueries({queryKey}),
-    // Rollback to the previous value immediately, then re-fetch the authoritative state.
-    onError: (_err, _next, context) => {
-      queryClient.setQueryData(queryKey, context?.previous);
-      return queryClient.invalidateQueries({queryKey});
+    onError: (err, _next, context) => {
+      console.error('Failed to persist AppConfig', err);
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(appConfigQuery.queryKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      return queryClient.invalidateQueries({queryKey: appConfigQuery.queryKey});
     },
   });
 
@@ -45,7 +48,7 @@ export function useAppConfigCommands() {
     (recipe: ConfigRecipe) => {
       // AppBootstrap guarantees AppConfig is loaded before the app renders,
       // so the cache is always populated at this point.
-      const current = queryClient.getQueryData<AppConfig>(queryKey);
+      const current = queryClient.getQueryData(appConfigQuery.queryKey);
       if (!current) {
         throw new Error('update() called before AppConfig was loaded — this should be unreachable');
       }

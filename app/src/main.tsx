@@ -31,7 +31,11 @@ declare module '@tanstack/react-router' {
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {staleTime: Number.POSITIVE_INFINITY},
+    queries: {
+      // Tauri IPC is local — browser online/offline events are irrelevant.
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
   },
 });
 
