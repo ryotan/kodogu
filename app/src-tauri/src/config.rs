@@ -250,8 +250,8 @@ impl AppConfigStore {
         let table = match read_txn.open_table(CONFIG_TABLE) {
             Ok(t) => t,
             // First launch: table does not exist yet.
-            // Release the read transaction before write_to_db starts a write transaction —
-            // redb blocks if both are held by the same thread.
+            // Release the read transaction before starting a write — holding both is
+            // wasteful and prevents freed-page reclamation until the reader drops.
             Err(redb::TableError::TableDoesNotExist(_)) => {
                 drop(read_txn);
                 let default = AppConfig::default();
@@ -262,7 +262,7 @@ impl AppConfigStore {
         };
 
         let Some(guard) = table.get(CONFIG_KEY).context(StorageError {})? else {
-            // Release table (borrows read_txn) and read_txn before starting a write transaction.
+            // Same rationale as above — release read resources before writing.
             drop(table);
             drop(read_txn);
             let default = AppConfig::default();

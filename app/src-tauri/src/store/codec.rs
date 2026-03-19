@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
+use std::sync::OnceLock;
 
 use redb::{TypeName, Value};
 use serde::Serialize;
@@ -12,7 +13,8 @@ use serde::de::DeserializeOwned;
 #[derive(Debug)]
 pub(crate) struct MessagePack<T>(PhantomData<T>);
 
-// `Debug` bound: required by redb's `Value::SelfType` associated type.
+// `Debug` bound: required because SelfType<'a> = T and redb's Value trait
+// requires both `Value: Debug` (supertrait) and `SelfType<'a>: Debug`.
 impl<T: Debug + Serialize + DeserializeOwned + Send + Sync + 'static> Value for MessagePack<T> {
     type SelfType<'a>
         = T
@@ -50,6 +52,10 @@ impl<T: Debug + Serialize + DeserializeOwned + Send + Sync + 'static> Value for 
     fn type_name() -> TypeName {
         // Include the concrete type name so redb can distinguish MessagePack<A> from MessagePack<B>
         // and reject mismatched table accesses at runtime.
-        TypeName::new(&format!("MessagePack<{}>", std::any::type_name::<T>()))
+        // Each monomorphized T gets its own static via OnceLock.
+        static TYPE_NAME: OnceLock<TypeName> = OnceLock::new();
+        TYPE_NAME
+            .get_or_init(|| TypeName::new(&format!("MessagePack<{}>", std::any::type_name::<T>())))
+            .clone()
     }
 }

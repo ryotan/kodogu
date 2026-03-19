@@ -1,4 +1,4 @@
-import {useCallback, useRef} from 'react';
+import {useCallback} from 'react';
 
 import {invoke} from '@tauri-apps/api/core';
 
@@ -48,51 +48,46 @@ function invokeResizePopoverCommand(measurement: WindowSizeMeasurement) {
 //
 // The Rust side holds the max height constraint and caps the resize request
 // via the `resize_popover` command. No OS-level set_max_size is used.
+//
+// Uses React 19 cleanup callback ref: returning a cleanup function from the
+// ref callback lets all state live as closure-local variables, eliminating useRef.
 export function useAutoResize(): {resizeCallbackRef: (content: HTMLElement | null) => void} {
-  const attached = useRef<ResizeObserver | null>(null);
-  const previousHeight = useRef(0);
-  const frameRequestId = useRef(0);
-
-  const observer = useCallback((content: HTMLElement | null) => {
-    // Clean up previous observer
-    if (attached.current) {
-      attached.current.disconnect();
-      attached.current = null;
-    }
-    // Cancel any pending frame request when content changes
-    cancelAnimationFrame(frameRequestId.current);
-
+  const resizeCallbackRef = useCallback((content: HTMLElement | null) => {
     if (!content) {
       return;
     }
 
-    // Reset so the first observation of a new element always triggers a resize,
-    // even if the new element has the same height as the previous one.
-    previousHeight.current = 0;
+    let previousHeight = 0;
+    let frameRequestId = 0;
 
-    attached.current = new ResizeObserver(entries => {
+    const observer = new ResizeObserver(entries => {
       // ResizeObserver may batch multiple entries; use the last one (most recent state).
       const entry = entries[entries.length - 1];
       const observed = entry.target;
-      cancelAnimationFrame(frameRequestId.current);
-      frameRequestId.current = requestAnimationFrame(() => {
+      cancelAnimationFrame(frameRequestId);
+      frameRequestId = requestAnimationFrame(() => {
         const measurement = measureDesiredWindowSize(observed);
-        // Only update if precondition is met
         if (!measurement) {
           return;
         }
 
         // Only update if the content height has changed
-        if (measurement.contentHeight === previousHeight.current) {
+        if (measurement.contentHeight === previousHeight) {
           return;
         }
-        previousHeight.current = measurement.contentHeight;
+        previousHeight = measurement.contentHeight;
 
         invokeResizePopoverCommand(measurement);
       });
     });
-    attached.current.observe(content);
+    observer.observe(content);
+
+    // React 19 cleanup callback ref — called when element detaches or ref changes.
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frameRequestId);
+    };
   }, []);
 
-  return {resizeCallbackRef: observer};
+  return {resizeCallbackRef};
 }
