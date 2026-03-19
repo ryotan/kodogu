@@ -24,7 +24,7 @@ function measureDesiredWindowSize(content: Element): WindowSizeMeasurement | nul
   const windowInnerHeight = window.innerHeight;
   const scrollAreaHeight = scrollArea.clientHeight;
   const chromeHeight = Math.max(0, windowInnerHeight - scrollAreaHeight);
-  const contentHeight = content.offsetHeight;
+  const contentHeight = content.clientHeight;
   const desiredHeight = contentHeight + chromeHeight;
 
   return {windowInnerWidth, windowInnerHeight, scrollAreaHeight, chromeHeight, contentHeight, desiredHeight};
@@ -61,7 +61,7 @@ export function useAutoResize(): {resizeCallbackRef: (content: HTMLElement | nul
     let frameRequestId = 0;
 
     const observer = new ResizeObserver(entries => {
-      // ResizeObserver may batch multiple entries; use the last one (most recent state).
+      // ResizeObserver may batch multiple entries; use the last one (the most recent state).
       const entry = entries[entries.length - 1];
       const observed = entry.target;
       cancelAnimationFrame(frameRequestId);
@@ -82,7 +82,7 @@ export function useAutoResize(): {resizeCallbackRef: (content: HTMLElement | nul
     });
     observer.observe(content);
 
-    // React 19 cleanup callback ref — called when element detaches or ref changes.
+    // React 19 cleanup callback ref — called when an element detaches or ref changes.
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frameRequestId);

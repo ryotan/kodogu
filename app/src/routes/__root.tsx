@@ -6,9 +6,9 @@ import {DesignTokenSync} from '#components/DesignTokenSync';
 import {PopoverPendingLayout} from '#components/PopoverPendingLayout';
 import {appConfigQuery} from '#hooks/useAppConfig';
 
-export interface RouterContext {
+export type RouterContext = {
   queryClient: QueryClient;
-}
+};
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({context: {queryClient}}) => {
