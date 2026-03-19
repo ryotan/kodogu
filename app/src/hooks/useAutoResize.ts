@@ -66,13 +66,17 @@ export function useAutoResize(): {resizeCallbackRef: (content: HTMLElement | nul
       return;
     }
 
+    // Reset so the first observation of a new element always triggers a resize,
+    // even if the new element has the same height as the previous one.
+    previousHeight.current = 0;
+
     attached.current = new ResizeObserver(entries => {
       // ResizeObserver may batch multiple entries; use the last one (most recent state).
       const entry = entries[entries.length - 1];
-      const content = entry.target;
+      const observed = entry.target;
       cancelAnimationFrame(frameRequestId.current);
       frameRequestId.current = requestAnimationFrame(() => {
-        const measurement = measureDesiredWindowSize(content);
+        const measurement = measureDesiredWindowSize(observed);
         // Only update if precondition is met
         if (!measurement) {
           return;
