@@ -24,7 +24,7 @@ function measureDesiredWindowSize(content: Element): WindowSizeMeasurement | nul
   const windowInnerHeight = window.innerHeight;
   const scrollAreaHeight = scrollArea.clientHeight;
   const chromeHeight = Math.max(0, windowInnerHeight - scrollAreaHeight);
-  const contentHeight = content.clientHeight;
+  const contentHeight = content.offsetHeight;
   const desiredHeight = contentHeight + chromeHeight;
 
   return {windowInnerWidth, windowInnerHeight, scrollAreaHeight, chromeHeight, contentHeight, desiredHeight};

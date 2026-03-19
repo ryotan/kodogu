@@ -517,11 +517,12 @@ export const appConfigQuery = buildAppConfigQuery();
 
 #### Optimistic Update Checklist
 
-Mutations with optimistic updates must follow this 3-step lifecycle:
+Mutations with optimistic updates must follow this lifecycle:
 
 1. `onMutate`: Cancel queries → save previous → set optimistic data → return `{previous}`
 2. `onError`: Log error + rollback with `context?.previous`
 3. `onSettled`: Invalidate queries (covers both success and error)
+   - **Exception**: Skip `onSettled` invalidation when `staleTime: Infinity` — `invalidateQueries` triggers a refetch on active observers regardless of staleTime, causing an unnecessary round-trip. The optimistic data from `onMutate` is already correct.
 
 Additional requirements:
 - Set `scope: {id: 'xxx'}` to serialize parallel mutations on the same resource

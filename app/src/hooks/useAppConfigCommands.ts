@@ -25,8 +25,9 @@ export function useAppConfigCommands() {
     mutationFn: setConfig,
     scope: {id: 'app-config'},
     onMutate: async next => {
-      // Currently a no-op (staleTime: Infinity prevents background refetches),
-      // but guards against future staleTime changes.
+      // Cancel any in-flight queries so they don't overwrite our optimistic data.
+      // With staleTime: Infinity no background refetch is normally in progress,
+      // but this guards against manual invalidation or future staleTime changes.
       await queryClient.cancelQueries({queryKey: appConfigQuery.queryKey});
       const previous = queryClient.getQueryData(appConfigQuery.queryKey);
       queryClient.setQueryData(appConfigQuery.queryKey, next);
@@ -37,9 +38,6 @@ export function useAppConfigCommands() {
       if (context?.previous !== undefined) {
         queryClient.setQueryData(appConfigQuery.queryKey, context.previous);
       }
-    },
-    onSettled: () => {
-      return queryClient.invalidateQueries({queryKey: appConfigQuery.queryKey});
     },
   });
 
