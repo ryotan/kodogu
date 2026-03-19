@@ -21,12 +21,12 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Setup Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@a0b538fa0b742a6aa35d6e2c169b4bd06d225a98 # v1
+        uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1
         with:
           cache-workspace-crates: true
 
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@a37010ded18ff788be4440302bd6830b1ae50d8b # v2
+        uses: taiki-e/install-action@3a911424851a96b72dc168c8dd71fd98ed215d66 # v2
         with:
           tool: cargo-llvm-cov
 
@@ -34,11 +34,11 @@ jobs:
         run: echo "::add-matcher::.github/problem-matchers.json"
 
       - name: Setup mise
-        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4
 
       - name: Cache Bun global cache
         if: github.event_name == 'pull_request'
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: ~/.bun/install/cache
           key: 0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-${{ hashFiles('**/bun.lock') }}
@@ -47,7 +47,7 @@ jobs:
 
       - name: Cache node_modules
         if: github.event_name == 'pull_request'
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: node_modules
           key: 0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-${{ hashFiles('**/bun.lock') }}
@@ -107,7 +107,7 @@ jobs:
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: app/coverage/clover.xml,lcov.info
