@@ -46,7 +46,7 @@ export function useAppConfigCommands() {
   // Read from the cache at call time (not render time) so rapid consecutive updates chain correctly.
   const update = useCallback(
     (recipe: ConfigRecipe) => {
-      // AppBootstrap guarantees AppConfig is loaded before the app renders,
+      // Root route's beforeLoad guarantees AppConfig is cached before any route renders,
       // so the cache is always populated at this point.
       const current = queryClient.getQueryData(appConfigQuery.queryKey);
       if (!current) {

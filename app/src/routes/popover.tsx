@@ -5,7 +5,6 @@ import {PlusIcon} from '@radix-ui/react-icons';
 import {Flex, IconButton, Theme} from '@radix-ui/themes';
 
 import {StubCardList, StubHeader} from '#(prototype)/popover-content';
-import {PopoverPendingLayout} from '#components/PopoverPendingLayout';
 import {useAutoResize} from '#hooks/useAutoResize';
 
 // Shell-level design tokens (window chrome).
@@ -61,5 +60,4 @@ const PopoverLayout = () => {
 
 export const Route = createFileRoute('/popover')({
   component: PopoverLayout,
-  pendingComponent: PopoverPendingLayout,
 });

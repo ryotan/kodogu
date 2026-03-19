@@ -9,25 +9,10 @@ import {createRouter, RouterProvider} from '@tanstack/react-router';
 
 import {ErrorBoundary} from 'react-error-boundary';
 
-import {AppBootstrap} from '#components/AppBootstrap';
 import {AppErrorPage} from '#components/AppErrorPage';
 
 // Import the generated route tree
 import {routeTree} from '!#router/routes';
-
-// Create a new router instance
-const router = createRouter({
-  routeTree,
-  defaultErrorComponent: AppErrorPage,
-});
-
-// Register the router instance for type safety
-declare module '@tanstack/react-router' {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-  interface Register {
-    router: typeof router;
-  }
-}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +23,21 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Create a new router instance with queryClient context for route-level data loading.
+const router = createRouter({
+  routeTree,
+  context: {queryClient},
+  defaultErrorComponent: AppErrorPage,
+});
+
+// Register the router instance for type safety
+declare module '@tanstack/react-router' {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+  interface Register {
+    router: typeof router;
+  }
+}
 
 const root = document.getElementById('root');
 if (!root) {
@@ -57,9 +57,7 @@ createRoot(root).render(
             )}
             onReset={reset}
           >
-            <AppBootstrap>
-              <RouterProvider router={router} />
-            </AppBootstrap>
+            <RouterProvider router={router} />
           </ErrorBoundary>
         )}
       </QueryErrorResetBoundary>

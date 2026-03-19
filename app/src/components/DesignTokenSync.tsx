@@ -1,10 +1,7 @@
-import type {ReactNode} from 'react';
-import {Suspense, useLayoutEffect} from 'react';
+import {useLayoutEffect} from 'react';
 
 import type {AppConfig} from '#config';
 import {useAppConfig} from '#hooks/useAppConfig';
-
-import {PopoverPendingLayout} from './PopoverPendingLayout';
 
 // Inject design tokens from AppConfig as CSS custom properties on the document root.
 function applyDesignTokens(config: AppConfig, root: HTMLElement): void {
@@ -17,21 +14,15 @@ function applyDesignTokens(config: AppConfig, root: HTMLElement): void {
   root.style.setProperty('--kodogu-card-list-padding', layout.cardListPadding);
 }
 
-// Loads all shared state required before the app can render.
-// Add future shared state queries (connections, session, etc.) here.
-const AppBootstrapInner = ({children}: {children: ReactNode}) => {
+// Syncs AppConfig design tokens to CSS custom properties.
+// Placed in __root.tsx so tokens are applied before any route renders.
+// beforeLoad guarantees AppConfig is cached before this component mounts.
+export const DesignTokenSync = () => {
   const config = useAppConfig();
 
   useLayoutEffect(() => {
     applyDesignTokens(config, document.documentElement);
   }, [config]);
 
-  return children;
+  return null;
 };
-
-// Single Suspense boundary for all app-level initialization.
-export const AppBootstrap = ({children}: {children: ReactNode}) => (
-  <Suspense fallback={<PopoverPendingLayout />}>
-    <AppBootstrapInner>{children}</AppBootstrapInner>
-  </Suspense>
-);
