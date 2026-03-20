@@ -211,7 +211,7 @@ enum StoredAppConfig {
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
-pub(crate) enum ConfigError {
+pub enum ConfigError {
     #[suzu(display("Failed to begin database transaction"))]
     Transaction { source: redb::TransactionError },
     #[suzu(display("Failed to access config table"))]
@@ -401,6 +401,130 @@ mod tests {
         let loaded = store.get();
         assert_eq!(loaded.popover.behavior.toggle_debounce_ms, Milliseconds(500));
     }
+
+    // -------------------------------------------------------------------------
+    // Default values — full coverage of all config fields
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn default_popover_behavior_config() {
+        let config = PopoverBehaviorConfig::default();
+        assert_eq!(config.toggle_debounce_ms, Milliseconds(300));
+    }
+
+    #[test]
+    fn default_popover_layout_config() {
+        let config = PopoverLayoutConfig::default();
+        assert_eq!(config.initial_width, LogicalPixel(480.0));
+        assert_eq!(config.bottom_margin, LogicalPixel(8.0));
+        assert_eq!(config.tray_gap, LogicalPixel(4.0));
+        assert_eq!(config.fallback_max_height, LogicalPixel(600.0));
+        assert_eq!(config.min_max_height, LogicalPixel(200.0));
+        assert_eq!(config.header_height, CssLength::from("40px"));
+        assert_eq!(config.card_list_padding, CssPadding::from("6px 0"));
+    }
+
+    #[test]
+    fn default_popover_appearance_config() {
+        let config = PopoverAppearanceConfig::default();
+        assert_eq!(config.surface_color, CssColor::from("rgba(28, 28, 30, 0.92)"));
+        assert_eq!(config.border_color, CssColor::from("rgba(255, 255, 255, 0.08)"));
+        assert_eq!(config.backdrop_filter, CssFilter::from("blur(24px) saturate(180%)"));
+        assert_eq!(
+            config.font_family,
+            CssFontFamily::from("-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif")
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Newtype serde roundtrip — #[serde(transparent)]
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn newtype_u64_json_roundtrip() {
+        let ms = Milliseconds(42);
+        let json = serde_json::to_string(&ms).expect("serialize");
+        assert_eq!(json, "42");
+        let decoded: Milliseconds = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(decoded, ms);
+    }
+
+    #[test]
+    fn newtype_f64_json_roundtrip() {
+        let px = LogicalPixel(12.5);
+        let json = serde_json::to_string(&px).expect("serialize");
+        assert_eq!(json, "12.5");
+        let decoded: LogicalPixel = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(decoded, px);
+    }
+
+    #[test]
+    fn newtype_string_json_roundtrip() {
+        let color = CssColor::from("rgba(0, 0, 0, 1)");
+        let json = serde_json::to_string(&color).expect("serialize");
+        assert_eq!(json, r#""rgba(0, 0, 0, 1)""#);
+        let decoded: CssColor = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(decoded, color);
+    }
+
+    // -------------------------------------------------------------------------
+    // serde(default) — missing fields filled from Default
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn missing_fields_filled_from_default() {
+        // Empty JSON object should deserialize to default values.
+        let config: AppConfig = serde_json::from_str("{}").expect("deserialize");
+        assert_eq!(config.popover.behavior.toggle_debounce_ms, Milliseconds(300));
+        assert_eq!(config.popover.layout.initial_width, LogicalPixel(480.0));
+        assert_eq!(
+            config.popover.appearance.surface_color,
+            CssColor::from("rgba(28, 28, 30, 0.92)")
+        );
+    }
+
+    #[test]
+    fn partial_fields_merged_with_defaults() {
+        let json = r#"{"popover": {"behavior": {"toggleDebounceMs": 500}}}"#;
+        let config: AppConfig = serde_json::from_str(json).expect("deserialize");
+        // Overridden field
+        assert_eq!(config.popover.behavior.toggle_debounce_ms, Milliseconds(500));
+        // Default-filled fields
+        assert_eq!(config.popover.layout.initial_width, LogicalPixel(480.0));
+        assert_eq!(
+            config.popover.appearance.surface_color,
+            CssColor::from("rgba(28, 28, 30, 0.92)")
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // AppConfigStore — table-exists-but-key-missing path
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn load_returns_default_when_table_exists_but_key_missing() {
+        let db = in_memory_db();
+
+        // Create the table with a different key, so CONFIG_KEY is absent.
+        {
+            let write_txn = db.begin_write().expect("begin write");
+            {
+                let mut table = write_txn.open_table(CONFIG_TABLE).expect("open table");
+                table
+                    .insert("other_key", &StoredAppConfig::V1(AppConfig::default()))
+                    .expect("insert");
+            }
+            write_txn.commit().expect("commit");
+        }
+
+        let store = AppConfigStore::new(db).expect("create store");
+        let config = store.get();
+        assert_eq!(config.popover.behavior.toggle_debounce_ms, Milliseconds(300));
+    }
+
+    // -------------------------------------------------------------------------
+    // AppConfigStore — persistence
+    // -------------------------------------------------------------------------
 
     #[test]
     fn set_persists_to_db_and_survives_new_store() {
