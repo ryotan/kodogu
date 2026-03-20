@@ -28,7 +28,7 @@
 - [ADR-0001](0001-record-architecture-decisions.md) - アーキテクチャ決定を記録する
 - [ADR-0002](0002-prefer-translator-for-data-transformation.md) - データ変換に Translator を使用する
 - [ADR-0003](0003-use-vitest-browser-react-for-hook-testing.md) - Hook テストに vitest-browser-react を使用する
-- [ADR-0003](0003-error-handling-strategy-in-rust.md) - Rustにおけるエラーハンドリング戦略
+- [ADR-0004](0004-error-handling-strategy-in-rust.md) - Rustにおけるエラーハンドリング戦略
 
 ### 提案中
 

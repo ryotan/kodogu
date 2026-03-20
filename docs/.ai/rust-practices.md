@@ -29,7 +29,7 @@ Rust-specific practices for realizing universal principles in this language.
 
 See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
 
-For the architectural rationale behind Rust's error handling strategy (Visitor Pattern vs other approaches), see [ADR-0003](../../docs/adr/0003-error-handling-strategy-in-rust.md).
+For the architectural rationale behind Rust's error handling strategy (Visitor Pattern vs other approaches), see [ADR-0004](../adr/0004-error-handling-strategy-in-rust.md).
 
 ### Use suzunari-error for Error Hierarchy
 
