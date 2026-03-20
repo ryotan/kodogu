@@ -9,7 +9,7 @@ use crate::config::{AppConfigStore, ConfigError};
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
-pub(crate) enum StoreInitError {
+pub enum StoreSetupError {
     #[suzu(display("Failed to resolve app local data directory"))]
     AppLocalDataDir { source: tauri::Error },
     #[suzu(display("Failed to create data directory {path:?}"))]
@@ -20,7 +20,7 @@ pub(crate) enum StoreInitError {
     Configuration { source: ConfigError },
 }
 
-pub(crate) fn setup<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<(), StoreInitError> {
+pub(crate) fn setup<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<(), StoreSetupError> {
     let data_dir = app.path().app_local_data_dir().context(AppLocalDataDirError {})?;
     create_dir_all(&data_dir).context(CreateDirError { path: data_dir.clone() })?;
 

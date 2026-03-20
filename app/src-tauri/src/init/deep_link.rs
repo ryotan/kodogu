@@ -3,7 +3,7 @@ use tauri::AppHandle;
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
-pub(crate) enum DeepLinkSetupError {
+pub enum DeepLinkSetupError {
     #[cfg_attr(target_os = "macos", allow(dead_code))]
     #[suzu(display("Failed to initialize deep-link plugin"))]
     PluginInitialization { source: tauri_plugin_deep_link::Error },

@@ -6,7 +6,7 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, Tray
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
-pub(crate) enum TraySetupError {
+pub enum TraySetupError {
     #[suzu(display("Failed to load tray icon resource"))]
     IconLoad { source: tauri::Error },
     #[suzu(display("Failed to add quit menu item"))]

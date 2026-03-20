@@ -1,6 +1,5 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
-use std::sync::OnceLock;
 
 use redb::{TypeName, Value};
 use serde::Serialize;
@@ -52,10 +51,56 @@ impl<T: Debug + Serialize + DeserializeOwned + Send + Sync + 'static> Value for 
     fn type_name() -> TypeName {
         // Include the concrete type name so redb can distinguish MessagePack<A> from MessagePack<B>
         // and reject mismatched table accesses at runtime.
-        // Each monomorphized T gets its own static via OnceLock.
-        static TYPE_NAME: OnceLock<TypeName> = OnceLock::new();
-        TYPE_NAME
-            .get_or_init(|| TypeName::new(&format!("MessagePack<{}>", std::any::type_name::<T>())))
-            .clone()
+        TypeName::new(&format!("MessagePack<{}>", std::any::type_name::<T>()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use redb::Value;
+
+    #[test]
+    fn roundtrip_preserves_data() {
+        let original = vec![1u32, 2, 3];
+        let bytes = MessagePack::<Vec<u32>>::as_bytes(&original);
+        let decoded = MessagePack::<Vec<u32>>::from_bytes(&bytes);
+        assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn type_name_contains_concrete_type() {
+        let name = MessagePack::<Vec<u32>>::type_name();
+        assert!(
+            name.name().contains("Vec<u32>"),
+            "type_name should contain concrete type: {:?}",
+            name.name()
+        );
+    }
+
+    #[test]
+    fn type_name_differs_for_different_types() {
+        let name_u32 = MessagePack::<u32>::type_name();
+        let name_string = MessagePack::<String>::type_name();
+        assert_ne!(name_u32.name(), name_string.name());
+    }
+
+    #[test]
+    fn type_name_is_idempotent() {
+        let first = MessagePack::<u64>::type_name();
+        let second = MessagePack::<u64>::type_name();
+        assert_eq!(first.name(), second.name());
+    }
+
+    #[test]
+    fn fixed_width_returns_none() {
+        assert!(MessagePack::<Vec<u8>>::fixed_width().is_none());
+    }
+
+    #[test]
+    #[should_panic(expected = "redb contains invalid MessagePack data")]
+    fn from_bytes_panics_on_corrupted_data() {
+        let garbage = &[0xFF, 0xFE, 0xFD];
+        MessagePack::<Vec<u32>>::from_bytes(garbage);
     }
 }

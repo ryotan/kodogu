@@ -4,7 +4,7 @@ use tauri::{App, Wry};
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
-pub(crate) enum MenuSetupError {
+pub enum MenuSetupError {
     #[suzu(display("Failed to build predefined menu item: {item}"))]
     BuildPredefinedMenuItem { item: &'static str, source: tauri::Error },
     #[suzu(display("Failed to build edit menu"))]
