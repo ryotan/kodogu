@@ -47,7 +47,15 @@ const mixedStack = `Error: Something broke
 
 // -- Stories --
 
-export const BasicError: Story = {};
+export const BasicError: Story = {
+  play: async ({canvasElement, args}) => {
+    const canvas = within(canvasElement);
+
+    // Try Again resets queries and calls the reset prop
+    await userEvent.click(canvas.getByRole('button', {name: /try again/i}));
+    await expect(args.reset).toHaveBeenCalled();
+  },
+};
 
 export const WithStackTrace: Story = {
   args: {
@@ -85,19 +93,19 @@ export const ExpandCollapseStackTrace: Story = {
   },
   play: async ({canvasElement}) => {
     const canvas = within(canvasElement);
-
     const expandButton = canvas.getByRole('button', {name: /stack trace/i});
 
-    // Stack trace should be collapsed by default — grid-template-rows: 0fr
-    const stackBody = expandButton.nextElementSibling;
+    // Collapsed by default
+    const stackBody = canvasElement.querySelector('[class*="stackBody"]');
+    await expect(stackBody).not.toBeNull();
     await expect(stackBody).not.toHaveAttribute('data-expanded');
 
-    // Expand
+    // Expand — verify both user-code and external frames are rendered
     await userEvent.click(expandButton);
     await expect(stackBody).toHaveAttribute('data-expanded');
-
-    // Verify a user-code frame is rendered
     await expect(canvas.getByText('PopoverLayout')).toBeInTheDocument();
+    await expect(canvas.getByText('useAutoResize')).toBeInTheDocument();
+    await expect(canvas.getByText('renderWithHooks')).toBeInTheDocument();
 
     // Collapse
     await userEvent.click(expandButton);
