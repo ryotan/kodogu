@@ -14,5 +14,11 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", ".storybook/main.ts", ".storybook/vitest.setup.ts", ".storybook/preview.tsx", ".storybook/tauri-api-stub.ts"]
+  "include": [
+    "vite.config.ts",
+    ".storybook/main.ts",
+    ".storybook/vitest.setup.ts",
+    ".storybook/preview.tsx",
+    ".storybook/tauri-api-stub.ts"
+  ]
 }

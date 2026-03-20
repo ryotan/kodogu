@@ -1,24 +1,11 @@
-import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
-
 import type {Meta, StoryObj} from '@storybook/react-vite';
 import {fn} from 'storybook/test';
 
 import {AppErrorPage} from './AppErrorPage';
 
-const queryClient = new QueryClient();
-
 const meta = {
   component: AppErrorPage,
   parameters: {layout: 'fullscreen'},
-  decorators: [
-    Story => (
-      <QueryClientProvider client={queryClient}>
-        <QueryErrorResetBoundary>
-          <Story />
-        </QueryErrorResetBoundary>
-      </QueryClientProvider>
-    ),
-  ],
   args: {
     error: new Error('Something went wrong'),
     reset: fn(),
