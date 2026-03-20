@@ -2,6 +2,7 @@ import {useCallback} from 'react';
 
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 
+import type {Draft} from 'mutative';
 import {create} from 'mutative';
 
 import {setConfig} from '#commands/appConfig';
@@ -9,7 +10,7 @@ import type {AppConfig} from '#config';
 
 import {appConfigQuery} from './useAppConfig';
 
-type ConfigRecipe = (draft: AppConfig) => void;
+type ConfigRecipe = (draft: Draft<AppConfig>) => void;
 
 /**
  * Returns mutation helpers for updating and persisting AppConfig.
