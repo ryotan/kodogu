@@ -29,7 +29,7 @@
         "mutative": "catalog:default",
         "react": "catalog:default",
         "react-dom": "catalog:default",
-        "react-error-boundary": "^6.1.1",
+        "react-error-boundary": "catalog:default",
       },
       "devDependencies": {
         "@biomejs/biome": "catalog:default",
@@ -116,6 +116,7 @@
       "mutative": "^1.1.0",
       "react": "^19.0.0",
       "react-dom": "^19.0.0",
+      "react-error-boundary": "^6.1.1",
       "storybook": "^10",
       "typescript": "~5.9",
       "typescript-eslint": "^8.27.0",
