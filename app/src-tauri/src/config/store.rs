@@ -119,9 +119,12 @@ impl AppConfigStore {
     }
 
     pub(crate) fn set(&self, config: AppConfig) -> Result<(), ConfigError> {
-        self.write_to_db(&config)?;
+        // Hold the write lock across DB write + cache update so readers never see a stale cache
+        // after a successful DB commit.
         // Poison recovery: same rationale as new() — overwriting with a freshly persisted value.
-        *self.cached.write().unwrap_or_else(|e| e.into_inner()) = config;
+        let mut cache = self.cached.write().unwrap_or_else(|e| e.into_inner());
+        self.write_to_db(&config)?;
+        *cache = config;
         Ok(())
     }
 }
