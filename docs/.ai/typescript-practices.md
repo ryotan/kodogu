@@ -499,12 +499,12 @@ app/src/
 - Do NOT scatter queryKey / queryFn / staleTime across separate files
 - Set `staleTime` / `gcTime` per-query, not as global defaults
 - Consumers use the factory via `buildXxxQuery({select})` or spread `{...xxxQuery, select}`
-- `QueryKeys` object pattern is deprecated — `queryOptions()` owns the key
+- Define `queryKey` directly inside `queryOptions()` — no separate `QueryKeys` module needed
 
 ```typescript
 export const buildAppConfigQuery = <T = AppConfig>(opts?: AppConfigQueryOptions<T>) =>
   queryOptions({
-    queryKey: QueryKeys.appConfig(),
+    queryKey: ['app-config'] as const,
     queryFn: getConfig,
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
