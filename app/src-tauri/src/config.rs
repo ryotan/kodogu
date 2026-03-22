@@ -325,9 +325,14 @@ impl From<ConfigError> for CommandError {
 // =============================================================================
 
 /// Returns the current application configuration.
+///
+/// Async so Tauri runs this on the tokio thread pool instead of the main thread,
+/// keeping the UI responsive even if `RwLock::read()` briefly contends.
 #[tauri::command]
-pub(crate) fn get_config(state: State<'_, AppConfigStore>) -> AppConfig {
-    state.get()
+pub(crate) async fn get_config(
+    state: State<'_, AppConfigStore>,
+) -> Result<AppConfig, CommandError> {
+    Ok(state.get())
 }
 
 /// Persists the given configuration and updates the in-memory cache.
