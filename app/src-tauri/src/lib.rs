@@ -64,8 +64,8 @@ pub fn run() -> Result<(), RunError> {
     {
         builder = builder.invoke_handler(tauri::generate_handler![
             resize_popover,
-            config::get_config,
-            config::set_config,
+            config::commands::get_config,
+            config::commands::set_config,
         ]);
     }
 
