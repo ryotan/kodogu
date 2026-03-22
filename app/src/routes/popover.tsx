@@ -8,7 +8,7 @@ import {StubCardList, StubHeader} from '#(prototype)/popover-content';
 import {useAutoResize} from '#hooks/useAutoResize';
 
 // Shell-level design tokens (window chrome).
-// TODO: Replace with CSS variables from AppConfig (--kodogu-*) once Rust-side integration is complete.
+// TODO: Replace with CSS custom properties synced from AppConfig (--kodogu-*). See useDesignTokenSync.
 const shell = {
   surface: 'rgba(28, 28, 30, 0.92)',
   border: 'rgba(255, 255, 255, 0.08)',

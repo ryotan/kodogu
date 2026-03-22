@@ -337,8 +337,8 @@ pub(crate) async fn get_config(
 
 /// Persists the given configuration and updates the in-memory cache.
 ///
-/// Async to avoid blocking the main thread — `begin_write()` may block
-/// if another write transaction is in progress.
+/// Async so Tauri runs this on the tokio thread pool, keeping the main thread
+/// free even though `begin_write()` may block synchronously.
 #[tauri::command]
 pub(crate) async fn set_config(
     state: State<'_, AppConfigStore>,
