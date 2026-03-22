@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 
-import {invoke} from '@tauri-apps/api/core';
+import {resizePopover} from '#commands/popover';
 
 type WindowSizeMeasurement = {
   windowInnerWidth: number;
@@ -31,10 +31,7 @@ function measureDesiredWindowSize(content: Element): WindowSizeMeasurement | nul
 }
 
 function invokeResizePopoverCommand(measurement: WindowSizeMeasurement) {
-  invoke('resize_popover', {
-    width: measurement.windowInnerWidth,
-    height: measurement.desiredHeight,
-  }).catch((e: unknown) => {
+  resizePopover(measurement.windowInnerWidth, measurement.desiredHeight).catch((e: unknown) => {
     console.error('Failed to resize popover window', e);
   });
 }
@@ -44,7 +41,7 @@ function invokeResizePopoverCommand(measurement: WindowSizeMeasurement) {
 // Place the ref on the content wrapper INSIDE the scroll area.
 // The hook computes the "chrome" height (header, footer, borders — everything
 // except the scroll area) as: window.innerHeight - scrollArea.clientHeight.
-// Desired window height = content.offsetHeight + chrome.
+// Desired window height = content.clientHeight + chrome.
 //
 // The Rust side holds the max height constraint and caps the resize request
 // via the `resize_popover` command. No OS-level set_max_size is used.
