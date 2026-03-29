@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.kt"
+---
+
 # Kotlin Practices
 
 Kotlin-specific practices for realizing universal principles in this language.
@@ -222,7 +227,7 @@ Kotlin-specific practices for realizing universal principles in this language.
 
 ## Error Handling
 
-See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
+For error classification philosophy, invoke the `coding-practices` skill.
 
 ### Implement Error Hierarchy with Custom Exception Classes
 

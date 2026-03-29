@@ -62,10 +62,11 @@ tasks.
 
 ## Practices
 
-@../../docs/.ai/guidelines.md
-@../../docs/.ai/design-practices.md
-@../../docs/.ai/coding-practices.md
-@../../docs/.ai/testing-practices.md
+Practice documents are available as skills. Invoke when needed for planning context:
+- `design-practices` — DDD, Clean Architecture, boundaries
+- `coding-practices` — Cross-language implementation patterns
+
+Language/framework practices are loaded automatically via `.claude/rules/` when reading matching files.
 
 ## Your Core Responsibilities
 

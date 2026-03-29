@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.rs"
+---
+
 # Rust Practices
 
 Rust-specific practices for realizing universal principles in this language.
@@ -27,7 +32,7 @@ Rust-specific practices for realizing universal principles in this language.
 
 ## Error Handling
 
-See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
+For error classification philosophy, invoke the `coding-practices` skill.
 
 For the architectural rationale behind Rust's error handling strategy (Visitor Pattern vs other approaches), see [ADR-0004](../adr/0004-error-handling-strategy-in-rust.md).
 
@@ -421,27 +426,6 @@ pub enum PlatformError {
 - Fix warnings, don't suppress
 - Teaches Rust idioms
 - **Why**: Catches common mistakes
-
-## Tauri Commands
-
-### Sync vs Async Commands
-
-- **Sync commands** (`#[tauri::command]`): Run on the main thread. Use only for trivial, non-blocking operations
-- **Async commands** (`#[tauri::command] async fn`): Run on the tokio runtime. Use for any I/O (file, database, network)
-
-```rust
-// Sync — only for trivial operations
-#[tauri::command]
-fn get_version() -> String { env!("CARGO_PKG_VERSION").to_string() }
-
-// Async — for anything involving I/O
-#[tauri::command]
-async fn get_config(store: State<'_, AppConfigStore>) -> Result<AppConfig, CommandError> {
-    store.get().context(GetConfigFailed)
-}
-```
-
-- **Why**: Sync commands block the main thread (UI freezes). Async commands run on the tokio thread pool
 
 ## Ecosystem Libraries
 

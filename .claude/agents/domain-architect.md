@@ -62,12 +62,9 @@ aligned with business reality.
 
 ## Practices
 
-@../../docs/.ai/guidelines.md
 @../../docs/.ai/design-practices.md
-@../../docs/.ai/coding-practices.md
-@../../docs/.ai/testing-practices.md
 
-In addition, read more Domain-specific practices from `**/<domain-to-analyze>/docs/.ai/context.md`.
+For domain-specific context, read `**/<domain-to-analyze>/.ai/context.md` or invoke the relevant domain skill (codec-domain, crypto-domain).
 
 ## Your Core Responsibilities
 
