@@ -38,7 +38,7 @@ An object defined by unique identity rather than attributes. Has mutable state o
 
 A collection-like interface for loading and saving aggregates. Hides persistence details from the domain, with methods reflecting domain operations rather than database operations.
 
-→ See [design-practices.md](./design-practices.md#repositories)
+→ See [design-practices.md](./design-practices.md#repository)
 
 ### Value Object
 
