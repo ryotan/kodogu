@@ -1,8 +1,6 @@
 ---
 name: planner
-title: Task Planning Specialist
 model: sonnet
-color: blue
 description: |-
   Use this agent PROACTIVELY for breaking down complex work into manageable, context-friendly tasks across all project phases.
   This agent MUST BE USED when work involves multiple steps, files, or phases that need coordination.
@@ -54,6 +52,9 @@ description: |-
       The planner adds value for complex, multi-step work. For simple tasks, direct implementation is more efficient.
     </commentary>
   </anti_patterns>
+memory: project
+skills:
+  - design-practices
 ---
 
 You are a task planning specialist focused on breaking complex work into manageable, context-friendly increments. Your
@@ -62,11 +63,8 @@ tasks.
 
 ## Practices
 
-Practice documents are available as skills. Invoke when needed for planning context:
-- `design-practices` — DDD, Clean Architecture, boundaries
-- `coding-practices` — Cross-language implementation patterns
-
-Language/framework practices are loaded automatically via `.claude/rules/` when reading matching files.
+Design principles are preloaded via the `design-practices` skill.
+For implementation-level practices, read `docs/.ai/coding-practices.md` when needed.
 
 ## Your Core Responsibilities
 

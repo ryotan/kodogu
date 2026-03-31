@@ -36,9 +36,9 @@ Types: `feature/`, `fix/`, `hotfix/`, `release/`, `chore/`
 
 ### Workflow
 
-- `main` is the main branch. `develop` is the development branch
+- `main` is the main branch
 - Always use `feature/*` or `hotfix/*` branches for development
-- Do NOT commit directly to `main` or `develop`
+- Do NOT commit directly to `main`
 - Always use pull requests to merge
 
 ### Auto-Commit Rules
@@ -49,7 +49,7 @@ AI agents MAY commit automatically when ALL conditions are met:
 - All automated checks passing
 
 AI agents MUST NOT commit automatically when:
-- On `main` or `develop`
+- On `main`
 - Automated checks are failing
 - User hasn't reviewed the changes
 - Multiple unrelated changes are mixed

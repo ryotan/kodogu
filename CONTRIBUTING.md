@@ -122,18 +122,15 @@ These guidelines apply to all aspects of the project, regardless of the programm
 
 ## Coding Conventions
 
-See `docs/.ai/` for comprehensive development practices:
+See `docs/.ai/` and `.claude/rules/` for comprehensive development practices:
 
 - [Design Practices](./docs/.ai/design-practices.md) - DDD and Clean Architecture principles
-- [Testing Practices](./docs/.ai/testing-practices.md) - Testing strategy and patterns
 - [Coding Practices](./docs/.ai/coding-practices.md) - Cross-language implementation guidance
-- [Git Practices](./docs/.ai/git-practices.md) - Commit conventions and workflow
-- [Kotlin Practices](./docs/.ai/kotlin-practices.md) - For backend development
-- [Rust Practices](./docs/.ai/rust-practices.md) - For CLI apps and Tauri backend
-- [TypeScript Practices](./docs/.ai/typescript-practices.md) - For frontend development
-- [AI Agent Guidelines](./docs/.ai/guidelines.md) - Additional instructions for AI coding assistants
 
-See each document for detailed guidance on implementing features, writing tests, and maintaining code quality.
+Language/framework-specific practices are in `.claude/rules/`:
+- `rust.md`, `typescript.md`, `kotlin.md` - Language-specific conventions
+- `tauri-frontend.md`, `tauri-backend.md` - Framework-specific practices
+- `testing.md` - Testing strategy and patterns
 
 ## Stereotypical Structure of a Tauri App
 
@@ -224,7 +221,7 @@ Common emojis:
 - ✅ Tests
 - 🚀 Deploy
 
-See [Git Practices](./docs/.ai/git-practices.md) for complete emoji list, detailed workflow guidelines, and AI agent commit rules.
+See `.claude/CLAUDE.md` for the complete emoji list and workflow guidelines.
 
 ## Release Process
 

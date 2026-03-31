@@ -34,7 +34,7 @@ Rust-specific practices for realizing universal principles in this language.
 
 For error classification philosophy, invoke the `coding-practices` skill.
 
-For the architectural rationale behind Rust's error handling strategy (Visitor Pattern vs other approaches), see [ADR-0004](../adr/0004-error-handling-strategy-in-rust.md).
+For the architectural rationale behind Rust's error handling strategy (Visitor Pattern vs other approaches), see [ADR-0004](../../docs/adr/0004-error-handling-strategy-in-rust.md).
 
 ### Use suzunari-error for Error Hierarchy
 
@@ -94,7 +94,7 @@ pub enum PlatformError {
 ```
 
 - **Why**: Type-safe error hierarchy with full context
-- **Example**: See [rust-examples/error-handling.md](./rust-examples/error-handling.md)
+- **Example**: See [rust-examples/error-handling.md](../../docs/.ai/rust-examples/error-handling.md)
 
 ### Use Result for Application and Platform Errors
 
