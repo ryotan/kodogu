@@ -60,7 +60,7 @@ jobs:
 
       - name: Install Playwright Browsers
         working-directory: app
-        run: bunx playwright install --with-deps chromium chromium-headless-shell
+        run: bun run playwright:install
 
       - name: Generate route files
         working-directory: app

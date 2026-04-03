@@ -28,7 +28,8 @@
     "test:vitest:watch": "vitest",
     "test:vitest:coverage": "vitest run --coverage",
     "test:cargo": "cargo test --manifest-path src-tauri/Cargo.toml --all-features --workspace",
-    "test:cargo:coverage": "cargo llvm-cov --manifest-path src-tauri/Cargo.toml --all-features --workspace --lcov --output-path lcov.info"
+    "test:cargo:coverage": "cargo llvm-cov --manifest-path src-tauri/Cargo.toml --all-features --workspace --lcov --output-path lcov.info",
+    "playwright:install": "playwright install --with-deps chromium chromium-headless-shell"
   },
   "dependencies": {
     "@radix-ui/react-icons": "catalog:default",
