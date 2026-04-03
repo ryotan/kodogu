@@ -58,6 +58,12 @@ jobs:
         # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
         run: bun install --frozen-lock-file # change this to npm or pnpm depending on which one you use.
 
+      - name: Cache Playwright Browsers
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: 0-${{ runner.os }}-playwright-${{ hashFiles('**/bun.lock') }}
+
       - name: Install Playwright Browsers
         working-directory: app
         run: bun run playwright:install

@@ -76,6 +76,7 @@
     "eslint-plugin-react": "catalog:default",
     "eslint-plugin-react-hooks": "catalog:default",
     "eslint-plugin-storybook": "catalog:default",
+    "playwright": "catalog:default",
     "storybook": "catalog:default",
     "typescript": "catalog:default",
     "typescript-eslint": "catalog:default",
