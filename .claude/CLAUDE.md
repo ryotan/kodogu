@@ -1,9 +1,12 @@
-@../docs/.ai/guidelines.md
-@../docs/.ai/design-practices.md
-
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
+
+## Context Loading
+
+- **Language/framework practices**: Loaded automatically via `.claude/rules/` when you read matching files
+- **Design principles, coding practices**: Available as skills (`design-practices`, `coding-practices`)
+- **Domain specifications**: Available as skills (`codec-domain`, `crypto-domain`)
 
 ## Language Rules
 
@@ -30,6 +33,26 @@ Emojis: ✨ feature, 🐛 bugfix, ♻️ refactor, ✅ test, 📝 docs, 🎨 str
 Conventional Branch format: `<type>/<description>` (lowercase, hyphens only)
 
 Types: `feature/`, `fix/`, `hotfix/`, `release/`, `chore/`
+
+### Workflow
+
+- `main` is the main branch
+- Always use `feature/*` or `hotfix/*` branches for development
+- Do NOT commit directly to `main`
+- Always use pull requests to merge
+
+### Auto-Commit Rules
+
+AI agents MAY commit automatically when ALL conditions are met:
+- On `feature/*` or `hotfix/*` branches
+- User explicitly requested a commit or task completion
+- All automated checks passing
+
+AI agents MUST NOT commit automatically when:
+- On `main`
+- Automated checks are failing
+- User hasn't reviewed the changes
+- Multiple unrelated changes are mixed
 
 ## Coding Philosophy
 

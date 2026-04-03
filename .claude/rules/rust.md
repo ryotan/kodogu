@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.rs"
+---
+
 # Rust Practices
 
 Rust-specific practices for realizing universal principles in this language.
@@ -27,7 +32,9 @@ Rust-specific practices for realizing universal principles in this language.
 
 ## Error Handling
 
-See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
+For error classification philosophy, invoke the `coding-practices` skill.
+
+For the architectural rationale behind Rust's error handling strategy (Visitor Pattern vs other approaches), see [ADR-0004](../../docs/adr/0004-error-handling-strategy-in-rust.md).
 
 ### Use suzunari-error for Error Hierarchy
 
@@ -45,29 +52,53 @@ See [coding-practices.md](./coding-practices.md#error-handling) for error classi
 - Implement the error hierarchy pattern:
 
 ```rust
+// Rust enum (no language-specific root type)
+// └─ RootError (for centralized error handling)
+//    ├─ Application { ApplicationError }
+//    └─ Platform { PlatformError }
+
+#[suzunari_error]
+pub enum RootError {
+    #[suzu(display("Application error: {source}"))]
+    Application { source: ApplicationError },
+    #[suzu(display("Platform error: {source}"))]
+    Platform { source: PlatformError },
+}
+
+// Application errors (our code: domain, use case, adapter, framework)
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
 pub enum ApplicationError {
     #[suzu(display("Domain error: {source}"))]
     Domain { source: DomainError },
-    #[suzu(display("Infrastructure error: {source}"))]
-    Infrastructure { source: InfrastructureError },
+    #[suzu(display("Use case error: {source}"))]
+    UseCase { source: UseCaseError },
+    // AdapterError, FrameworkError, etc. can be added as needed
 }
 
+// Domain-specific errors
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
 pub enum DomainError {
     #[suzu(display("Order not found: {id}"))]
     OrderNotFound { id: String },
 }
+
+// Platform errors (external systems)
+#[suzunari_error]
+pub enum PlatformError {
+    #[suzu(display("Database error: {source}"))]
+    Database { source: DatabaseError },
+    // KeyValueStore, PubSub, etc. can be added as needed
+}
 ```
 
 - **Why**: Type-safe error hierarchy with full context
-- **Example**: See [rust-examples/error-handling.md](./rust-examples/error-handling.md)
+- **Example**: See [rust-examples/error-handling.md](../../docs/.ai/rust-examples/error-handling.md)
 
-### Use Result for Domain and Infrastructure Errors
+### Use Result for Application and Platform Errors
 
-- Domain and Infrastructure errors are recoverable errors in Rust terms
+- Application and Platform errors are recoverable errors in Rust terms
 - `Result<T, E>` for operations that can fail
 - `?` operator for error propagation
 - **Why**: Explicit, type-safe error handling
@@ -307,6 +338,13 @@ pub enum DomainError {
 - `#[should_panic]` for expected panics
 - `#[ignore]` for slow tests
 - **Why**: Flexible test control
+
+### Use Standard Testing Tools
+
+- Rust's built-in test framework covers most needs
+- `cargo test` is the standard - no external framework required
+- Add specialized tools only when specific needs arise
+- **Why**: Standard tooling is well-integrated, maintained, and sufficient
 
 ## Documentation
 

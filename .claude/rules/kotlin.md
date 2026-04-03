@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.kt"
+---
+
 # Kotlin Practices
 
 Kotlin-specific practices for realizing universal principles in this language.
@@ -222,21 +227,35 @@ Kotlin-specific practices for realizing universal principles in this language.
 
 ## Error Handling
 
-See [coding-practices.md](./coding-practices.md#error-handling) for error classification philosophy.
+For error classification philosophy, invoke the `coding-practices` skill.
 
 ### Implement Error Hierarchy with Custom Exception Classes
 
 - Model Domain and Infrastructure errors as exception hierarchy
 - For Programming errors (implementation bugs), use `require()` to validate function preconditions and `check()` to assert internal state
-- For Domain/Infrastructure errors, always use custom exception classes (see below)
+- For Application/Platform errors, always use custom exception classes (see below)
 
 ```kotlin
-open class ApplicationError : Exception()
-open class DomainError : ApplicationError()
-open class InfrastructureError : ApplicationError()
+// RuntimeException (Kotlin's root for application errors)
+// └─ RootError (for centralized error handling)
+//    ├─ ApplicationError (our code)
+//    └─ PlatformError (external systems)
 
-class OrderNotFound(val id: String) : DomainError()
-class NetworkTimeout(val url: String) : InfrastructureError()
+open class RootError : RuntimeException()
+
+// Application errors (our code: domain, use case, adapter, framework)
+open class ApplicationError : RootError()
+open class DomainError : ApplicationError()
+open class UseCaseError : ApplicationError()
+
+// Platform errors (external systems: database, network, etc.)
+open class PlatformError : RootError()
+open class DatabaseError : PlatformError()
+
+// Concrete errors
+class OrderNotFound(val id: String) : DomainError("Order not found: $id")
+class PlaceOrderFailed(val reason: String) : UseCaseError("Place order failed: $reason")
+class ConnectionFailed(val url: String) : DatabaseError("Connection failed: $url")
 ```
 
 - Use `@ControllerAdvice` or similar for centralized error handling

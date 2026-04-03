@@ -26,7 +26,7 @@ jobs:
           cache-workspace-crates: true
 
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@3a911424851a96b72dc168c8dd71fd98ed215d66 # v2
+        uses: taiki-e/install-action@e9e8e031bcd90cdbe8ac6bb1d376f8596e587fbf # v2
         with:
           tool: cargo-llvm-cov
 
@@ -34,7 +34,7 @@ jobs:
         run: echo "::add-matcher::.github/problem-matchers.json"
 
       - name: Setup mise
-        uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4
 
       - name: Cache Bun global cache
         if: github.event_name == 'pull_request'
@@ -58,9 +58,28 @@ jobs:
         # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
         run: bun install --frozen-lock-file # change this to npm or pnpm depending on which one you use.
 
+      - name: Get Playwright version
+        id: playwright-version
+        run: |
+          VERSIONS=$(grep -o '"playwright@[^"]*"' bun.lock | tr -d '"')
+          if [ -z "$VERSIONS" ]; then
+            echo "::warning::Could not extract playwright version from bun.lock. Playwright browsers will not be cached."
+          elif [ "$(echo "$VERSIONS" | wc -l)" -gt 1 ]; then
+            echo "::warning::Multiple playwright versions found in bun.lock: $VERSIONS. Playwright browsers will not be cached."
+          else
+            echo "Playwright version: $VERSIONS"
+            echo "version=$VERSIONS" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: 0-${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+
       - name: Install Playwright Browsers
         working-directory: app
-        run: bunx playwright install --with-deps chromium chromium-headless-shell
+        run: bun run playwright:install
 
       - name: Generate route files
         working-directory: app
@@ -107,7 +126,7 @@ jobs:
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: app/coverage/clover.xml,lcov.info
