@@ -60,7 +60,16 @@ jobs:
 
       - name: Get Playwright version
         id: playwright-version
-        run: echo "version=$(jq -r '.packages.playwright[0]' bun.lock)" >> $GITHUB_OUTPUT
+        run: |
+          VERSIONS=$(grep -o '"playwright@[^"]*"' bun.lock | tr -d '"')
+          COUNT=$(echo "$VERSIONS" | grep -c .)
+          if [ "$COUNT" -eq 1 ]; then
+            echo "version=$VERSIONS" >> $GITHUB_OUTPUT
+          elif [ "$COUNT" -eq 0 ]; then
+            echo "::warning::Could not extract playwright version from bun.lock. Playwright browsers will not be cached."
+          else
+            echo "::warning::Multiple playwright versions found in bun.lock: $(echo $VERSIONS | tr '\n' ' '). Playwright browsers will not be cached."
+          fi
 
       - name: Cache Playwright Browsers
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
