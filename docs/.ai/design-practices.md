@@ -23,68 +23,30 @@
 - Don't leak implementation details across boundaries
 - **Why**: Protects domain integrity and enables independent evolution
 
-## Dependency Direction
-
-### The Dependency Rule
-
-- Dependencies point inward: Outer layers depend on inner layers, never the reverse
-- Domain layer has no dependencies on infrastructure or application
-- Application layer orchestrates but doesn't contain business logic
-- **Why**: Keeps business logic pure and testable
-
-### SOLID Principles
-
-Clean Architecture is built on SOLID principles, particularly the Dependency Inversion Principle.
-
-#### Dependency Inversion Principle (DIP)
-
-The core principle of Clean Architecture's dependency rule:
-
-- **High-level modules** should not depend on **low-level modules**. Both should depend on **abstractions**
-- **Abstractions** should not depend on **details**. **Details** should depend on **abstractions**
-
-Application in this project:
-- Domain layer defines interfaces (abstractions)
-- Infrastructure layer implements interfaces (details depend on abstractions)
-- Dependencies point inward, never outward
-
-**Why**: Enables flexibility, testability, and independent deployability of layers.
-
-#### Other SOLID Principles
-
-While all SOLID principles apply, DIP is most central to Clean Architecture:
-
-- **Single Responsibility Principle (SRP)**: Each module has one reason to change
-- **Open/Closed Principle (OCP)**: Open for extension, closed for modification
-- **Liskov Substitution Principle (LSP)**: Subtypes are substitutable for base types
-- **Interface Segregation Principle (ISP)**: Clients shouldn't depend on unused methods
-
-Reference: Robert C. Martin's "Clean Architecture"
-
 ## Architectural Layers
 
 ### Layer Structure
 
-This project follows Clean Architecture with DDD tactical patterns:
+This project organizes code into layers with dependencies pointing inward, protecting business logic from framework changes:
 
-**Domain**
+**Domain Layer**
 - [Entities](#entities), [Value Objects](#value-objects), [Aggregates](#aggregates)
 - [Domain Behaviors](#domain-behaviors)
 - [Domain Events](#domain-events)
-- [Repository](#repositories) interfaces (abstractions)
+- [Adapter](#adapter-interface-pattern) interfaces (abstractions)
 
-**Use Cases**
+**Use Cases Layer**
 - [Use Cases](#use-cases) (orchestration)
 - Commands and Queries
 - Application-specific workflows
 
-**Adapters**
+**Adapters Layer**
 - Controllers, Presenters
-- Repository implementations
+- [Repository implementations](#repository)
 - External service clients
 - Message queue adapters
 
-**Frameworks**
+**Frameworks Layer**
 - Web frameworks
 - Database drivers
 - External libraries
@@ -138,6 +100,44 @@ src/
 ```
 
 This structure screams "**Spring MVC**", not "**Order Management**".
+
+Reference: Robert C. Martin's "Clean Architecture"
+
+## Dependency Direction
+
+### The Dependency Rule
+
+- Dependencies point inward: Outer layers depend on inner layers, never the reverse
+- Domain layer has no dependencies on infrastructure or application
+- Application layer orchestrates but doesn't contain business logic
+- **Why**: Keeps business logic pure and testable
+
+### SOLID Principles
+
+This layered architecture is built on SOLID principles, particularly the Dependency Inversion Principle.
+
+#### Dependency Inversion Principle (DIP)
+
+The core principle of this dependency rule:
+
+- **High-level modules** should not depend on **low-level modules**. Both should depend on **abstractions**
+- **Abstractions** should not depend on **details**. **Details** should depend on **abstractions**
+
+Application in this project:
+- Domain layer defines interfaces (abstractions)
+- Infrastructure layer implements interfaces (details depend on abstractions)
+- Dependencies point inward, never outward
+
+**Why**: Enables flexibility, testability, and independent deployability of layers.
+
+#### Other SOLID Principles
+
+While all SOLID principles apply, DIP is most central to this layered architecture:
+
+- **Single Responsibility Principle (SRP)**: Each module has one reason to change
+- **Open/Closed Principle (OCP)**: Open for extension, closed for modification
+- **Liskov Substitution Principle (LSP)**: Subtypes are substitutable for base types
+- **Interface Segregation Principle (ISP)**: Clients shouldn't depend on unused methods
 
 Reference: Robert C. Martin's "Clean Architecture"
 
@@ -301,7 +301,7 @@ When adding new invariants to existing systems:
 
 ### Event-Driven Design
 
-- Aggregates publish events after state changes
+- Use Cases publish domain events to other contexts
 - Other contexts can subscribe without tight coupling
 - Events enable eventual consistency across boundaries
 - **Why**: Decouples contexts while maintaining data consistency
@@ -329,21 +329,6 @@ When adding new invariants to existing systems:
 > (Use Cases), which handle orchestration rather than domain logic.
 > **Domain Services** and **Domain Behaviors** refer to the same concept.
 
-## Repositories
-
-### Repository Abstraction
-
-- Collection-like interface for aggregates
-- Hide persistence details from domain
-- Methods reflect domain operations, not database operations
-- **Why**: Domain logic stays pure and portable
-
-### Aggregate Root Access
-
-- Repositories only for aggregate roots
-- Load entire aggregate, not individual entities
-- **Why**: Maintains aggregate consistency guarantees
-
 ## Use Cases
 
 ### Application Orchestration
@@ -358,7 +343,7 @@ When adding new invariants to existing systems:
 
 - **Commands**: Operations that change state (CreateOrder, UpdatePayment)
 - **Queries**: Operations that read state (GetOrderById, ListOrders)
-- Commands may return success/failure, queries return data
+- Commands should return the domain event to be published, queries return data
 - **Why**: Clear distinction between reads and writes
 
 ### Use Case Responsibilities
@@ -382,10 +367,14 @@ When adding new invariants to existing systems:
 ### Adapter Interface Pattern
 
 - Domain defines interfaces for external system boundaries
-- Infrastructure provides implementations (adapters)
-- Domain depends on abstractions, not implementations
+- Adapter provides implementations
+- Domain and Use Case depend on abstractions, not implementations
 - Examples: Repository, ExternalService, MessageQueue
 - **Why**: Protects domain from infrastructure changes
+
+**Interface vs Implementation:**
+- **Interface**: Defined in Domain layer (what to do)
+- **Implementation**: Provided in Adapter layer (how to do)
 
 ### Adapter Responsibilities
 
@@ -401,6 +390,21 @@ When adding new invariants to existing systems:
 - Don't leak external concepts into domain
 - **Why**: Domain integrity and independence
 
+### Repository
+
+#### Repository Abstraction
+
+- Collection-like interface for aggregates
+- Hide persistence details from domain
+- Methods reflect domain operations, not database operations
+- **Why**: Domain logic stays pure and portable
+
+#### Aggregate Root Access
+
+- Repositories only for aggregate roots
+- Load entire aggregate, not individual entities
+- **Why**: Maintains aggregate consistency guarantees
+
 ### Common Adapter Types
 
 - **Framework Adapters**: Controllers, Presenters
@@ -411,27 +415,13 @@ When adding new invariants to existing systems:
 
 ## Translators
 
-- Concrete classes (no interface) for data transformation at layer boundaries
+Concrete classes (no interface) for data transformation at layer boundaries.
+
 - Separates data transformation from behavioral logic (SRP)
+- Key distinction: Adapter Interface abstracts "what to do" (behavior), Translator transforms "how to convert" (data)
 - **Why**: Testability, reusability, YAGNI compliance
 
-### Translator vs Adapter Interface
-
-- **Adapter Interface**: Abstracts behavior at external system boundaries (Repository, ExternalService)
-- **Translator**: Transforms data at layer boundaries (Command→Domain, Domain→Entity)
-- **Key distinction**: Adapter Interface abstracts "what to do", Translator transforms "how to convert"
-
-### When to Use Translators
-
-✅ **Use when:**
-- Structural transformation needed (multiple fields, complex mapping)
-- Conversion logic is non-trivial
-
-❌ **Skip when:**
-- Simple value wrapping/unwrapping (e.g., `OrderId(string)`)
-- Direct pass-through with no transformation
-
-→ See [ADR-0002](../adr/0002-prefer-translator-for-data-transformation.md) for detailed rationale and examples
+For the detailed rationale and decision guidelines on the Translator pattern, see [ADR-0002](../adr/0002-prefer-translator-for-data-transformation.md).
 
 ## Anti-Patterns to Avoid
 

@@ -38,11 +38,11 @@ These practices apply across languages, though each language realizes them diffe
 
 ### Error Classification
 
-**Domain Errors**: Business rule violations
+**Application Errors**: Business rule violations
 - Represented as custom types
 - Examples: OrderNotFound, InsufficientStock
 
-**Infrastructure Errors**: External system failures
+**Platform Errors**: External system failures
 - Represented as custom types
 - Examples: NetworkTimeout, DatabaseError
 
@@ -52,28 +52,38 @@ These practices apply across languages, though each language realizes them diffe
 
 ### Design Principle
 
-Model Domain/Infrastructure errors as a hierarchy:
+Model errors as a hierarchy with RootError at the top:
 
 ```
-ApplicationError
-├─ DomainError
-│  ├─ OrderNotFound
-│  └─ InvalidInput
-└─ InfrastructureError
-   ├─ NetworkTimeout
-   └─ DatabaseError
+<Language-specific root error type>
+└─ RootError (for centralized error handling)
+   ├─ ApplicationError (our code)
+   │  ├─ DomainError
+   │  │  ├─ InvalidOrderState
+   │  │  └─ OrderNotFound
+   │  ├─ UseCaseError
+   │  │  ├─ PlaceOrderFailed
+   │  │  └─ InvalidInput
+   │  ├─ AdapterError
+   │  └─ FrameworkError
+   └─ PlatformError (external systems)
+      ├─ DatabaseError
+      │  ├─ TransactionFailed
+      │  └─ TransactionTimeout
+      ├─ KeyValueStoreError
+      ├─ PubSubError
+      └─ XxxExternalServiceError
 ```
 
 Programming errors use language mechanisms (panic, check, etc.).
 
-See language-specific practices for implementation.
-
 ### Make Errors Explicit
 
 - Errors are part of your API contract
-- Use Result/Either types for recoverable errors
-- Use exceptions only for truly exceptional cases
-- **Why**: Caller knows what can go wrong, forced to handle errors
+- Default to exceptions with a global error handling system for centralized management
+- Use Result/Either types only when callers must handle errors differently based on the error type
+- **Why**: Centralized error handling reduces boilerplate and ensures consistent error responses
+- **Why**: Result types make error handling explicit when caller-specific logic is needed
 
 ### Fail Fast
 
@@ -107,10 +117,10 @@ See language-specific practices for implementation.
 
 ### Use Meaningful Names
 
-- Function names describe what they do
-- Parameter names describe what they represent
+- Function names describe what they do, and parameter names describe what they represent
 - Avoid abbreviations unless universally understood
-- **Why**: Self-documenting code
+- Remove redundant context from wider scopes (e.g., `user.save()` not `user.saveUser()`)
+- **Why**: Self-documenting code without unnecessary verbosity
 
 ## Data Modeling
 
@@ -348,8 +358,8 @@ A structured approach to implementation that prioritizes type safety, testabilit
 
 Each language realizes these principles differently:
 
-**Kotlin**: Data classes, null safety, coroutines, sealed classes
-**Rust**: Ownership, Result<T,E>, traits, async/await
-**TypeScript**: Readonly, union types, Promises, strict null checks
+- **Kotlin**: Data classes, null safety, coroutines, sealed classes
+- **Rust**: Ownership, Result<T,E>, traits, async/await
+- **TypeScript**: Readonly, union types, Promises, strict null checks
 
 See language-specific practice files for details.
