@@ -33,7 +33,7 @@ This project organizes code into layers with dependencies pointing inward, prote
 - [Entities](#entities), [Value Objects](#value-objects), [Aggregates](#aggregates)
 - [Domain Behaviors](#domain-behaviors)
 - [Domain Events](#domain-events)
-- [Repository](#repository) interfaces (abstractions)
+- [Adapter](#adapter-interface-pattern) interfaces (abstractions)
 
 **Use Cases Layer**
 - [Use Cases](#use-cases) (orchestration)
