@@ -59,9 +59,9 @@ For the architectural rationale behind Rust's error handling strategy (Visitor P
 
 #[suzunari_error]
 pub enum RootError {
-    #[snafu(display("Application error: {source}"))]
+    #[suzu(display("Application error: {source}"))]
     Application { source: ApplicationError },
-    #[snafu(display("Platform error: {source}"))]
+    #[suzu(display("Platform error: {source}"))]
     Platform { source: PlatformError },
 }
 
@@ -71,9 +71,9 @@ pub enum RootError {
 pub enum ApplicationError {
     #[suzu(display("Domain error: {source}"))]
     Domain { source: DomainError },
-    #[suzu(display("Infrastructure error: {source}"))]
-    Infrastructure { source: InfrastructureError },
-  // UseCaseError, AdapterError, etc. can be added as needed
+    #[suzu(display("Use case error: {source}"))]
+    UseCase { source: UseCaseError },
+    // AdapterError, FrameworkError, etc. can be added as needed
 }
 
 // Domain-specific errors
@@ -87,7 +87,7 @@ pub enum DomainError {
 // Platform errors (external systems)
 #[suzunari_error]
 pub enum PlatformError {
-    #[snafu(display("Database error: {source}"))]
+    #[suzu(display("Database error: {source}"))]
     Database { source: DatabaseError },
     // KeyValueStore, PubSub, etc. can be added as needed
 }

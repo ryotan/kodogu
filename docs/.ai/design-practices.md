@@ -368,7 +368,7 @@ When adding new invariants to existing systems:
 
 - Domain defines interfaces for external system boundaries
 - Adapter provides implementations
-- Domain and Use Case depends on abstractions, not implementations
+- Domain and Use Case depend on abstractions, not implementations
 - Examples: Repository, ExternalService, MessageQueue
 - **Why**: Protects domain from infrastructure changes
 
@@ -421,7 +421,7 @@ Concrete classes (no interface) for data transformation at layer boundaries.
 - Key distinction: Adapter Interface abstracts "what to do" (behavior), Translator transforms "how to convert" (data)
 - **Why**: Testability, reusability, YAGNI compliance
 
-For the detailed rationale and decision guidelines on the Translator pattern, see [ADR-0002](../adr/0002-prefer-translator-for-data-transformation.md)
+For the detailed rationale and decision guidelines on the Translator pattern, see [ADR-0002](../adr/0002-prefer-translator-for-data-transformation.md).
 
 ## Anti-Patterns to Avoid
 
