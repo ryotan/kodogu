@@ -12,3 +12,44 @@ body {
 .radix-themes {
   --color-background: transparent;
 }
+
+/* Shell-level design tokens.
+   TODO: Replace with values synced from AppConfig via useDesignTokenSync. */
+:root {
+  --kodogu-surface: rgba(28, 28, 30, 0.92);
+  --kodogu-border: rgba(255, 255, 255, 0.08);
+}
+
+.popover-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--kodogu-surface);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+}
+
+.popover-header {
+  border-bottom: 1px solid var(--kodogu-border);
+  height: 40px;
+  flex-shrink: 0;
+}
+
+/* Scrolls when Rust-side max height cap is active.
+   scrollbar-width: none requires Safari 18.2+ (WKWebView on macOS Sequoia 15.2+).
+   ::-webkit-scrollbar covers all older WKWebView versions. */
+.card-list-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;
+}
+
+.card-list-scroll-area::-webkit-scrollbar {
+  display: none;
+}
+
+.card-list-content {
+  padding: 6px 0;
+}
