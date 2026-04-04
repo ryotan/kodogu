@@ -11,20 +11,22 @@ type WindowSizeMeasurement = {
   desiredHeight: number;
 };
 
-function measureDesiredWindowSize(content: Element): WindowSizeMeasurement | null {
+function measureDesiredWindowSize(entry: ResizeObserverEntry): WindowSizeMeasurement | null {
   // Ensure scroll area exists
-  const scrollArea = content.parentElement;
+  const scrollArea = entry.target.parentElement;
   if (!scrollArea) {
     console.error('No scroll area was found');
     return null;
   }
 
-  // Calculate chrome height and desired height
+  // Calculate chrome height and desired height.
+  // borderBoxSize[0].blockSize is the type-safe equivalent of offsetHeight from ResizeObserver —
+  // includes border, padding, and content without requiring HTMLElement type narrowing.
   const windowInnerWidth = window.innerWidth;
   const windowInnerHeight = window.innerHeight;
   const scrollAreaHeight = scrollArea.clientHeight;
   const chromeHeight = Math.max(0, windowInnerHeight - scrollAreaHeight);
-  const contentHeight = content.clientHeight;
+  const contentHeight = entry.borderBoxSize[0]?.blockSize ?? 0;
   const desiredHeight = contentHeight + chromeHeight;
 
   return {windowInnerWidth, windowInnerHeight, scrollAreaHeight, chromeHeight, contentHeight, desiredHeight};
@@ -41,7 +43,7 @@ function invokeResizePopoverCommand(measurement: WindowSizeMeasurement) {
 // Place the ref on the content wrapper INSIDE the scroll area.
 // The hook computes the "chrome" height (header, footer, borders — everything
 // except the scroll area) as: window.innerHeight - scrollArea.clientHeight.
-// Desired window height = content.clientHeight + chrome.
+// Desired window height = content.offsetHeight + chrome.
 //
 // The Rust side holds the max height constraint and caps the resize request
 // via the `resize_popover` command. No OS-level set_max_size is used.
@@ -60,10 +62,9 @@ export function useAutoResize(): {resizeCallbackRef: (content: HTMLElement | nul
     const observer = new ResizeObserver(entries => {
       // ResizeObserver may batch multiple entries; use the last one (the most recent state).
       const entry = entries[entries.length - 1];
-      const observed = entry.target;
       cancelAnimationFrame(frameRequestId);
       frameRequestId = requestAnimationFrame(() => {
-        const measurement = measureDesiredWindowSize(observed);
+        const measurement = measureDesiredWindowSize(entry);
         if (!measurement) {
           return;
         }

@@ -21,9 +21,7 @@ export const RootLayout = () => {
 };
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async ({context: {queryClient}}) => {
-    await queryClient.ensureQueryData(appConfigQuery);
-  },
+  loader: ({context: {queryClient}}) => queryClient.ensureQueryData(appConfigQuery),
   pendingComponent: PopoverPendingLayout,
   component: RootLayout,
 });
