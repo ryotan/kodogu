@@ -1,3 +1,10 @@
+---
+paths:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/tests/**"
+---
+
 # Testing Practices
 
 ## Universal Principles
