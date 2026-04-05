@@ -1,5 +1,5 @@
 use suzunari_error::*;
-use tauri::AppHandle;
+use tauri::{AppHandle, Runtime};
 use time::UtcOffset;
 use time::macros::format_description;
 use tracing::Level;
@@ -17,8 +17,8 @@ pub enum LoggerSetupError {
     LogFileCreation { source: std::io::Error },
 }
 
-pub(crate) fn setup(
-    #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(unused_variables))] app: &AppHandle,
+pub(crate) fn setup<R: Runtime>(
+    #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(unused_variables))] app: &AppHandle<R>,
     zone_offset: UtcOffset,
 ) -> Result<(), LoggerSetupError> {
     let fmt = if cfg!(debug_assertions) {

@@ -1,5 +1,5 @@
 use suzunari_error::*;
-use tauri::AppHandle;
+use tauri::{AppHandle, Runtime};
 use tauri::image::Image;
 use tauri::menu::{Menu, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
@@ -17,7 +17,7 @@ pub enum TraySetupError {
     BuildIcon { source: tauri::Error },
 }
 
-pub(crate) fn setup(app: &AppHandle) -> Result<TrayIcon, TraySetupError> {
+pub(crate) fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<TrayIcon<R>, TraySetupError> {
     let icon =
         Image::from_bytes(include_bytes!("../../icons/tray-icon.png")).context(IconLoadError)?;
 

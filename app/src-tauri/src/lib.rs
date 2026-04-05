@@ -1,5 +1,6 @@
 use crate::init::popover::resize_popover;
 use suzunari_error::*;
+use tauri::Runtime;
 use time::UtcOffset;
 
 mod config;
@@ -23,7 +24,7 @@ pub enum RunError {
     MenuSetup { source: init::menu::MenuSetupError },
 }
 
-fn setup_once(app: &mut tauri::App, zone_offset: UtcOffset) -> Result<(), RunError> {
+fn setup_once<R: Runtime>(app: &mut tauri::App<R>, zone_offset: UtcOffset) -> Result<(), RunError> {
     init::logger::setup(app.handle(), zone_offset).context(LoggerSetupError)?;
     init::deep_link::setup(app.handle()).context(DeepLinkSetupError)?;
 

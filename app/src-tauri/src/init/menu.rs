@@ -1,6 +1,6 @@
 use suzunari_error::*;
 use tauri::menu::{Menu, PredefinedMenuItem, Submenu};
-use tauri::{App, Wry};
+use tauri::{App, Runtime, Wry};
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
@@ -15,7 +15,7 @@ pub enum MenuSetupError {
     SetMenu { source: tauri::Error },
 }
 
-pub(crate) fn setup(app: &mut App) -> Result<Option<Menu<Wry>>, MenuSetupError> {
+pub(crate) fn setup<R: Runtime>(app: &mut App<R>) -> Result<Option<Menu<R>>, MenuSetupError> {
     let handle = app.handle();
 
     let edit_menu = Submenu::with_items(
