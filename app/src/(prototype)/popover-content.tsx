@@ -301,7 +301,7 @@ export const StubCardList = () => {
           margin: '2px 6px',
           borderRadius: 10,
           overflow: 'hidden',
-          border: isOpen('card1') ? `1px solid ${colors.border}` : undefined,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <CardCollapsed
@@ -338,7 +338,7 @@ export const StubCardList = () => {
           margin: '2px 6px',
           borderRadius: 10,
           overflow: 'hidden',
-          border: isOpen('card2') ? `1px solid ${colors.border}` : undefined,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <CardCollapsed
@@ -389,7 +389,7 @@ export const StubCardList = () => {
           margin: '2px 6px',
           borderRadius: 10,
           overflow: 'hidden',
-          border: isOpen('card3') ? `1px solid ${colors.border}` : undefined,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <CardCollapsed
@@ -426,7 +426,7 @@ export const StubCardList = () => {
           margin: '2px 6px',
           borderRadius: 10,
           overflow: 'hidden',
-          border: isOpen('card4') ? `1px solid ${colors.border}` : undefined,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <CardCollapsed
