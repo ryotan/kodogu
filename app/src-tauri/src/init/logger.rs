@@ -1,12 +1,13 @@
 use suzunari_error::*;
-use tauri::AppHandle;
-use time::macros::{format_description, offset};
+use tauri::{AppHandle, Runtime};
+use time::UtcOffset;
+use time::macros::format_description;
 use tracing::Level;
 use tracing_subscriber::fmt::time::OffsetTime;
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
-pub(crate) enum LoggerSetupError {
+pub enum LoggerSetupError {
     #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(dead_code))]
     #[suzu(display("Log directory was not found"))]
     LogDirectoryNotFound { source: tauri::Error },
@@ -16,8 +17,11 @@ pub(crate) enum LoggerSetupError {
     LogFileCreation { source: std::io::Error },
 }
 
-pub(crate) fn setup(
-    #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(unused_variables))] app: &AppHandle,
+pub(crate) fn setup<R: Runtime>(
+    #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(unused_variables))] app: &AppHandle<
+        R,
+    >,
+    zone_offset: UtcOffset,
 ) -> Result<(), LoggerSetupError> {
     let fmt = if cfg!(debug_assertions) {
         format_description!("[hour]:[minute]:[second].[subsecond digits:3]")
@@ -45,7 +49,7 @@ pub(crate) fn setup(
         .with_line_number(true)
         .with_env_filter("kodogu_lib")
         .with_target(false)
-        .with_timer(OffsetTime::new(offset!(+9), fmt))
+        .with_timer(OffsetTime::new(zone_offset, fmt))
         .with_writer(writer)
         .with_ansi(cfg!(not(all(desktop, not(debug_assertions)))))
         .init();

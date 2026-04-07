@@ -4,9 +4,13 @@ import './radix-ui-theme.css';
 
 import type {FC} from 'react';
 
+import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
+
 import {Theme} from '@radix-ui/themes';
 
 import type {Preview} from '@storybook/react-vite';
+
+const queryClient = new QueryClient();
 
 const preview: Preview = {
   parameters: {
@@ -20,9 +24,13 @@ const preview: Preview = {
   decorators: [
     (Story: FC) => {
       return (
-        <Theme panelBackground='solid'>
-          <Story />
-        </Theme>
+        <QueryClientProvider client={queryClient}>
+          <QueryErrorResetBoundary>
+            <Theme panelBackground='solid'>
+              <Story />
+            </Theme>
+          </QueryErrorResetBoundary>
+        </QueryClientProvider>
       );
     },
   ],

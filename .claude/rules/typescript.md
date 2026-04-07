@@ -389,3 +389,153 @@ For error classification philosophy, invoke the `coding-practices` skill.
 - `@returns {Promise<User>}` for return types
 - Enhances IDE experience
 - **Why**: Documentation and types together
+
+## Project Libraries
+
+### State Management
+
+- React hooks (`useState`, `useReducer`) for component-level state
+- TanStack Store for application-wide state
+- `immer` for complex immutable state updates
+- **Why**: Keeps state management predictable and type-safe
+
+### Data Fetching
+
+- TanStack Query for server state management and caching
+- Handles loading, error, and success states
+- Automatic refetching and cache invalidation
+- **Why**: Simplifies async data management
+
+#### TanStack Query v5: `queryOptions()` Factory Pattern
+
+- Use `queryOptions()` to co-locate `queryKey`, `queryFn`, and options in a single factory
+- Do NOT scatter queryKey / queryFn / staleTime across separate files
+- Set `staleTime` / `gcTime` per-query, not as global defaults
+- Consumers use the factory via `buildXxxQuery({select})` or spread `{...xxxQuery, select}`
+- Define `queryKey` directly inside `queryOptions()` — no separate `QueryKeys` module needed
+
+```typescript
+export const buildAppConfigQuery = <T = AppConfig>(opts?: AppConfigQueryOptions<T>) =>
+  queryOptions({
+    queryKey: ['app-config'] as const,
+    queryFn: getConfig,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    ...opts,
+  });
+export const appConfigQuery = buildAppConfigQuery();
+```
+
+- **Why**: Type-safe `getQueryData()` inference via DataTag, single source of truth
+
+#### Optimistic Update Checklist
+
+Mutations with optimistic updates must follow this lifecycle:
+
+1. `onMutate`: Cancel queries → save previous → set optimistic data → return `{previous}`
+2. `onError`: Log error + rollback with `context?.previous`
+3. `onSettled`: Invalidate queries (covers both success and error)
+   - **Exception**: Skip `onSettled` invalidation when `staleTime: Infinity` — `invalidateQueries` triggers a refetch on active observers regardless of staleTime, causing an unnecessary round-trip. The optimistic data from `onMutate` is already correct.
+
+Additional requirements:
+- Set `scope: {id: 'xxx'}` to serialize parallel mutations on the same resource
+- Always log errors in `onError` — never silently swallow
+
+#### Tauri Desktop App Defaults
+
+Set these on the global `QueryClient` — browser-centric defaults don't apply:
+
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Tauri popover show/hide ≠ browser focus
+      refetchOnReconnect: false,   // Local IPC, no network
+    },
+  },
+});
+```
+
+- **Why**: Tauri IPC is local. Browser online/offline and focus events are irrelevant
+
+### UI Components
+
+- Radix Themes as the design system
+- Import from `@radix-ui/themes`
+- Use theme tokens for colors, spacing, typography
+- **Why**: Consistent, accessible component library
+
+### Testing
+
+- Vitest for unit and component testing
+- Fast test execution with Vite integration
+- Compatible with Jest API
+- **Why**: Modern testing with great TypeScript support
+
+### Tauri Integration
+
+- Use Tauri API types for type safety
+- Create typed wrappers around Tauri commands
+- Handle serialization/deserialization properly
+- **Why**: Type-safe communication between frontend and backend
+
+#### WebKit Prefix for CSS
+
+Tauri on macOS uses WKWebView (Safari engine). Always add `-webkit-` prefixed versions for:
+
+- `backdrop-filter` → `-webkit-backdrop-filter`
+- `mask-image` → `-webkit-mask-image`
+- Other properties listed in [Can I Use](https://caniuse.com) as requiring `-webkit-`
+
+```css
+.glass {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px); /* Required for WKWebView */
+}
+```
+
+- **Why**: WKWebView does not support unprefixed versions of some CSS properties
+
+#### Dev-Only Code with `import.meta.env.DEV`
+
+Guard development-only imports and components with `import.meta.env.DEV`:
+
+```typescript
+// Lazy-load dev tools only in development builds
+const TanStackTools = import.meta.env.DEV
+  ? lazy(() => import('@tanstack/router-devtools').then(/* ... */))
+  : () => null;
+```
+
+- Vite statically replaces `import.meta.env.DEV` → dead-code elimination removes dev-only code from production
+- Do NOT use runtime checks like `process.env.NODE_ENV` — Vite does not replace them in browser builds
+- **Why**: Zero dev-tool overhead in production
+
+### Error Boundaries
+
+#### QueryErrorResetBoundary + ErrorBoundary
+
+Wrap `RouterProvider` (or top-level async UI) with both:
+
+```typescript
+<QueryErrorResetBoundary>
+  {({reset}) => (
+    <ErrorBoundary onReset={reset} fallbackRender={({error, resetErrorBoundary}) => (
+      <AppErrorPage error={error} reset={resetErrorBoundary} />
+    )}>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
+  )}
+</QueryErrorResetBoundary>
+```
+
+- `QueryErrorResetBoundary` resets failed queries on retry so the user gets a fresh fetch
+- Use `fallbackRender` (not `FallbackComponent`) for inline error normalization
+- **Why**: Prevents stale error state after retry
+
+#### Error Component Design
+
+- Accept `error: Error` and optional `reset?: () => void` props
+- Use `useMemo` for expensive derivations (e.g., stack trace parsing)
+- Normalize unknown errors at the boundary, not inside the component
+- **Why**: Reusable across TanStack Router's `defaultErrorComponent` and React ErrorBoundary

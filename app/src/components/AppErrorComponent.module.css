@@ -1,0 +1,183 @@
+/* CSS variables from __root.tsx may not be set when this component renders
+   (e.g. getConfig failure), so hardcoded values are used throughout. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  background: rgba(18, 18, 20, 0.98);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.accentBar {
+  flex-shrink: 0;
+  height: 3px;
+  /* Explicit radius so the bar's own corners are rounded, not clipped mid-bar */
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(90deg, #ff3b30 0%, #ff6b6b 100%);
+}
+
+.header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ff3b30;
+  background: rgba(255, 59, 48, 0.12);
+  border: 1px solid rgba(255, 59, 48, 0.25);
+  border-radius: 5px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+}
+
+.errorName {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.88);
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  flex-shrink: 0;
+  padding: 14px 18px 10px;
+}
+
+.message {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* First non-external stack frame — shows where the error originated in user code */
+.origin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px 12px;
+  font-size: 11px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+  color: rgba(255, 200, 100, 0.8);
+}
+
+.originIcon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.stackSection {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 18px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.expandButton:hover {
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.expandButton:focus-visible {
+  outline: 2px solid rgba(120, 180, 255, 0.6);
+  outline-offset: -2px;
+}
+
+.chevron {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Grid trick: animates open/close without maxHeight */
+.stackBody {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stackBody[data-expanded] {
+  grid-template-rows: 1fr;
+}
+
+/* Required inner wrapper for the 0fr collapse to work */
+.stackCollapse {
+  overflow: hidden;
+}
+
+.stackScroll {
+  overflow-x: auto;
+  padding: 8px 0 12px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.frameRow {
+  display: flex;
+  align-items: baseline;
+  padding: 3px 18px;
+  font-size: 11px;
+  line-height: 1.6;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+  white-space: nowrap;
+}
+
+.frameExternal {
+  opacity: 0.55;
+}
+
+.frameRow:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.frameName {
+  color: rgba(255, 255, 255, 0.88);
+  flex-shrink: 0;
+}
+
+.frameAt {
+  color: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.frameLocation {
+  color: rgba(120, 180, 255, 0.85);
+}
+
+.footer {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: flex-end;
+}

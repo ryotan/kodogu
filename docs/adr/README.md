@@ -29,6 +29,7 @@
 - [ADR-0002](0002-prefer-translator-for-data-transformation.md) - データ変換に Translator を使用する
 - [ADR-0003](0003-use-vitest-browser-react-for-hook-testing.md) - Hook テストに vitest-browser-react を使用する
 - [ADR-0004](0004-error-handling-strategy-in-rust.md) - Rustにおけるエラーハンドリング戦略
+- [ADR-0005](0005-use-redb-for-app-config-and-app-data.md) - 永続化ストアにredbを採用する
 
 ### 提案中
 

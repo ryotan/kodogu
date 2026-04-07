@@ -10,7 +10,7 @@ authors = { workspace = true }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
+# The `_lib` suffix may seem redundant, but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "kodogu_lib"
@@ -20,22 +20,27 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { workspace = true, features = [] }
 
 [dependencies]
-tauri = { workspace = true, features = ["image-png", "tracing", "tray-icon", "macos-private-api"] }
-tauri-plugin-opener = { workspace = true }
+dirs = { workspace = true }
+openidconnect = { workspace = true }
+redb = { workspace = true }
+rmp-serde = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-openidconnect = { workspace = true }
+suzunari-error = { workspace = true }
+tauri = { workspace = true, features = ["image-png", "tracing", "tray-icon", "macos-private-api"] }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-http = { workspace = true }
-suzunari-error = { workspace = true }
-time = { workspace = true, features = ["macros", "serde-human-readable"] }
+tauri-plugin-opener = { workspace = true }
+time = { workspace = true, features = ["macros", "serde-human-readable", "local-offset"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["time", "env-filter"] }
 
 [dev-dependencies]
 tauri = { workspace = true, features = ["test"] }
 serde_json = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = { workspace = true, features = ["deep-link"] }

@@ -91,11 +91,11 @@ pub(super) fn refresh_max_height<R: Runtime>(
 ///
 /// Assumes macOS layout where the menu bar (and tray) is always at the top of the screen,
 /// so the popup always appears below the tray within the visible area.
-/// y clamping is intentionally omitted; on other OSes the tray may be at the bottom,
+/// `y` clamping is intentionally omitted; on other OSes the tray may be at the bottom,
 /// requiring a fundamentally different positioning strategy.
 ///
-/// All arguments are in logical pixels (f64) to avoid sub-pixel rounding errors on
-/// non-integer DPI scales (e.g. 1.25×, 1.5×).
+/// All arguments are in logical pixels (f64) to avoid subpixel rounding errors on
+/// noninteger DPI scales (e.g., 1.25×, 1.5×).
 pub(super) fn calculate_position(
     tray_x: f64,
     tray_y: f64,
@@ -108,7 +108,7 @@ pub(super) fn calculate_position(
     let y = tray_y + tray_height + 4.0;
 
     if let Some((mon_left, mon_right)) = monitor_bounds {
-        // Clamp right bound to at least mon_left so that x never goes left of the monitor
+        // Clamp right-bound to at least mon_left so that x never goes left of the monitor
         // when the window is wider than the screen (mon_right - window_width < mon_left).
         x = x.max(mon_left).min((mon_right - window_width).max(mon_left));
     }

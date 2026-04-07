@@ -65,7 +65,7 @@
               "**/eslint.config.mjs",
               "**/vite.config.ts",
               "**/vitest.workspace.ts",
-              "**/.storybook/vitest.setup.ts"
+              "**/.storybook/**"
             ]
           }
         }

@@ -1,16 +1,16 @@
 use suzunari_error::*;
-use tauri::AppHandle;
+use tauri::{AppHandle, Runtime};
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
-pub(crate) enum DeepLinkSetupError {
+pub enum DeepLinkSetupError {
     #[cfg_attr(target_os = "macos", allow(dead_code))]
     #[suzu(display("Failed to initialize deep-link plugin"))]
     PluginInitialization { source: tauri_plugin_deep_link::Error },
 }
 
-pub(crate) fn setup(
-    #[cfg_attr(target_os = "macos", allow(unused_variables))] app: &AppHandle,
+pub(crate) fn setup<R: Runtime>(
+    #[cfg_attr(target_os = "macos", allow(unused_variables))] app: &AppHandle<R>,
 ) -> Result<(), DeepLinkSetupError> {
     #[cfg(any(windows, target_os = "linux"))]
     {

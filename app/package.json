@@ -45,9 +45,10 @@
     "@tauri-apps/plugin-opener": "catalog:default",
     "@tauri-apps/plugin-window-state": "catalog:default",
     "arktype": "catalog:default",
-    "immer": "catalog:default",
+    "mutative": "catalog:default",
     "react": "catalog:default",
-    "react-dom": "catalog:default"
+    "react-dom": "catalog:default",
+    "react-error-boundary": "catalog:default"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:default",

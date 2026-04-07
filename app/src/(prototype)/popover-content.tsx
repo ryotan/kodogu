@@ -3,7 +3,7 @@
 /**
  * M1 layout verification prototype. Will be fully replaced with real components in M2.
  */
-import {useCallback, useState} from 'react';
+import {type ReactNode, useCallback, useState} from 'react';
 
 // Manages card expand/collapse state
 function useCardToggle(initialOpen: string[]) {
@@ -145,7 +145,7 @@ const Chevron = ({open}: {open?: boolean}) => (
   </svg>
 );
 
-const StatusButton = ({children}: {children: React.ReactNode}) => (
+const StatusButton = ({children}: {children: ReactNode}) => (
   <button
     type='button'
     style={{
@@ -173,7 +173,7 @@ const CardCollapsed = ({
   open,
   onClick,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   name: string;
   role: 'primary' | 'replica';
   tag: string;
@@ -214,16 +214,16 @@ const CardCollapsed = ({
   </div>
 );
 
-const CardBody = ({children}: {children: React.ReactNode}) => (
+const CardBody = ({children}: {children: ReactNode}) => (
   <div style={{background: colors.surfaceExpanded, borderTop: `1px solid ${colors.border}`}}>
     <div style={{padding: '8px 12px 10px', display: 'flex', flexDirection: 'column', gap: 1}}>{children}</div>
   </div>
 );
 
-// Animates height from 0 to auto using CSS grid-template-rows trick.
+// Animates height from 0 to auto using the CSS grid-template-rows trick.
 // Spreads resize over multiple frames so ResizeObserver fires gradually,
-// keeping per-frame window size delta small enough to be imperceptible.
-const AnimatedPanel = ({open, children}: {open: boolean; children: React.ReactNode}) => (
+// keeping the per-frame window size delta small enough to be imperceptible.
+const AnimatedPanel = ({open, children}: {open: boolean; children: ReactNode}) => (
   <div
     style={{
       display: 'grid',
@@ -301,7 +301,7 @@ export const StubCardList = () => {
           margin: '2px 6px',
           borderRadius: 10,
           overflow: 'hidden',
-          border: isOpen('card1') ? `1px solid ${colors.border}` : undefined,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <CardCollapsed
@@ -338,7 +338,7 @@ export const StubCardList = () => {
           margin: '2px 6px',
           borderRadius: 10,
           overflow: 'hidden',
-          border: isOpen('card2') ? `1px solid ${colors.border}` : undefined,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <CardCollapsed
@@ -389,7 +389,7 @@ export const StubCardList = () => {
           margin: '2px 6px',
           borderRadius: 10,
           overflow: 'hidden',
-          border: isOpen('card3') ? `1px solid ${colors.border}` : undefined,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <CardCollapsed
@@ -426,7 +426,7 @@ export const StubCardList = () => {
           margin: '2px 6px',
           borderRadius: 10,
           overflow: 'hidden',
-          border: isOpen('card4') ? `1px solid ${colors.border}` : undefined,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <CardCollapsed

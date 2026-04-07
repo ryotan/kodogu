@@ -45,7 +45,7 @@ export const InputText: FC<InputTextProps> = ({label, ...props}) => {
   const field = useFieldContext<string>();
   const errors = field.state.meta.errors;
   return (
-    <label htmlFor='name'>
+    <label htmlFor={field.name}>
       <Flex align='center' direction='row' gap='1' justify='between'>
         <Text size='2' weight='bold'>
           {label}

@@ -24,4 +24,18 @@ describe('PopoverLayout', () => {
     // Card list: section labels from StubCardList are rendered
     await expect.element(page.getByText('接続中', {exact: true})).toBeVisible();
   });
+
+  it('triggers resize_popover via useAutoResize ref', async () => {
+    await render(<PopoverLayout />);
+
+    await vi.waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'resize_popover',
+        expect.objectContaining({
+          width: expect.any(Number) as number,
+          height: expect.any(Number) as number,
+        }) as unknown,
+      );
+    });
+  });
 });

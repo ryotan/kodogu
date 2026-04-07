@@ -61,7 +61,11 @@ export default defineConfig(() => ({
         '**/*.spec.{ts,tsx}',
         '**/*.stories.{ts,tsx}',
         '**/*.mock.{ts,tsx}',
-        '**/(dev)/**',
+        '**/[(]dev[)]/**',
+        '**/[(]prototype[)]/**',
+        '**/main.tsx',
+        '**/stories/**',
+        '**/.storybook/**',
       ],
     },
     projects: [

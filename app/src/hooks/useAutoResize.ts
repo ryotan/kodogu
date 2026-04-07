@@ -1,7 +1,42 @@
-import type {RefObject} from 'react';
-import {useEffect, useRef} from 'react';
+import {useCallback} from 'react';
 
-import {invoke} from '@tauri-apps/api/core';
+import {resizePopover} from '#commands/popover';
+
+type WindowSizeMeasurement = {
+  windowInnerWidth: number;
+  windowInnerHeight: number;
+  scrollAreaHeight: number;
+  chromeHeight: number;
+  contentHeight: number;
+  desiredHeight: number;
+};
+
+function measureDesiredWindowSize(entry: ResizeObserverEntry): WindowSizeMeasurement | null {
+  // Ensure scroll area exists
+  const scrollArea = entry.target.parentElement;
+  if (!scrollArea) {
+    console.error('No scroll area was found');
+    return null;
+  }
+
+  // Calculate chrome height and desired height.
+  // borderBoxSize[0].blockSize is the type-safe equivalent of offsetHeight from ResizeObserver —
+  // includes border, padding, and content without requiring HTMLElement type narrowing.
+  const windowInnerWidth = window.innerWidth;
+  const windowInnerHeight = window.innerHeight;
+  const scrollAreaHeight = scrollArea.clientHeight;
+  const chromeHeight = Math.max(0, windowInnerHeight - scrollAreaHeight);
+  const contentHeight = entry.borderBoxSize[0]?.blockSize ?? 0;
+  const desiredHeight = contentHeight + chromeHeight;
+
+  return {windowInnerWidth, windowInnerHeight, scrollAreaHeight, chromeHeight, contentHeight, desiredHeight};
+}
+
+function invokeResizePopoverCommand(measurement: WindowSizeMeasurement) {
+  resizePopover(measurement.windowInnerWidth, measurement.desiredHeight).catch((e: unknown) => {
+    console.error('Failed to resize popover window', e);
+  });
+}
 
 // Resizes the Tauri window to match the observed element's natural height.
 //
@@ -12,55 +47,45 @@ import {invoke} from '@tauri-apps/api/core';
 //
 // The Rust side holds the max height constraint and caps the resize request
 // via the `resize_popover` command. No OS-level set_max_size is used.
-export function useAutoResize(): {ref: RefObject<HTMLDivElement | null>} {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const content = ref.current;
+//
+// Uses React 19 cleanup callback ref: returning a cleanup function from the
+// ref callback lets all state live as closure-local variables, eliminating useRef.
+export function useAutoResize(): {resizeCallbackRef: (content: HTMLElement | null) => void} {
+  const resizeCallbackRef = useCallback((content: HTMLElement | null) => {
     if (!content) {
       return;
     }
 
-    let lastHeight = 0;
-    let rafId = 0;
+    let previousHeight = 0;
+    let frameRequestId = 0;
 
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        const contentHeight = content.offsetHeight;
-        if (contentHeight === lastHeight) {
-          return;
-        }
-        lastHeight = contentHeight;
-
-        const scrollArea = content.parentElement;
-        if (!scrollArea) {
+    const observer = new ResizeObserver(entries => {
+      // ResizeObserver may batch multiple entries; use the last one (the most recent state).
+      const entry = entries[entries.length - 1];
+      cancelAnimationFrame(frameRequestId);
+      frameRequestId = requestAnimationFrame(() => {
+        const measurement = measureDesiredWindowSize(entry);
+        if (!measurement) {
           return;
         }
 
-        const chromeHeight = Math.max(0, window.innerHeight - scrollArea.clientHeight);
-        const desiredHeight = contentHeight + chromeHeight;
+        // Only update if the content height has changed
+        if (measurement.contentHeight === previousHeight) {
+          return;
+        }
+        previousHeight = measurement.contentHeight;
 
-        console.debug('[useAutoResize]', {
-          contentHeight,
-          innerHeight: window.innerHeight,
-          scrollClientH: scrollArea.clientHeight,
-          chromeHeight,
-          desiredHeight,
-        });
-
-        invoke('resize_popover', {width: window.innerWidth, height: desiredHeight}).catch((e: unknown) => {
-          console.error('Failed to resize popover window', e);
-        });
+        invokeResizePopoverCommand(measurement);
       });
     });
-
     observer.observe(content);
+
+    // React 19 cleanup callback ref — called when an element detaches or ref changes.
     return () => {
-      cancelAnimationFrame(rafId);
       observer.disconnect();
+      cancelAnimationFrame(frameRequestId);
     };
   }, []);
 
-  return {ref};
+  return {resizeCallbackRef};
 }

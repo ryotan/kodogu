@@ -1,7 +1,11 @@
-import {dirname} from 'node:path';
+import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import {mergeConfig} from 'vite';
+
 import type {StorybookConfig} from '@storybook/react-vite';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -20,5 +24,14 @@ const config: StorybookConfig = {
     getAbsolutePath('@storybook/addon-onboarding'),
   ],
   framework: getAbsolutePath('@storybook/react-vite'),
+  viteFinal: config =>
+    mergeConfig(config, {
+      resolve: {
+        alias: {
+          // Tauri IPC is not available in the browser — stub @tauri-apps/api/core
+          '@tauri-apps/api/core': resolve(__dirname, 'tauri-api-stub.ts'),
+        },
+      },
+    }),
 };
 export default config;
