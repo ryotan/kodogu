@@ -3052,6 +3052,7 @@ dependencies = [
  "tauri-plugin-window-state",
  "tempfile",
  "time",
+ "tokio",
  "tracing",
  "tracing-subscriber",
 ]

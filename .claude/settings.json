@@ -1,4 +1,10 @@
 {
+  "sandbox": {
+    "network": {
+      "allowLocalBinding": true
+    },
+    "excludedCommands": ["bun run test*", "bunx vitest*"]
+  },
   "hooks": {
     "PostToolUse": [
       {

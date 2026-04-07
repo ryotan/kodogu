@@ -1,6 +1,6 @@
 use suzunari_error::*;
 use tauri::menu::{Menu, PredefinedMenuItem, Submenu};
-use tauri::{App, Runtime, Wry};
+use tauri::{App, Runtime};
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]

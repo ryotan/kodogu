@@ -18,7 +18,9 @@ pub enum LoggerSetupError {
 }
 
 pub(crate) fn setup<R: Runtime>(
-    #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(unused_variables))] app: &AppHandle<R>,
+    #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(unused_variables))] app: &AppHandle<
+        R,
+    >,
     zone_offset: UtcOffset,
 ) -> Result<(), LoggerSetupError> {
     let fmt = if cfg!(debug_assertions) {

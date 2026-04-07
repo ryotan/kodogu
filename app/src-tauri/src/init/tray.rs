@@ -1,8 +1,8 @@
 use suzunari_error::*;
-use tauri::{AppHandle, Runtime};
 use tauri::image::Image;
 use tauri::menu::{Menu, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
+use tauri::{AppHandle, Runtime};
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]

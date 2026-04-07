@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {render} from 'vitest-browser-react';
 
 const mockInvoke = vi.fn().mockResolvedValue(undefined);
@@ -122,6 +122,84 @@ describe('useAutoResize', () => {
       expect(disconnectSpy).toHaveBeenCalled();
     } finally {
       window.ResizeObserver = OriginalResizeObserver;
+    }
+  });
+
+  it('logs error when resize_popover IPC fails', async () => {
+    const errorSpy = vi.spyOn(console, 'error');
+    mockInvoke.mockRejectedValueOnce(new Error('IPC timeout'));
+
+    try {
+      await render(<TestComponent contentHeight={200} />);
+
+      await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledWith('resize_popover', expect.anything()));
+      await vi.waitFor(() => {
+        expect(errorSpy).toHaveBeenCalledWith('Failed to resize popover window', expect.any(Error));
+      });
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+});
+
+// =============================================================================
+// Edge cases that require mocked ResizeObserver
+// =============================================================================
+
+describe('useAutoResize — no scroll area', () => {
+  let capturedCallback: ResizeObserverCallback;
+  let savedResizeObserver: typeof ResizeObserver;
+
+  beforeEach(() => {
+    savedResizeObserver = window.ResizeObserver;
+    window.ResizeObserver = class {
+      constructor(cb: ResizeObserverCallback) {
+        capturedCallback = cb;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+      unobserve = vi.fn();
+    } as unknown as typeof ResizeObserver;
+
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(performance.now());
+      return 0;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  });
+
+  afterEach(() => {
+    window.ResizeObserver = savedResizeObserver;
+    vi.unstubAllGlobals();
+  });
+
+  it('logs error and skips resize when parentElement is null', async () => {
+    const errorSpy = vi.spyOn(console, 'error');
+    mockInvoke.mockClear();
+
+    // A component that attaches the ref to a top-level div (no intermediate scroll area).
+    // When the mock ResizeObserver fires the callback with a *detached* element,
+    // entry.target.parentElement is null — matching the defensive branch in the hook.
+    const NoScrollAreaComponent = () => {
+      const {resizeCallbackRef} = useAutoResize();
+      return <div data-testid='probe' ref={resizeCallbackRef} />;
+    };
+
+    try {
+      await render(<NoScrollAreaComponent />);
+
+      // Trigger the captured callback with a detached element (parentElement === null)
+      const detached = document.createElement('div');
+      const entry = {
+        target: detached,
+        borderBoxSize: [{blockSize: 200, inlineSize: 400}],
+      } as unknown as ResizeObserverEntry;
+      capturedCallback([entry], {} as ResizeObserver);
+
+      expect(errorSpy).toHaveBeenCalledWith('No scroll area was found');
+      expect(mockInvoke).not.toHaveBeenCalledWith('resize_popover', expect.anything());
+    } finally {
+      errorSpy.mockRestore();
     }
   });
 });
