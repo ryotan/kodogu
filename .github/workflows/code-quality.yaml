@@ -26,7 +26,7 @@ jobs:
           cache-workspace-crates: true
 
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@de6f06126afb86b5250a16ff961c57360c5edccc # v2
+        uses: taiki-e/install-action@8002e0e61dfa209f5a4071401b4662c95b4e2ead # v2
         with:
           tool: cargo-llvm-cov
 
