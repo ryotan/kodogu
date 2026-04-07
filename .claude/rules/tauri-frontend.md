@@ -14,33 +14,97 @@ Framework-specific practices for the Tauri desktop app frontend (`app/src/`).
 
 ```
 app/src/
-  routes/          # TanStack Router file-based routes (auto-generated tree)
-  hooks/           # Custom React hooks (reusable across routes)
-  components/      # Shared UI components
-  commands/        # Tauri command wrappers (typed invoke() functions)
-  (prototype)/     # Prototype / stub components (temporary, not shipped)
-  (dev)/           # Development-only utilities (excluded from production)
+  routes/                        # TanStack Router (file-based routing, auto-generated tree)
+  features/
+    <bounded-context-name>/      # One directory per domain boundary
+      domain/                    # Entities, Value Objects (no external deps)
+      usecases/                  # Application layer: Use Cases + Input Port types
+                                 # (includes Form type definitions and validation rules)
+      adapters/                  # Interface Adapters (Primary + Secondary)
+      components/                # UI components
+  shared/
+    core/                        # Foundation code referenced by multiple shared/* modules
+      errors/
+      messages/
+      config/
+      utils/
+    commands/                    # Tauri IPC surface (backend-determined, like an OpenAPI client)
+    notifications/
+    logging/
+    validation/
+    date/
+  ui/                            # Design system (Radix-based visual primitives)
+  assets/
+  (prototype)/                   # Prototype components (not shipped)
+  (dev)/                         # Development-only utilities (excluded from production)
 ```
-
-- Routes define screens. Each route file is a self-contained entry point
-- Hooks with independent contracts go in `hooks/`. Route-local hooks stay in the route file
-- Components shared across 2+ routes go in `components/`. Single-route components stay in the route file or a colocated file
-
-### Tauri IPC
-
-- Tauri command wrappers go in `commands/`
-- Each wrapper provides a typed function around `invoke()`
-- Domain logic stays in Rust. The TS side only handles invocation and result mapping
-
-> **Note**: This structure is minimal for M1. Consider introducing Features / Bases layers in M1.5 / M2.
-> Ref: [Fintan Santoku Application Structure](https://fintan-contents.github.io/mobile-app-crib-notes/react-native/santoku/application-architecture/application-structure/overview/)
 
 ### Dependency Direction
 
-- `routes/` → `hooks/`, `components/`, `commands/`
-- `hooks/` → `commands/` (when calling Tauri APIs)
-- `components/` → no dependencies on other directories (receive data via props)
-- `(prototype)/` → never imported by others (only referenced by routes)
+```
+routes/      → features/, shared/, ui/
+components/  → usecases/, adapters/, domain/, shared/, ui/
+usecases/    → domain/
+adapters/    → shared/commands/, domain/
+shared/xxx   → shared/core/
+ui/          → (none)
+```
+
+Cross-references within `shared/` are allowed.
+Code referenced by multiple `shared/*` modules is a candidate for `shared/core/` — move when it feels like "core", not as a strict rule.
+
+### adapters/ — Interface Adapters Layer
+
+`adapters/` covers both sides of Hexagonal Architecture:
+
+- **Primary adapters** (driving side): UI → UseCase paths. `useForm()` wiring, controller hooks
+- **Secondary adapters** (driven side): UseCase → external paths. Tauri IPC, REST, GraphQL
+
+Do not split into stereotype subdirectories (`queries/`, `translators/`, `hooks/`).
+One file = one connection target. Data translation, query definitions, and hooks live together in one file.
+
+```typescript
+// adapters/connections.ts
+const connectionsQuery = queryOptions({
+  queryFn: async () => {
+    const raw = await getConnectionsCommand()
+    return raw.map(toConnectionProfile)     // translation included
+  },
+})
+
+export function useConnections() {
+  return useQuery(connectionsQuery)         // hook included
+}
+```
+
+### Form Responsibility
+
+Form type definitions and validation rules belong in `usecases/` as the UseCase's Input Port.
+`useForm()` wiring (connecting to React state) belongs in `adapters/`.
+
+```typescript
+// usecases/createConnection.ts — Input Port (what is valid)
+export const CreateConnectionInput = type({
+  name: "string > 0",
+  port: "1 <= number.integer <= 65535",
+})
+
+// adapters/createConnection.ts — Primary adapter (how to wire to React)
+export function useCreateConnectionForm() {
+  return useForm({
+    validators: { onChange: CreateConnectionInput },
+    onSubmit: ({ value }) => createConnectionUseCase(value),
+  })
+}
+```
+
+### Tauri IPC
+
+- Tauri command wrappers go in `shared/commands/`
+- The backend determines the API surface (potentially auto-generated in the future)
+- Treat `shared/commands/` like an OpenAPI-generated client — do not scatter across features
+- Each wrapper provides a typed function around `invoke()`
+- Domain logic stays in Rust. The TS side only handles invocation and result mapping
 
 ## File Organization
 
@@ -96,7 +160,7 @@ Use explicit suffixes to indicate responsibility. The file's role should be clea
 | Error class | `Error` | `ConnectionError` |
 | Layout component | `Layout` | `PopoverLayout` |
 
-> **Note**: Stereotypes will be extended in M2+ as needed (Form, Service, etc.).
+> **Note**: Stereotypes will be extended as needed (Form, Service, etc.).
 
 ## TanStack Query
 
