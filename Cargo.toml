@@ -20,7 +20,7 @@ codec = { path = './kernel/codec' }
 crypto = { path = './kernel/crypto' }
 
 # External crates
-aes = "0.8"
+aes = "0.9"
 aes-gcm = "0.10"
 aes-gcm-siv = "0.11"
 argon2 = "0.5"
