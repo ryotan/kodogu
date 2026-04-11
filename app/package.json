@@ -73,6 +73,7 @@
     "@vitest/coverage-v8": "catalog:default",
     "@vitest/eslint-plugin": "catalog:default",
     "concurrently": "catalog:default",
+    "error-stack-parser": "^2.1.4",
     "eslint": "catalog:default",
     "eslint-plugin-react": "catalog:default",
     "eslint-plugin-react-hooks": "catalog:default",
