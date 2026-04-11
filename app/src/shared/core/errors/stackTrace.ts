@@ -9,7 +9,7 @@ export function parseFrame(line: string): StackFrame | null {
   // WebKit: name@url or @url
   const webkit = /^([^@]*)@(.+)$/.exec(line);
   if (webkit) {
-    const location = webkit[2];
+    const location = webkit[2]!;
     return {name: webkit[1] || '(anonymous)', location, isExternal: isExternalLocation(location)};
   }
   // V8: at name (url) or at url
@@ -25,4 +25,12 @@ export function parseFrame(line: string): StackFrame | null {
 export function formatOriginLocation(location: string): string {
   const withoutOrigin = location.replace(/^https?:\/\/[^/]+\//, '');
   return withoutOrigin.replace(/:(\d+):\d+$/, ':$1');
+}
+
+export function parseStackTrace(stack: string): StackFrame[] {
+  return stack
+    .split('\n')
+    .slice(1) // First line is "ErrorName: message" — skip it
+    .map(parseFrame)
+    .filter((f): f is StackFrame => f !== null);
 }

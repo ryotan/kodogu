@@ -6,8 +6,8 @@ import type {ErrorComponentProps} from '@tanstack/react-router';
 import {Button, Theme} from '@radix-ui/themes';
 
 import styles from './AppErrorComponent.module.css';
-import type {StackFrame} from './stackTrace';
-import {formatOriginLocation, parseFrame} from './stackTrace';
+import type {StackFrame} from '#shared/core/errors/stackTrace';
+import {formatOriginLocation, parseFrame} from '#shared/core/errors/stackTrace';
 
 const StackFrameRow = ({frame}: {frame: StackFrame}) => {
   const className = frame.isExternal ? `${styles.frameRow} ${styles.frameExternal}` : styles.frameRow;

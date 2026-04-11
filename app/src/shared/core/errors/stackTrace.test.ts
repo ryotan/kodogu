@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 
-import {formatOriginLocation, isExternalLocation, parseFrame} from './stackTrace';
+import {formatOriginLocation, isExternalLocation, parseFrame, parseStackTrace} from './stackTrace';
 
 // =============================================================================
 // isExternalLocation
@@ -155,5 +155,47 @@ describe('formatOriginLocation', () => {
 
   it('handles location with only origin (no path)', () => {
     expect(formatOriginLocation('http://localhost:5173/')).toBe('');
+  });
+});
+
+// =============================================================================
+// parseStackTrace
+// =============================================================================
+
+describe('parseStackTrace', () => {
+  it('strips the first line and parses WebKit stack frames', () => {
+    const stack = [
+      'Error: test',
+      'level3@http://localhost:5173/src/(dev)/StackTraceInspector.tsx:7:18',
+      'executeDispatch@http://localhost:5173/node_modules/.vite/deps/react-dom_client.js:13622:19',
+    ].join('\n');
+    const frames = parseStackTrace(stack);
+    expect(frames).toHaveLength(2);
+    expect(frames[0]!.name).toBe('level3');
+    expect(frames[0]!.isExternal).toBe(false);
+    expect(frames[1]!.name).toBe('executeDispatch');
+    expect(frames[1]!.isExternal).toBe(true);
+  });
+
+  it('strips the first line and parses V8 stack frames', () => {
+    const stack = [
+      'Error: test',
+      '    at level3 (http://localhost:5173/src/foo.tsx:7:18)',
+      '    at chunk (http://localhost:5173/node_modules/.vite/deps/react.js:1:1)',
+    ].join('\n');
+    const frames = parseStackTrace(stack);
+    expect(frames).toHaveLength(2);
+    expect(frames[0]!.name).toBe('level3');
+    expect(frames[0]!.isExternal).toBe(false);
+    expect(frames[1]!.name).toBe('chunk');
+    expect(frames[1]!.isExternal).toBe(true);
+  });
+
+  it('returns empty array for empty string', () => {
+    expect(parseStackTrace('')).toEqual([]);
+  });
+
+  it('returns empty array when stack has only the header line', () => {
+    expect(parseStackTrace('Error: something went wrong')).toEqual([]);
   });
 });
