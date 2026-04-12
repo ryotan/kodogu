@@ -1,4 +1,6 @@
-import {queryOptions, useSuspenseQuery} from '@tanstack/react-query';
+import {useSuspenseQuery} from '@tanstack/react-query';
+
+import {queryOptions} from '#shared/core/query/queryOptions';
 
 import {getConfig} from '#commands/appConfig';
 import type {AppConfig} from '#config';

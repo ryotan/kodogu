@@ -4,12 +4,11 @@ import './main.css';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 
-import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {createRouter, RouterProvider} from '@tanstack/react-router';
 
-import {ErrorBoundary} from 'react-error-boundary';
-
-import {AppErrorPage} from '#components/AppErrorPage';
+import {PopoverAppErrorPage} from '#features/menu-popover/components/PopoverAppErrorPage';
+import {PopoverErrorBoundary} from '#features/menu-popover/components/PopoverErrorBoundary';
 
 // Import the generated route tree
 import {routeTree} from '!#router/routes';
@@ -28,7 +27,7 @@ const queryClient = new QueryClient({
 const router = createRouter({
   routeTree,
   context: {queryClient},
-  defaultErrorComponent: AppErrorPage,
+  defaultErrorComponent: PopoverAppErrorPage,
 });
 
 // Register the router instance for type safety
@@ -46,21 +45,9 @@ if (!root) {
 createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <QueryErrorResetBoundary>
-        {({reset}) => (
-          <ErrorBoundary
-            fallbackRender={({error, resetErrorBoundary}) => (
-              <AppErrorPage
-                error={error instanceof Error ? error : new Error(String(error))}
-                reset={resetErrorBoundary}
-              />
-            )}
-            onReset={reset}
-          >
-            <RouterProvider router={router} />
-          </ErrorBoundary>
-        )}
-      </QueryErrorResetBoundary>
+      <PopoverErrorBoundary>
+        <RouterProvider router={router} />
+      </PopoverErrorBoundary>
     </QueryClientProvider>
   </StrictMode>,
 );
