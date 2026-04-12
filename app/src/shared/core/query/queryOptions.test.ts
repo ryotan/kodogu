@@ -5,12 +5,9 @@ import {describe, expect, it} from 'vitest';
 import {QueryCallSiteError, queryOptions} from './queryOptions';
 
 // Minimal QueryFunctionContext for regular (non-infinite) queries.
-// Generic parameter prevents type errors with narrow `as const` query keys.
-const makeContext = <K extends QueryKey>(queryKey: K): QueryFunctionContext<K> => ({
-  queryKey,
-  signal: new AbortController().signal,
-  meta: undefined,
-});
+// Cast to bypass required fields (e.g. `client`) that our wrapper never accesses.
+const makeContext = <K extends QueryKey>(queryKey: K): QueryFunctionContext<K> =>
+  ({queryKey, signal: new AbortController().signal, meta: undefined} as unknown as QueryFunctionContext<K>);
 
 describe('queryOptions', () => {
   it('attaches QueryCallSiteError as cause when queryFn throws without cause', async () => {
@@ -36,9 +33,11 @@ describe('queryOptions', () => {
       queryFn: async () => { throw new Error('original'); },
     });
 
-    const error = await options.queryFn!(makeContext(key)).catch(e => e);
-    expect(error.cause).toBeInstanceOf(QueryCallSiteError);
-    expect(error.cause.name).toBe('QueryCallSiteError');
+    const thrown = await options.queryFn!(makeContext(key)).catch((e: unknown) => e);
+    if (!(thrown instanceof Error)) throw new Error(`Expected Error, got ${typeof thrown}`);
+    expect(thrown.cause).toBeInstanceOf(QueryCallSiteError);
+    if (!(thrown.cause instanceof QueryCallSiteError)) throw new Error('Expected QueryCallSiteError');
+    expect(thrown.cause.name).toBe('QueryCallSiteError');
   });
 
   it('does not overwrite existing cause', async () => {

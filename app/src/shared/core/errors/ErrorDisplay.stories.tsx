@@ -1,5 +1,5 @@
 // app/src/shared/core/errors/ErrorDisplay.stories.tsx
-import type {Meta, StoryObj} from '@storybook/react';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
 import {Theme} from '@radix-ui/themes';
 

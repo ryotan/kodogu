@@ -14,6 +14,7 @@ const ComponentStack = import.meta.env.DEV
 
 // Compatible with TanStack Router's ErrorComponentProps.
 // When used via react-error-boundary's fallbackRender, pass only error + reset (no info).
+// Requires QueryErrorResetBoundary ancestor — provided by PopoverErrorBoundary.
 interface PopoverAppErrorPageProps {
   error: Error;
   reset: () => void;

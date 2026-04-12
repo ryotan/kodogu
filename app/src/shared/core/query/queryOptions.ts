@@ -12,24 +12,36 @@ export class QueryCallSiteError extends RootError {
   }
 }
 
-export function queryOptions<T, K extends QueryKey = QueryKey>(
-  options: UndefinedInitialDataOptions<T, Error, T, K>,
-) {
+// When queryFn is a concrete function, preserve that in the return type so
+// callers like useSuspenseQuery (which disallows skipToken) can accept the result.
+// ReturnType<typeof _queryOptions<...>> preserves TanStack's DataTag for getQueryData() inference.
+export function queryOptions<TQueryFnData, TData = TQueryFnData, K extends QueryKey = QueryKey>(
+  options: UndefinedInitialDataOptions<TQueryFnData, Error, TData, K> & {queryFn: QueryFunction<TQueryFnData, K>},
+): ReturnType<typeof _queryOptions<TQueryFnData, Error, TData, K>> & {queryFn: QueryFunction<TQueryFnData, K>};
+export function queryOptions<TQueryFnData, TData = TQueryFnData, K extends QueryKey = QueryKey>(
+  options: UndefinedInitialDataOptions<TQueryFnData, Error, TData, K>,
+): ReturnType<typeof _queryOptions<TQueryFnData, Error, TData, K>>;
+export function queryOptions<TQueryFnData, TData = TQueryFnData, K extends QueryKey = QueryKey>(
+  options: UndefinedInitialDataOptions<TQueryFnData, Error, TData, K>,
+): ReturnType<typeof _queryOptions<TQueryFnData, Error, TData, K>> {
   const {queryFn, ...rest} = options;
-  // skipToken is a truthy symbol, so `!queryFn` would not catch it — use typeof
-  if (typeof queryFn !== 'function') return _queryOptions(options);
-
-  return _queryOptions({
-    ...rest,
-    queryFn: (ctx) => {
-      const callSite = new QueryCallSiteError(ctx.queryKey);
-      return Promise.resolve()
-        .then(() => (queryFn as QueryFunction<T, K>)(ctx))
-        .catch((e: unknown) => {
-          // Attach call site only when no cause exists — preserve existing cause chains
-          if (e instanceof Error && !e.cause) e.cause = callSite;
-          throw e;
-        });
-    },
-  });
+  // Ternary instead of early-return — produces a single _queryOptions call so
+  // TypeScript infers one return type rather than a union of two branches.
+  // In the false branch, TypeScript narrows queryFn to QueryFunction<TQueryFnData, K>,
+  // so queryFn(ctx) requires no cast.
+  // skipToken is a truthy symbol (typeof === 'symbol'), not a function, so it is
+  // always handled by the true branch.
+  const wrappedQueryFn: typeof queryFn = typeof queryFn !== 'function'
+    ? queryFn
+    : (ctx) => {
+        const callSite = new QueryCallSiteError(ctx.queryKey);
+        return Promise.resolve()
+          .then(() => queryFn(ctx))
+          .catch((e: unknown) => {
+            // Attach call site only when no cause exists — preserve existing cause chains
+            if (e instanceof Error && !e.cause) e.cause = callSite;
+            throw e;
+          });
+      };
+  return _queryOptions({...rest, queryFn: wrappedQueryFn});
 }
