@@ -3,7 +3,6 @@ import {lazy, Suspense, useMemo} from 'react';
 
 import {Flex, Text} from '@radix-ui/themes';
 
-import {TypedAggregateError} from './TypedAggregateError';
 import {formatOriginLocation, parseStackTrace} from './stackTrace';
 
 // (dev)/StackTrace uses error-stack-parser (devDependency) — lazy-load only in dev.
@@ -42,7 +41,7 @@ export const ErrorDisplay = ({error}: ErrorDisplayProps) => {
       {error.cause instanceof AggregateError && (
         <Flex direction="column" gap="1">
           {error.cause.message && <Text size="1">{error.cause.message}</Text>}
-          {(error.cause as TypedAggregateError<Error>).errors
+          {error.cause.errors
             .filter((e): e is Error => e instanceof Error)
             .map((sub, i) => <ErrorDisplay key={i} error={sub} />)}
         </Flex>

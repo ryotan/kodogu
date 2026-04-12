@@ -27,6 +27,7 @@ describe('TypedAggregateError', () => {
     const cause = new TypedAggregateError(errors, 'aggregate');
     const outer = new Error('outer', {cause});
     expect(outer.cause).toBeInstanceOf(AggregateError);
-    expect((outer.cause as AggregateError).errors[0]).toBeInstanceOf(Error);
+    if (!(outer.cause instanceof AggregateError)) throw new Error('Expected AggregateError');
+    expect(outer.cause.errors[0]).toBeInstanceOf(Error);
   });
 });
