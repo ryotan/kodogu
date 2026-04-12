@@ -1,6 +1,7 @@
 import type {QueryClient} from '@tanstack/react-query';
 import {createRootRouteWithContext, Outlet} from '@tanstack/react-router';
 
+import {StackTraceInspector} from '#(dev)/StackTraceInspector';
 import {TanStackTools} from '#(dev)/TanStackTools';
 import {PopoverPendingLayout} from '#components/PopoverPendingLayout';
 import {useConfiguredDesignTokens} from '#components/useDesignTokenSync.tsx';
@@ -16,6 +17,7 @@ export const RootLayout = () => {
     <>
       <Outlet />
       <TanStackTools />
+      <StackTraceInspector />
     </>
   );
 };
