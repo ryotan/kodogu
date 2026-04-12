@@ -16,7 +16,7 @@ Framework-specific practices for the Tauri desktop app frontend (`app/src/`).
 app/src/
   routes/                        # TanStack Router (file-based routing, auto-generated tree)
   features/
-    <bounded-context-name>/      # One directory per domain boundary
+    <cohesive-concern-name>/     # One directory per cohesive concern
       domain/                    # Entities, Value Objects (no external deps)
       usecases/                  # Application layer: Use Cases + Input Port types
                                  # (includes Form type definitions and validation rules)
@@ -270,20 +270,14 @@ const TanStackTools = import.meta.env.DEV
 
 ## Error Boundaries
 
-### QueryErrorResetBoundary + ErrorBoundary
+### PopoverErrorBoundary
 
-Wrap `RouterProvider` (or top-level async UI) with both:
+Wrap `RouterProvider` (or top-level async UI) with `PopoverErrorBoundary`:
 
-```typescript
-<QueryErrorResetBoundary>
-  {({reset}) => (
-    <ErrorBoundary onReset={reset} fallbackRender={({error, resetErrorBoundary}) => (
-      <AppErrorPage error={error} reset={resetErrorBoundary} />
-    )}>
-      <RouterProvider router={router} />
-    </ErrorBoundary>
-  )}
-</QueryErrorResetBoundary>
+```tsx
+<PopoverErrorBoundary>
+  <RouterProvider router={router} />
+</PopoverErrorBoundary>
 ```
 
 - `QueryErrorResetBoundary` resets failed queries on retry so the user gets a fresh fetch
@@ -292,9 +286,9 @@ Wrap `RouterProvider` (or top-level async UI) with both:
 
 ### Error Component Design
 
-- Accept `error: Error` and optional `reset?: () => void` props
-- Use `useMemo` for expensive derivations (e.g., stack trace parsing)
-- Normalize unknown errors at the boundary, not inside the component
+- `ErrorDisplay` accepts only `error: Error` — no retry button. Display and action are separated.
+- `PopoverAppErrorPage` internally calls `useQueryErrorResetBoundary` and owns the Try Again button.
+- `PopoverAppErrorPage` is compatible with both `defaultErrorComponent` (TanStack Router) and `fallbackRender` in `PopoverErrorBoundary`.
 - **Why**: Reusable across TanStack Router's `defaultErrorComponent` and React ErrorBoundary
 
 ## State Management

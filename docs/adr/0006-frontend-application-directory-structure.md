@@ -21,7 +21,7 @@ Clean Architecture の層構造を基本に、以下のディレクトリ構成�
 app/src/
   routes/                         # TanStack Router（ファイルベースルーティング）
   features/
-    <bounded-context-name>/       # ドメイン境界ごとに分割
+    <cohesive-concern-name>/      # 凝集した関心事ごとに分割（DDD bounded context に限らない）
       domain/                     # Domain Layer: Entities, Value Objects, Domain Behaviors, Domain Events, Adapter Interfaces
       usecases/                   # Use Cases Layer: Use Cases (Commands/Queries), Input Port, Output Port
                                   # （Form の型定義・バリデーションルールを含む）
@@ -43,6 +43,8 @@ app/src/
   (prototype)/                    # プロトタイプ（出荷しない）
   (dev)/                          # 開発専用ユーティリティ
 ```
+
+`features/menu-popover/` はその具体例。エラーバウンダリ、レイアウト、エラーページコンポーネントをまとめているが、DDD bounded context ではなく、メニューポップアップウィンドウという UI 的関心事でまとまっている。
 
 ### 依存方向
 
