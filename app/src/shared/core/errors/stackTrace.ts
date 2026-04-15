@@ -9,7 +9,7 @@ export function parseFrame(line: string): StackFrame | null {
   // WebKit: name@url or @url
   const webkit = /^([^@]*)@(.+)$/.exec(line);
   if (webkit) {
-    const location = webkit[2]!;
+    const location = webkit[2];
     return {name: webkit[1] || '(anonymous)', location, isExternal: isExternalLocation(location)};
   }
   // V8: at name (url) or at url

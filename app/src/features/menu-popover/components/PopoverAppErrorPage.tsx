@@ -1,7 +1,8 @@
 import {lazy, Suspense, useCallback} from 'react';
 
-import {Button} from '@radix-ui/themes';
 import {useQueryErrorResetBoundary} from '@tanstack/react-query';
+
+import {Button} from '@radix-ui/themes';
 
 import {ErrorDisplay} from '#shared/core/errors/ErrorDisplay';
 
@@ -9,17 +10,17 @@ import {PopoverLayout} from './PopoverLayout';
 
 // Dev-only component stack display — excluded from production bundle
 const ComponentStack = import.meta.env.DEV
-  ? lazy(() => import('#(dev)/ComponentStack'))
+  ? lazy(() => import('#(dev)/ComponentStack').then(m => ({default: m.ComponentStack})))
   : null;
 
 // Compatible with TanStack Router's ErrorComponentProps.
 // When used via react-error-boundary's fallbackRender, pass only error + reset (no info).
 // Requires QueryErrorResetBoundary ancestor — provided by PopoverErrorBoundary.
-interface PopoverAppErrorPageProps {
+type PopoverAppErrorPageProps = {
   error: Error;
   reset: () => void;
   info?: {componentStack: string} | null;
-}
+};
 
 export const PopoverAppErrorPage = ({error, reset, info}: PopoverAppErrorPageProps) => {
   const {reset: resetQueries} = useQueryErrorResetBoundary();

@@ -1,13 +1,17 @@
-import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {render} from 'vitest-browser-react';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {page} from 'vitest/browser';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {render} from 'vitest-browser-react';
+
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 
 import {PopoverErrorBoundary} from './PopoverErrorBoundary';
 
 // React error boundaries always call console.error in test environments — suppress it
 beforeEach(() => {
-  vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(vi.fn());
+});
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 const ThrowError = () => {
@@ -33,7 +37,9 @@ describe('PopoverErrorBoundary', () => {
   it('recovers after Try Again when child no longer throws', async () => {
     let shouldThrow = true;
     const ConditionalThrow = () => {
-      if (shouldThrow) throw new Error('test');
+      if (shouldThrow) {
+        throw new Error('test');
+      }
       return <div>recovered</div>;
     };
 

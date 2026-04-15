@@ -27,24 +27,27 @@ function level1(): never {
 export const StackTraceInspector = () => {
   const [captured, setCaptured] = useState<Error | null>(null);
 
-  if (!import.meta.env.DEV) return null;
+  if (!import.meta.env.DEV) {
+    return null;
+  }
 
   const throwAndCapture = () => {
     try {
       level1();
     } catch (e) {
-      if (e instanceof Error) setCaptured(e);
+      if (e instanceof Error) {
+        setCaptured(e);
+      }
     }
   };
 
   const frames = captured
-    ? (captured.stack?.split('\n').slice(1) ?? [])
-        .map(line => ({line, frame: parseFrame(line)}))
+    ? (captured.stack?.split('\n').slice(1) ?? []).map(line => ({line, frame: parseFrame(line)}))
     : [];
 
   return (
     <Box
-      p="3"
+      p='3'
       style={{
         position: 'fixed',
         bottom: 0,
@@ -57,14 +60,16 @@ export const StackTraceInspector = () => {
         zIndex: 9999,
       }}
     >
-      <Flex direction="column" gap="2">
-        <Flex align="center" gap="2">
-          <Text size="1" weight="bold">Stack Trace Inspector</Text>
-          <Button size="1" variant="soft" onClick={throwAndCapture}>
+      <Flex direction='column' gap='2'>
+        <Flex align='center' gap='2'>
+          <Text size='1' weight='bold'>
+            Stack Trace Inspector
+          </Text>
+          <Button onClick={throwAndCapture} size='1' variant='soft'>
             Throw Test Error
           </Button>
           {captured && (
-            <Button size="1" variant="ghost" color="red" onClick={() => setCaptured(null)}>
+            <Button color='red' onClick={() => setCaptured(null)} size='1' variant='ghost'>
               Clear
             </Button>
           )}
@@ -72,12 +77,14 @@ export const StackTraceInspector = () => {
 
         {captured && (
           <>
-            <Separator size="4" />
+            <Separator size='4' />
 
             {/* Raw stack */}
-            <Text size="1" weight="bold">Raw error.stack</Text>
+            <Text size='1' weight='bold'>
+              Raw error.stack
+            </Text>
             <Box
-              p="2"
+              p='2'
               style={{
                 background: 'var(--gray-2)',
                 borderRadius: 'var(--radius-2)',
@@ -90,29 +97,44 @@ export const StackTraceInspector = () => {
               {captured.stack}
             </Box>
 
-            <Separator size="4" />
+            <Separator size='4' />
 
             {/* Parsed frames */}
-            <Text size="1" weight="bold">Parsed frames (isExternal判定)</Text>
+            <Text size='1' weight='bold'>
+              Parsed frames (isExternal判定)
+            </Text>
             {frames.map(({line, frame}, i) => (
-              <Flex key={i} gap="2" align="start">
+              <Flex align='start' gap='2' key={i}>
                 {frame ? (
                   <>
-                    <Badge size="1" color={frame.isExternal ? 'gray' : 'green'}>
+                    <Badge color={frame.isExternal ? 'gray' : 'green'} size='1'>
                       {frame.isExternal ? 'external' : 'internal'}
                     </Badge>
-                    <Flex direction="column" gap="0">
-                      <Code size="1">{frame.name}</Code>
-                      <Code size="1" color="gray">{formatOriginLocation(frame.location)}</Code>
-                      <Code size="1" color={frame.location.includes('node_modules') ? 'orange' : frame.location.includes('.vite/deps') ? 'orange' : 'gray'}>
+                    <Flex direction='column' gap='0'>
+                      <Code size='1'>{frame.name}</Code>
+                      <Code color='gray' size='1'>
+                        {formatOriginLocation(frame.location)}
+                      </Code>
+                      <Code
+                        color={
+                          frame.location.includes('node_modules') || frame.location.includes('.vite/deps')
+                            ? 'orange'
+                            : 'gray'
+                        }
+                        size='1'
+                      >
                         {frame.location}
                       </Code>
                     </Flex>
                   </>
                 ) : (
                   <>
-                    <Badge size="1" color="red">parse failed</Badge>
-                    <Code size="1" color="gray">{line}</Code>
+                    <Badge color='red' size='1'>
+                      parse failed
+                    </Badge>
+                    <Code color='gray' size='1'>
+                      {line}
+                    </Code>
                   </>
                 )}
               </Flex>

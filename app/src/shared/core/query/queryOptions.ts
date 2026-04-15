@@ -1,5 +1,5 @@
-import {queryOptions as _queryOptions} from '@tanstack/react-query';
 import type {QueryFunction, QueryKey, UndefinedInitialDataOptions} from '@tanstack/react-query';
+import {queryOptions as _queryOptions} from '@tanstack/react-query';
 
 import {RootError} from '#shared/core/errors/RootError';
 
@@ -31,17 +31,24 @@ export function queryOptions<TQueryFnData, TData = TQueryFnData, K extends Query
   // so queryFn(ctx) requires no cast.
   // skipToken is a truthy symbol (typeof === 'symbol'), not a function, so it is
   // always handled by the true branch.
-  const wrappedQueryFn: typeof queryFn = typeof queryFn !== 'function'
-    ? queryFn
-    : (ctx) => {
-        const callSite = new QueryCallSiteError(ctx.queryKey);
-        return Promise.resolve()
-          .then(() => queryFn(ctx))
-          .catch((e: unknown) => {
-            // Attach call site only when no cause exists — preserve existing cause chains
-            if (e instanceof Error && !e.cause) e.cause = callSite;
-            throw e;
-          });
-      };
+  const wrappedQueryFn: typeof queryFn =
+    typeof queryFn === 'function'
+      ? ctx => {
+          const callSite = new QueryCallSiteError(ctx.queryKey);
+          return Promise.resolve()
+            .then(() => queryFn(ctx))
+            .catch((e: unknown) => {
+              // Attach call site only when no cause exists — preserve existing cause chains
+              if (e instanceof Error && !e.cause) {
+                try {
+                  e.cause = callSite;
+                } catch {
+                  // e is frozen — cannot mutate; skip enrichment
+                }
+              }
+              throw e;
+            });
+        }
+      : queryFn;
   return _queryOptions({...rest, queryFn: wrappedQueryFn});
 }

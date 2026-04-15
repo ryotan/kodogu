@@ -171,10 +171,10 @@ describe('parseStackTrace', () => {
     ].join('\n');
     const frames = parseStackTrace(stack);
     expect(frames).toHaveLength(2);
-    expect(frames[0]!.name).toBe('level3');
-    expect(frames[0]!.isExternal).toBe(false);
-    expect(frames[1]!.name).toBe('executeDispatch');
-    expect(frames[1]!.isExternal).toBe(true);
+    expect(frames[0].name).toBe('level3');
+    expect(frames[0].isExternal).toBe(false);
+    expect(frames[1].name).toBe('executeDispatch');
+    expect(frames[1].isExternal).toBe(true);
   });
 
   it('strips the first line and parses V8 stack frames', () => {
@@ -185,10 +185,10 @@ describe('parseStackTrace', () => {
     ].join('\n');
     const frames = parseStackTrace(stack);
     expect(frames).toHaveLength(2);
-    expect(frames[0]!.name).toBe('level3');
-    expect(frames[0]!.isExternal).toBe(false);
-    expect(frames[1]!.name).toBe('chunk');
-    expect(frames[1]!.isExternal).toBe(true);
+    expect(frames[0].name).toBe('level3');
+    expect(frames[0].isExternal).toBe(false);
+    expect(frames[1].name).toBe('chunk');
+    expect(frames[1].isExternal).toBe(true);
   });
 
   it('returns empty array for empty string', () => {

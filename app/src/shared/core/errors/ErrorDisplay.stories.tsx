@@ -1,17 +1,18 @@
 // app/src/shared/core/errors/ErrorDisplay.stories.tsx
-import type {Meta, StoryObj} from '@storybook/react-vite';
 
 import {Theme} from '@radix-ui/themes';
 
+import type {Meta, StoryObj} from '@storybook/react-vite';
+
 import {ApplicationError} from './ApplicationError';
-import {TypedAggregateError} from './TypedAggregateError';
 import {ErrorDisplay} from './ErrorDisplay';
+import {TypedAggregateError} from './TypedAggregateError';
 
 const meta: Meta<typeof ErrorDisplay> = {
   component: ErrorDisplay,
   decorators: [
-    (Story) => (
-      <Theme appearance="dark" hasBackground={false}>
+    Story => (
+      <Theme appearance='dark' hasBackground={false}>
         <Story />
       </Theme>
     ),

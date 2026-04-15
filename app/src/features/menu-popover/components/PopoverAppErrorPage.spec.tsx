@@ -1,7 +1,8 @@
-import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 import {describe, expect, it, vi} from 'vitest';
 import {page} from 'vitest/browser';
 import {render} from 'vitest-browser-react';
+
+import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 
 import {PopoverAppErrorPage} from './PopoverAppErrorPage';
 
@@ -9,9 +10,7 @@ const wrap = (ui: React.ReactElement) => {
   const queryClient = new QueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
-      <QueryErrorResetBoundary>
-        {ui}
-      </QueryErrorResetBoundary>
+      <QueryErrorResetBoundary>{ui}</QueryErrorResetBoundary>
     </QueryClientProvider>,
   );
 };
@@ -29,8 +28,8 @@ describe('PopoverAppErrorPage', () => {
     await wrap(
       <PopoverAppErrorPage
         error={new Error('test')}
-        reset={() => {}}
         info={{componentStack: '\n    at SomeComponent\n    at RouterProvider'}}
+        reset={vi.fn()}
       />,
     );
 
@@ -54,19 +53,21 @@ describe('PopoverAppErrorPage', () => {
         <QueryErrorResetBoundary>
           {value => {
             boundaryValue = value;
-            return <PopoverAppErrorPage error={new Error('test')} reset={() => {}} />;
+            return <PopoverAppErrorPage error={new Error('test')} reset={vi.fn()} />;
           }}
         </QueryErrorResetBoundary>
       </QueryClientProvider>,
     );
 
     expect(boundaryValue).not.toBeNull();
+    // biome-ignore lint/style/noNonNullAssertion: assigned by the render callback; not null after await render()
     expect(boundaryValue!.isReset()).toBe(false);
 
     await page.getByRole('button', {name: /try again/i}).click();
 
     // After clicking Try Again, the component called useQueryErrorResetBoundary().reset,
     // marking the boundary as reset so suspended queries can retry.
+    // biome-ignore lint/style/noNonNullAssertion: assigned by the render callback; not null after await render()
     expect(boundaryValue!.isReset()).toBe(true);
   });
 });

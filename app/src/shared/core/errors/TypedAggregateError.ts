@@ -5,7 +5,7 @@ export class TypedAggregateError<E extends Error> extends AggregateError {
   // base property (any[]) to a readonly subtype in a subclass override.
   declare errors: E[];
 
-  constructor(errors: ReadonlyArray<E>, message?: string, options?: ErrorOptions) {
+  constructor(errors: readonly E[], message?: string, options?: ErrorOptions) {
     super(errors, message, options);
     this.name = 'TypedAggregateError';
   }
