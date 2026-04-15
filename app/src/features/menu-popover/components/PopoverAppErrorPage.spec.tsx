@@ -44,8 +44,8 @@ describe('PopoverAppErrorPage', () => {
     // to observe the isReset state before and after clicking Try Again.
     const queryClient = new QueryClient();
 
-    // Use the render callback form to capture the boundary value.
-    // The boundary value is a stable object reference, so we capture it once.
+    // Use the render callback form to observe the isReset state.
+    // Each render updates boundaryValue, so it always holds the latest state.
     let boundaryValue: {isReset: () => boolean; reset: () => void; clearReset: () => void} | null = null;
 
     await render(
