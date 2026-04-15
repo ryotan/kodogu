@@ -7,7 +7,7 @@ import {ErrorBoundary} from 'react-error-boundary';
 
 import {PopoverAppErrorPage} from './PopoverAppErrorPage';
 
-// Module-scope function — stable reference, no useCallback needed
+// Defined at module scope because it closes over nothing — no component state or props
 const fallbackRender = ({error, resetErrorBoundary}: FallbackProps) => (
   <PopoverAppErrorPage error={error instanceof Error ? error : new Error(String(error))} reset={resetErrorBoundary} />
 );

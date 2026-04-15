@@ -30,7 +30,7 @@ export function queryOptions<TQueryFnData, TData = TQueryFnData, K extends Query
   // In the false branch, TypeScript narrows queryFn to QueryFunction<TQueryFnData, K>,
   // so queryFn(ctx) requires no cast.
   // skipToken is a truthy symbol (typeof === 'symbol'), not a function, so it is
-  // always handled by the true branch.
+  // always handled by the false branch (passed through unchanged).
   const wrappedQueryFn: typeof queryFn =
     typeof queryFn === 'function'
       ? ctx => {
