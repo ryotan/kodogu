@@ -60,7 +60,7 @@ describe('PopoverAppErrorPage', () => {
     );
 
     expect(boundaryValue).not.toBeNull();
-    // biome-ignore lint/style/noNonNullAssertion: assigned by the render callback; TypeScript cannot track assignments through React render props
+    // biome-ignore lint/style/noNonNullAssertion: proven non-null by the expect above; TypeScript cannot narrow through expect()
     const boundary = boundaryValue!;
     expect(boundary.isReset()).toBe(false);
 
