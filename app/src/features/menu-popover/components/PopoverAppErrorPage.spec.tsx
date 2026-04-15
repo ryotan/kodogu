@@ -60,14 +60,14 @@ describe('PopoverAppErrorPage', () => {
     );
 
     expect(boundaryValue).not.toBeNull();
-    // biome-ignore lint/style/noNonNullAssertion: assigned by the render callback; not null after await render()
-    expect(boundaryValue!.isReset()).toBe(false);
+    // biome-ignore lint/style/noNonNullAssertion: assigned by the render callback; TypeScript cannot track assignments through React render props
+    const boundary = boundaryValue!;
+    expect(boundary.isReset()).toBe(false);
 
     await page.getByRole('button', {name: /try again/i}).click();
 
     // After clicking Try Again, the component called useQueryErrorResetBoundary().reset,
     // marking the boundary as reset so suspended queries can retry.
-    // biome-ignore lint/style/noNonNullAssertion: assigned by the render callback; not null after await render()
-    expect(boundaryValue!.isReset()).toBe(true);
+    expect(boundary.isReset()).toBe(true);
   });
 });
