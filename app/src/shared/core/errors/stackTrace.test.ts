@@ -124,6 +124,26 @@ describe('parseFrame', () => {
       expect(parseFrame('   ')).toBeNull();
     });
   });
+
+  describe('V8 edge cases', () => {
+    it('parses method frame with dot notation (Object.method)', () => {
+      const result = parseFrame('    at Object.method (http://localhost:5173/src/foo.ts:1:1)');
+      expect(result).toEqual({
+        name: 'Object.method',
+        location: 'http://localhost:5173/src/foo.ts:1:1',
+        isExternal: false,
+      });
+    });
+
+    it('treats "async" keyword as function name for V8 async frames (known limitation)', () => {
+      // V8 emits "at async fn (url)" — the regex matches "async" as name and
+      // "fn (url" as location. This is a known limitation; Tauri uses WKWebKit,
+      // which emits "fn@url" and does not have this issue.
+      const result = parseFrame('    at async fetchData (http://localhost:5173/src/foo.ts:5:3)');
+      expect(result).not.toBeNull();
+      expect(result?.name).toBe('async');
+    });
+  });
 });
 
 // =============================================================================
@@ -197,5 +217,18 @@ describe('parseStackTrace', () => {
 
   it('returns empty array when stack has only the header line', () => {
     expect(parseStackTrace('Error: something went wrong')).toEqual([]);
+  });
+
+  it('filters out non-parseable lines such as empty lines', () => {
+    const stack = [
+      'Error: test',
+      'level3@http://localhost:5173/src/foo.tsx:7:18',
+      '',
+      'renderWithHooks@http://localhost:5173/node_modules/react-dom/client.js:1:1',
+    ].join('\n');
+    const frames = parseStackTrace(stack);
+    expect(frames).toHaveLength(2);
+    expect(frames[0].name).toBe('level3');
+    expect(frames[1].name).toBe('renderWithHooks');
   });
 });

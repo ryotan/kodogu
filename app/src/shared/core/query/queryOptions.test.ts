@@ -64,6 +64,23 @@ describe('queryOptions', () => {
     });
   });
 
+  it('rethrows frozen errors without crashing when cause cannot be assigned', async () => {
+    const key = ['test'] as const;
+    // Object.freeze returns Readonly<Error> — cast to Error for the throw to satisfy lint
+    const frozenError = Object.freeze(new Error('frozen')) as Error;
+    const options = queryOptions({
+      queryKey: key,
+      queryFn: () => {
+        throw frozenError;
+      },
+    });
+
+    // Must rethrow the original error (not swallow it)
+    await expect(options.queryFn(makeContext(key))).rejects.toBe(frozenError);
+    // Cause must remain unset — the try/catch silently skips enrichment
+    expect(frozenError.cause).toBeUndefined();
+  });
+
   it('does not wrap undefined queryFn as a function', () => {
     // The wrapper passes non-function queryFn through unchanged.
     // TanStack Query returns queryFn: undefined when omitted — we verify the wrapper

@@ -55,6 +55,28 @@ describe('ErrorDisplay', () => {
     await expect.element(page.getByText('depth-11')).not.toBeInTheDocument();
   });
 
+  it('skips non-Error items in AggregateError.errors', async () => {
+    // errors array contains a mix of Error and non-Error values
+    const agg = new AggregateError([new Error('real error'), 'string value'], 'mixed');
+    const error = new Error('outer', {cause: agg});
+
+    await render(<ErrorDisplay error={error} />);
+
+    await expect.element(page.getByText('real error')).toBeVisible();
+    await expect.element(page.getByText('string value')).not.toBeInTheDocument();
+  });
+
+  it('renders AggregateError child errors when cause has no message', async () => {
+    // AggregateError without a message — cause.message is '' (falsy), so no message line rendered
+    const agg = new AggregateError([new Error('child')]);
+    const error = new Error('outer', {cause: agg});
+
+    await render(<ErrorDisplay error={error} />);
+
+    await expect.element(page.getByText('outer')).toBeVisible();
+    await expect.element(page.getByText('child')).toBeVisible();
+  });
+
   it('does not infinitely recurse on a circular cause chain', async () => {
     const a = new Error('a');
     const b = new Error('b');
