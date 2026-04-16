@@ -12,8 +12,9 @@ export function parseFrame(line: string): StackFrame | null {
     const location = webkit[2];
     return {name: webkit[1] || '(anonymous)', location, isExternal: isExternalLocation(location)};
   }
-  // V8: at name (url) or at url
-  const v8 = /^\s*at\s+(?:(.+?)\s+\(?(.+?)\)?|(.+))$/.exec(line);
+  // V8: at [async] name (url) or at url
+  // [^(]+? instead of .+? prevents the lazy match from overshooting into the URL part
+  const v8 = /^\s*at\s+(?:((?:async\s+)?[^(]+?)\s+\((.+?)\)|(.+))$/.exec(line);
   if (v8) {
     const location = v8[2] || v8[3] || '';
     return {name: v8[1] || '(anonymous)', location, isExternal: isExternalLocation(location)};

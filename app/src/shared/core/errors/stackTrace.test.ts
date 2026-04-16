@@ -135,13 +135,13 @@ describe('parseFrame', () => {
       });
     });
 
-    it('treats "async" keyword as function name for V8 async frames (known limitation)', () => {
-      // V8 emits "at async fn (url)" — the regex matches "async" as name and
-      // "fn (url" as location. This is a known limitation; Tauri uses WKWebKit,
-      // which emits "fn@url" and does not have this issue.
+    it('parses async frame', () => {
       const result = parseFrame('    at async fetchData (http://localhost:5173/src/foo.ts:5:3)');
-      expect(result).not.toBeNull();
-      expect(result?.name).toBe('async');
+      expect(result).toEqual({
+        name: 'async fetchData',
+        location: 'http://localhost:5173/src/foo.ts:5:3',
+        isExternal: false,
+      });
     });
   });
 });
