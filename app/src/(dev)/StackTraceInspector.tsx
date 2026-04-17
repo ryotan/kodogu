@@ -24,12 +24,8 @@ function level1(): never {
 // Component
 // ---------------------------------------------------------------------------
 
-export const StackTraceInspector = () => {
+const StackTraceInspectorDev = () => {
   const [captured, setCaptured] = useState<Error | null>(null);
-
-  if (!import.meta.env.DEV) {
-    return null;
-  }
 
   const throwAndCapture = () => {
     try {
@@ -145,3 +141,9 @@ export const StackTraceInspector = () => {
     </Box>
   );
 };
+
+// Dev-only. Consumers must use import.meta.env.DEV + lazy() to exclude this module from the production bundle:
+//   const StackTraceInspector = import.meta.env.DEV
+//     ? lazy(() => import('#(dev)/StackTraceInspector').then(m => ({default: m.StackTraceInspector})))
+//     : () => null;
+export const StackTraceInspector = import.meta.env.DEV ? StackTraceInspectorDev : () => null;
