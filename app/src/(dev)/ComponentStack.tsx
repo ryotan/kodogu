@@ -7,6 +7,10 @@ type ComponentStackProps = {
   stack: string;
 };
 
+// Dev-only. Consumers must use import.meta.env.DEV + lazy() to exclude this module from the production bundle:
+//   const ComponentStack = import.meta.env.DEV
+//     ? lazy(() => import('#(dev)/ComponentStack').then(m => ({default: m.ComponentStack})))
+//     : null;
 export const ComponentStack = ({stack}: ComponentStackProps) => {
   const [expanded, setExpanded] = useState(false);
   return (
