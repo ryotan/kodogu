@@ -27,7 +27,7 @@ export function queryOptions<TQueryFnData, TData = TQueryFnData, K extends Query
   const {queryFn, ...rest} = options;
   // Ternary instead of early-return — produces a single _queryOptions call so
   // TypeScript infers one return type rather than a union of two branches.
-  // In the false branch, TypeScript narrows queryFn to QueryFunction<TQueryFnData, K>,
+  // In the true branch, TypeScript narrows queryFn to QueryFunction<TQueryFnData, K>,
   // so queryFn(ctx) requires no cast.
   // skipToken is a truthy symbol (typeof === 'symbol'), not a function, so it is
   // always handled by the false branch (passed through unchanged).
