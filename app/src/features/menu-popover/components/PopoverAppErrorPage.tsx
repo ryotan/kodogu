@@ -2,7 +2,7 @@ import {lazy, Suspense, useCallback} from 'react';
 
 import {useQueryErrorResetBoundary} from '@tanstack/react-query';
 
-import {Button} from '@radix-ui/themes';
+import {Button, Flex, Separator} from '@radix-ui/themes';
 
 import {ErrorDisplay} from '#shared/core/errors/ErrorDisplay';
 
@@ -32,13 +32,18 @@ export const PopoverAppErrorPage = ({error, reset, info}: PopoverAppErrorPagePro
 
   return (
     <PopoverLayout>
-      <ErrorDisplay error={error} />
-      {ComponentStack && info?.componentStack && (
-        <Suspense fallback={null}>
-          <ComponentStack stack={info.componentStack} />
-        </Suspense>
-      )}
-      <Button onClick={resetQueriesAndErrorBoundary}>Try Again</Button>
+      <Flex direction='column' gap='3' p='3'>
+        <ErrorDisplay error={error} />
+        {ComponentStack && info?.componentStack && (
+          <Suspense fallback={null}>
+            <ComponentStack stack={info.componentStack} />
+          </Suspense>
+        )}
+        <Separator size='4' />
+        <Button onClick={resetQueriesAndErrorBoundary} size='2' variant='soft'>
+          Try Again
+        </Button>
+      </Flex>
     </PopoverLayout>
   );
 };

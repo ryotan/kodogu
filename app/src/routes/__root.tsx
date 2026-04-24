@@ -12,10 +12,6 @@ const TanStackTools = import.meta.env.DEV
   ? lazy(() => import('#(dev)/TanStackTools').then(m => ({default: m.TanStackTools})))
   : () => null;
 
-const StackTraceInspector = import.meta.env.DEV
-  ? lazy(() => import('#(dev)/StackTraceInspector').then(m => ({default: m.StackTraceInspector})))
-  : () => null;
-
 export type RouterContext = {
   queryClient: QueryClient;
 };
@@ -27,9 +23,6 @@ export const RootLayout = () => {
       <Outlet />
       <Suspense fallback={null}>
         <TanStackTools />
-      </Suspense>
-      <Suspense fallback={null}>
-        <StackTraceInspector />
       </Suspense>
     </>
   );

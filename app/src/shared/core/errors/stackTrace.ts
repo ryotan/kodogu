@@ -2,7 +2,7 @@ export type StackFrame = {name: string; location: string; isExternal: boolean};
 
 export function isExternalLocation(location: string): boolean {
   // node_modules in production builds; .vite/deps in Vite dev server
-  return location.includes('node_modules') || location.includes('/.vite/deps/');
+  return location.includes('node_modules') || location.includes('/.vite/deps/') || location === '[native code]';
 }
 
 export function parseFrame(line: string): StackFrame | null {

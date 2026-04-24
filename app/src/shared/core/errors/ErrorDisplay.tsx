@@ -1,7 +1,7 @@
 // app/src/shared/core/errors/ErrorDisplay.tsx
 import {lazy, Suspense, useMemo} from 'react';
 
-import {Flex, Text} from '@radix-ui/themes';
+import {Card, Code, Flex, Heading, Text} from '@radix-ui/themes';
 
 import {formatOriginLocation, parseStackTrace} from './stackTrace';
 
@@ -27,10 +27,21 @@ export const ErrorDisplay = ({error, depth = 0}: ErrorDisplayProps) => {
 
   return (
     <Flex direction='column' gap='2'>
-      <Text weight='bold'>{error.name}</Text>
-      <Text>{error.message}</Text>
+      {depth === 0 ? (
+        <Heading as='h2' size='3'>
+          {error.message}
+        </Heading>
+      ) : (
+        <Text size='2' weight='bold'>
+          {error.message}
+        </Text>
+      )}
 
-      {originFrame && <Text size='1'>at {formatOriginLocation(originFrame.location)}</Text>}
+      {originFrame && (
+        <Code color='gray' size='1' variant='ghost'>
+          {error.name} at {formatOriginLocation(originFrame.location)}
+        </Code>
+      )}
 
       {StackTrace && (
         <Suspense fallback={null}>
@@ -40,18 +51,26 @@ export const ErrorDisplay = ({error, depth = 0}: ErrorDisplayProps) => {
 
       {/* Cause: AggregateError — list parallel errors */}
       {error.cause instanceof AggregateError && (
-        <Flex direction='column' gap='1'>
-          {error.cause.message && <Text size='1'>{error.cause.message}</Text>}
-          {depth < MAX_CAUSE_DEPTH &&
-            error.cause.errors
-              .filter((e): e is Error => e instanceof Error)
-              .map((sub, i) => <ErrorDisplay depth={depth + 1} error={sub} key={i} />)}
-        </Flex>
+        <Card size='1'>
+          <Flex direction='column' gap='2'>
+            {error.cause.message && (
+              <Text size='1' weight='bold'>
+                {error.cause.message}
+              </Text>
+            )}
+            {depth < MAX_CAUSE_DEPTH &&
+              error.cause.errors
+                .filter((e): e is Error => e instanceof Error)
+                .map((sub, i) => <ErrorDisplay depth={depth + 1} error={sub} key={i} />)}
+          </Flex>
+        </Card>
       )}
 
       {/* Cause: single Error — recurse into cause chain */}
       {error.cause instanceof Error && !(error.cause instanceof AggregateError) && depth < MAX_CAUSE_DEPTH && (
-        <ErrorDisplay depth={depth + 1} error={error.cause} />
+        <Card size='1'>
+          <ErrorDisplay depth={depth + 1} error={error.cause} />
+        </Card>
       )}
     </Flex>
   );
