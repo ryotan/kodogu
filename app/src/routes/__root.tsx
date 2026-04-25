@@ -8,7 +8,7 @@ import {useConfiguredDesignTokens} from '#components/useDesignTokenSync.tsx';
 import {appConfigQuery} from '#hooks/useAppConfig';
 
 // Dev-only — excluded from production bundle via Vite dead-code elimination
-const TanStackTools = import.meta.env.DEV
+const TanStackTools = __DEV_TOOLS__
   ? lazy(() => import('#(dev)/TanStackTools').then(m => ({default: m.TanStackTools})))
   : () => null;
 

@@ -24,18 +24,8 @@ describe('PopoverAppErrorPage', () => {
     expect(mockReset).toHaveBeenCalledOnce();
   });
 
-  it('shows component stack when info is provided', async () => {
-    await wrap(
-      <PopoverAppErrorPage
-        error={new Error('test')}
-        info={{componentStack: '\n    at SomeComponent\n    at RouterProvider'}}
-        reset={vi.fn()}
-      />,
-    );
-
-    await page.getByRole('button', {name: /component stack/i}).click();
-    await expect.element(page.getByText(/SomeComponent/)).toBeVisible();
-  });
+  // ComponentStack is dev-only; its devtools-mode rendering is verified in
+  // PopoverAppErrorPage.devtools.spec.tsx (browser-devtools project).
 
   it('resets TanStack Query error boundary state when Try Again is clicked', async () => {
     // QueryErrorResetBoundary.reset marks the boundary as reset (isReset = true),

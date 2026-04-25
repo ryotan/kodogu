@@ -5,7 +5,7 @@ import {createFileRoute, Outlet} from '@tanstack/react-router';
 import {Theme} from '@radix-ui/themes';
 
 // Dev-only — excluded from production bundle via Vite dead-code elimination
-const RadixThemePanel = import.meta.env.DEV
+const RadixThemePanel = __DEV_TOOLS__
   ? lazy(() => import('#(dev)/RadixThemePanel').then(m => ({default: m.RadixThemePanel})))
   : () => null;
 

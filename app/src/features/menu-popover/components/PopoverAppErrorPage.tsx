@@ -9,7 +9,7 @@ import {ErrorDisplay} from '#shared/core/errors/ErrorDisplay';
 import {PopoverLayout} from './PopoverLayout';
 
 // Dev-only component stack display — excluded from production bundle
-const ComponentStack = import.meta.env.DEV
+const ComponentStack = __DEV_TOOLS__
   ? lazy(() => import('#(dev)/ComponentStack').then(m => ({default: m.ComponentStack})))
   : null;
 

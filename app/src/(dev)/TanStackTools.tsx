@@ -8,8 +8,8 @@ const TanStackToolsDev = () => (
   </>
 );
 
-// Dev-only. Consumers must use import.meta.env.DEV + lazy() to exclude this module from the production bundle:
-//   const TanStackTools = import.meta.env.DEV
+// Dev-only. Consumers must use __DEV_TOOLS__ + lazy() to exclude this module from non-dev bundles:
+//   const TanStackTools = __DEV_TOOLS__
 //     ? lazy(() => import('#(dev)/TanStackTools').then(m => ({default: m.TanStackTools})))
 //     : () => null;
-export const TanStackTools = import.meta.env.DEV ? TanStackToolsDev : () => null;
+export const TanStackTools = __DEV_TOOLS__ ? TanStackToolsDev : () => null;

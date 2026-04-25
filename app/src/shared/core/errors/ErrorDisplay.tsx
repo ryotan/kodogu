@@ -5,11 +5,10 @@ import {Card, Code, Flex, Heading, Text} from '@radix-ui/themes';
 
 import {formatOriginLocation, parseStackTrace} from './stackTrace';
 
-// (dev)/StackTrace uses error-stack-parser (devDependency) — lazy-load only in dev.
-// Vite replaces import.meta.env.DEV with false at build time, eliminating this import.
-const StackTrace = import.meta.env.DEV
-  ? lazy(() => import('#(dev)/StackTrace').then(m => ({default: m.StackTrace})))
-  : null;
+// (dev)/StackTrace uses error-stack-parser (devDependency) — lazy-load only when dev tools are
+// enabled. Vite replaces __DEV_TOOLS__ literally at build time, so the import is eliminated when
+// the flag is false (production builds, Storybook, regular browser tests).
+const StackTrace = __DEV_TOOLS__ ? lazy(() => import('#(dev)/StackTrace').then(m => ({default: m.StackTrace}))) : null;
 
 const MAX_CAUSE_DEPTH = 10;
 

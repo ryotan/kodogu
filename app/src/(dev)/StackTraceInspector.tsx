@@ -127,8 +127,8 @@ const StackTraceInspectorDev = () => {
   );
 };
 
-// Dev-only. Consumers must use import.meta.env.DEV + lazy() to exclude this module from the production bundle:
-//   const StackTraceInspector = import.meta.env.DEV
+// Dev-only. Consumers must use __DEV_TOOLS__ + lazy() to exclude this module from non-dev bundles:
+//   const StackTraceInspector = __DEV_TOOLS__
 //     ? lazy(() => import('#(dev)/StackTraceInspector').then(m => ({default: m.StackTraceInspector})))
 //     : () => null;
-export const StackTraceInspector = import.meta.env.DEV ? StackTraceInspectorDev : () => null;
+export const StackTraceInspector = __DEV_TOOLS__ ? StackTraceInspectorDev : () => null;

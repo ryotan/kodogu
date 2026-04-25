@@ -11,8 +11,8 @@ type StackTraceProps = {
   error: Error;
 };
 
-// Dev-only. Consumers must use import.meta.env.DEV + lazy() to exclude this module from the production bundle:
-//   const StackTrace = import.meta.env.DEV
+// Dev-only. Consumers must use __DEV_TOOLS__ + lazy() to exclude this module from non-dev bundles:
+//   const StackTrace = __DEV_TOOLS__
 //     ? lazy(() => import('#(dev)/StackTrace').then(m => ({default: m.StackTrace})))
 //     : null;
 export const StackTrace = ({error}: StackTraceProps) => {
