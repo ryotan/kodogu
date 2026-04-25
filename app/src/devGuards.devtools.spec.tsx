@@ -1,0 +1,59 @@
+// Verifies that dev-only UI is rendered when __DEV_TOOLS__ is true.
+// Runs in the `browser-devtools` Vitest project (vite.config.ts) where
+// the flag is replaced with `true` at build time. The default `browser`
+// project covers the inverse case (dev UI absent) implicitly via every
+// other spec running with __DEV_TOOLS__ = false.
+
+import {describe, expect, it, vi} from 'vitest';
+import {page} from 'vitest/browser';
+import {render} from 'vitest-browser-react';
+
+import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
+
+import {StackTraceInspector} from './(dev)/StackTraceInspector';
+import {PopoverAppErrorPage} from './features/menu-popover/components/PopoverAppErrorPage';
+import * as RootRoute from './routes/__root';
+import * as AppRoute from './routes/_app';
+import {ErrorDisplay} from './shared/core/errors/ErrorDisplay';
+
+describe('dev-only components when __DEV_TOOLS__ = true', () => {
+  it('StackTraceInspector renders its UI', async () => {
+    await render(<StackTraceInspector />);
+    await expect.element(page.getByText('Stack Trace Inspector')).toBeVisible();
+  });
+
+  it('ErrorDisplay surfaces a Stack trace toggle', async () => {
+    await render(<ErrorDisplay error={new Error('something went wrong')} />);
+    await expect.element(page.getByRole('button', {name: /stack trace/i})).toBeVisible();
+  });
+
+  it('PopoverAppErrorPage surfaces a Component stack toggle for componentStack info', async () => {
+    const queryClient = new QueryClient();
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <QueryErrorResetBoundary>
+          <PopoverAppErrorPage
+            error={new Error('boom')}
+            info={{componentStack: '\n    at SomeComponent\n    at RouterProvider'}}
+            reset={vi.fn()}
+          />
+        </QueryErrorResetBoundary>
+      </QueryClientProvider>,
+    );
+    await page.getByRole('button', {name: /component stack/i}).click();
+    await expect.element(page.getByText(/SomeComponent/)).toBeVisible();
+  });
+});
+
+// Coverage: importing these route modules forces evaluation of the
+// __DEV_TOOLS__ ternary at module top level, so the lazy-load branch is
+// recorded as covered when the flag is true.
+describe('route modules evaluate __DEV_TOOLS__ = true branch on import', () => {
+  it('__root exports RootLayout', () => {
+    expect(RootRoute.RootLayout).toBeDefined();
+  });
+
+  it('_app exports AppLayout', () => {
+    expect(AppRoute.AppLayout).toBeDefined();
+  });
+});
