@@ -26,6 +26,11 @@ const config: StorybookConfig = {
   framework: getAbsolutePath('@storybook/react-vite'),
   viteFinal: config =>
     mergeConfig(config, {
+      // Storybook renders components in isolation; dev-only UI (devtools panels, stack-trace UI)
+      // would only add noise to stories.
+      define: {
+        __DEV_TOOLS__: 'false',
+      },
       resolve: {
         alias: {
           // Tauri IPC is not available in the browser — stub @tauri-apps/api/core

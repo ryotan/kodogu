@@ -60,6 +60,7 @@
               "**/*.test.*",
               "**/*.spec.*",
               "**/*.stories.*",
+              "**/*.fixture.*",
               "**/_dev/**",
               "**/(dev)/**",
               "**/eslint.config.mjs",

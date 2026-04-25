@@ -24,7 +24,7 @@ const port =
     : VITE_DEFAULT_PORT;
 
 // https://vitejs.dev/config/
-export default defineConfig(() => ({
+export default defineConfig(({mode}) => ({
   plugins: [
     paths(),
     router({
@@ -35,6 +35,13 @@ export default defineConfig(() => ({
     }),
     react(),
   ],
+
+  // Build-time flag for dev-only UI (devtools panels, stack-trace UI, etc.).
+  // Defaults to true in dev server, false in production builds. Vitest projects and Storybook
+  // override this per-environment so that tests and stories run with dev tools disabled by default.
+  define: {
+    __DEV_TOOLS__: JSON.stringify(mode !== 'production'),
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -60,6 +67,7 @@ export default defineConfig(() => ({
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
         '**/*.stories.{ts,tsx}',
+        '**/*.fixture.{ts,tsx}',
         '**/*.mock.{ts,tsx}',
         '**/[(]dev[)]/**',
         '**/[(]prototype[)]/**',
@@ -71,6 +79,9 @@ export default defineConfig(() => ({
     projects: [
       {
         extends: 'vite.config.ts',
+        define: {
+          __DEV_TOOLS__: 'false',
+        },
         test: {
           name: 'unit',
           include: ['src/**/*.test.{ts,tsx}'],
@@ -78,9 +89,13 @@ export default defineConfig(() => ({
       },
       {
         extends: 'vite.config.ts',
+        define: {
+          __DEV_TOOLS__: 'false',
+        },
         test: {
           name: 'browser',
-          include: ['src/**/*.spec.{ts,tsx}'],
+          include: ['src/**/*.spec.tsx'],
+          exclude: ['src/**/*.devtools.spec.tsx'],
           browser: {
             enabled: true,
             headless: true,
@@ -92,6 +107,26 @@ export default defineConfig(() => ({
       },
       {
         extends: 'vite.config.ts',
+        define: {
+          __DEV_TOOLS__: 'true',
+        },
+        test: {
+          name: 'browser-devtools',
+          include: ['src/**/*.devtools.spec.tsx'],
+          browser: {
+            enabled: true,
+            headless: true,
+            screenshotFailures: false,
+            provider: playwright(),
+            instances: [{browser: 'chromium' as const}],
+          },
+        },
+      },
+      {
+        extends: 'vite.config.ts',
+        define: {
+          __DEV_TOOLS__: 'false',
+        },
         plugins: [
           // The plugin will run tests for the stories defined in your Storybook config
           // See options at: https://storybook.js.org/docs/writing-tests/test-addon#storybooktest
