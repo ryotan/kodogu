@@ -9,13 +9,15 @@ const RadixThemePanel = __DEV_TOOLS__
   ? lazy(() => import('#(dev)/RadixThemePanel').then(m => ({default: m.RadixThemePanel})))
   : () => null;
 
+export const AppLayout = () => (
+  <Theme panelBackground='solid'>
+    <Outlet />
+    <Suspense fallback={null}>
+      <RadixThemePanel />
+    </Suspense>
+  </Theme>
+);
+
 export const Route = createFileRoute('/_app')({
-  component: () => (
-    <Theme panelBackground='solid'>
-      <Outlet />
-      <Suspense fallback={null}>
-        <RadixThemePanel />
-      </Suspense>
-    </Theme>
-  ),
+  component: AppLayout,
 });
