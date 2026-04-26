@@ -42,16 +42,17 @@ app/src/
 ### Dependency Direction
 
 ```
-routes/      → features/, shared/, ui/
-components/  → usecases/, adapters/, domain/, shared/, ui/
+routes/      → features/, ui/
+components/  → usecases/, adapters/, domain/, ui/
 usecases/    → domain/
-adapters/    → shared/commands/, domain/
+adapters/    → usecases/, domain/
 shared/xxx   → shared/core/
 ui/          → (none)
 ```
 
-Cross-references within `shared/` are allowed.
-Code referenced by multiple `shared/*` modules is a candidate for `shared/core/` — move when it feels like "core", not as a strict rule.
+`shared/*` may be referenced from any layer (it intentionally sits outside the layered dependency graph). Cross-references within `shared/` are allowed; code referenced by multiple `shared/*` modules is a candidate for `shared/core/` — move when it feels like "core", not as a strict rule.
+
+This table mirrors `docs/adr/0006-frontend-application-directory-structure.md`. If the two ever drift, the ADR is canonical.
 
 ### adapters/ — Interface Adapters Layer
 
@@ -255,18 +256,21 @@ Tauri on macOS uses WKWebView (Safari engine). Always add `-webkit-` prefixed ve
 
 ## Dev-Only Code
 
-Guard development-only imports and components with `import.meta.env.DEV`:
+Guard development-only imports and components with `__DEV_TOOLS__` (declared in `app/src/vite-env.d.ts`,
+defined per-environment in `app/vite.config.ts` and `.storybook/main.ts`):
 
 ```typescript
-// Lazy-load dev tools only in development builds
-const TanStackTools = import.meta.env.DEV
+// Lazy-load dev tools only when __DEV_TOOLS__ is enabled
+const TanStackTools = __DEV_TOOLS__
   ? lazy(() => import('@tanstack/router-devtools').then(/* ... */))
   : () => null;
 ```
 
-- Vite statically replaces `import.meta.env.DEV` → dead-code elimination removes dev-only code from production
+- Vite replaces `__DEV_TOOLS__` literally at build time → dead-code elimination removes dev-only code from non-dev bundles (prod build, Storybook, browser test project)
+- The `browser-devtools` Vitest project enables it explicitly to verify devtools-on behaviour (`*.devtools.spec.tsx`)
+- Do NOT use `import.meta.env.DEV` for this guard — `DEV` is true in Storybook and tests too, which would make stories noisy and tie "render dev tools" to "Vite is in dev mode"
 - Do NOT use runtime checks like `process.env.NODE_ENV` — Vite does not replace them in browser builds
-- **Why**: Zero dev-tool overhead in production
+- **Why**: One flag controls "should dev tools render"; each environment (dev server, prod, Storybook, devtools spec) sets it independently
 
 ## Error Boundaries
 

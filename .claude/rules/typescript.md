@@ -496,20 +496,23 @@ Tauri on macOS uses WKWebView (Safari engine). Always add `-webkit-` prefixed ve
 
 - **Why**: WKWebView does not support unprefixed versions of some CSS properties
 
-#### Dev-Only Code with `import.meta.env.DEV`
+#### Dev-Only Code with `__DEV_TOOLS__`
 
-Guard development-only imports and components with `import.meta.env.DEV`:
+Guard development-only imports and components with `__DEV_TOOLS__` (declared in `app/src/vite-env.d.ts`,
+defined per-environment in `app/vite.config.ts` and `.storybook/main.ts`):
 
 ```typescript
-// Lazy-load dev tools only in development builds
-const TanStackTools = import.meta.env.DEV
+// Lazy-load dev tools only when __DEV_TOOLS__ is enabled
+const TanStackTools = __DEV_TOOLS__
   ? lazy(() => import('@tanstack/router-devtools').then(/* ... */))
   : () => null;
 ```
 
-- Vite statically replaces `import.meta.env.DEV` → dead-code elimination removes dev-only code from production
+- Vite replaces `__DEV_TOOLS__` literally at build time → dead-code elimination removes dev-only code from non-dev bundles (prod build, Storybook, browser test project)
+- The `browser-devtools` Vitest project enables it explicitly to verify devtools-on behaviour (`*.devtools.spec.tsx`)
+- Do NOT use `import.meta.env.DEV` for this guard — `DEV` is true in Storybook and tests too, which would make stories noisy and tie "render dev tools" to "Vite is in dev mode"
 - Do NOT use runtime checks like `process.env.NODE_ENV` — Vite does not replace them in browser builds
-- **Why**: Zero dev-tool overhead in production
+- **Why**: One flag controls "should dev tools render"; each environment (dev server, prod, Storybook, devtools spec) sets it independently
 
 ### Error Boundaries
 
