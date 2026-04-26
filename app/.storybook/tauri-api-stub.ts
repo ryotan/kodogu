@@ -19,6 +19,12 @@ const handlers = new Map<string, Handler>([
 export function invoke<T>(cmd: string, args?: unknown): Promise<T> {
   const handler = handlers.get(cmd);
   if (!handler) {
+    // Surface unregistered commands instead of returning undefined silently — otherwise a
+    // mistyped command name leaves the consumer waiting on a never-resolving query value.
+    console.warn(
+      `[tauri-api-stub] No handler registered for command "${cmd}". Returning undefined. ` +
+        `Register one via setTauriMockHandler() in your story.`,
+    );
     return Promise.resolve(undefined as T);
   }
   return handler(args) as Promise<T>;
