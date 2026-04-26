@@ -10,7 +10,13 @@ import {Theme} from '@radix-ui/themes';
 
 import type {Preview} from '@storybook/react-vite';
 
+import {defaultAppConfig} from '../src/commands/appConfig.fixture';
+import {appConfigQuery} from '../src/hooks/useAppConfig';
+
 const queryClient = new QueryClient();
+// Pre-populate the AppConfig cache so route layouts that read it via useSuspenseQuery
+// (e.g. RootLayout's useConfiguredDesignTokens hook) render synchronously in stories.
+queryClient.setQueryData(appConfigQuery.queryKey, defaultAppConfig);
 
 const preview: Preview = {
   parameters: {

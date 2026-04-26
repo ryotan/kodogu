@@ -11,9 +11,9 @@ import {render} from 'vitest-browser-react';
 import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 
 import {StackTraceInspector} from './(dev)/StackTraceInspector';
+import {AppLayout} from './components/AppLayout';
 import {PopoverAppErrorPage} from './features/menu-popover/components/PopoverAppErrorPage';
 import * as RootRoute from './routes/__root';
-import * as AppRoute from './routes/_app';
 import {ErrorDisplay} from './shared/core/errors/ErrorDisplay';
 
 describe('dev-only components when __DEV_TOOLS__ = true', () => {
@@ -45,15 +45,14 @@ describe('dev-only components when __DEV_TOOLS__ = true', () => {
   });
 });
 
-// Coverage: importing these route modules forces evaluation of the
-// __DEV_TOOLS__ ternary at module top level, so the lazy-load branch is
-// recorded as covered when the flag is true.
-describe('route modules evaluate __DEV_TOOLS__ = true branch on import', () => {
+// Coverage: importing these modules forces evaluation of the __DEV_TOOLS__ ternary at module
+// top level, so the lazy-load branch is recorded as covered when the flag is true.
+describe('modules evaluate __DEV_TOOLS__ = true branch on import', () => {
   it('__root exports RootLayout', () => {
     expect(RootRoute.RootLayout).toBeDefined();
   });
 
-  it('_app exports AppLayout', () => {
-    expect(AppRoute.AppLayout).toBeDefined();
+  it('AppLayout component is defined', () => {
+    expect(AppLayout).toBeDefined();
   });
 });

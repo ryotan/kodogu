@@ -18,8 +18,9 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "#*": ["./src/*"],
-      "!#*": ["./gen/*"]
+      "!#*": ["./gen/*"],
+      "$storybook/*": ["./.storybook/*"]
     }
   },
-  "include": ["src", "gen", ".storybook/preview.tsx"]
+  "include": ["src", "gen", ".storybook/preview.tsx", ".storybook/helpers"]
 }
