@@ -5,8 +5,9 @@
 
 import {defaultAppConfig} from '../src/commands/appConfig.fixture';
 
-// biome-ignore lint/suspicious/noExplicitAny: handlers receive arbitrary command args
-type Handler = (args?: any) => Promise<any>;
+// Each handler returns an unknown payload; invoke<T> casts to the caller-supplied T at the
+// stub boundary just like the real `@tauri-apps/api/core` invoke<T> does at runtime.
+type Handler = (args?: unknown) => Promise<unknown>;
 
 // Map<string, Handler> instead of Record<string, Handler> so that lookups return Handler|undefined
 // without depending on noUncheckedIndexedAccess.
