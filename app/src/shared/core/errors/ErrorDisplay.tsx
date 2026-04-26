@@ -49,7 +49,7 @@ export const ErrorDisplay = ({error, depth = 0}: ErrorDisplayProps) => {
       )}
 
       {/* Cause: AggregateError — list parallel errors */}
-      {error.cause instanceof AggregateError && (
+      {error.cause instanceof AggregateError && depth < MAX_CAUSE_DEPTH && (
         <Card size='1'>
           <Flex direction='column' gap='2'>
             {error.cause.message && (
@@ -57,10 +57,11 @@ export const ErrorDisplay = ({error, depth = 0}: ErrorDisplayProps) => {
                 {error.cause.message}
               </Text>
             )}
-            {depth < MAX_CAUSE_DEPTH &&
-              error.cause.errors
-                .filter((e): e is Error => e instanceof Error)
-                .map((sub, i) => <ErrorDisplay depth={depth + 1} error={sub} key={i} />)}
+            {error.cause.errors
+              .filter((e): e is Error => e instanceof Error)
+              .map((sub, i) => (
+                <ErrorDisplay depth={depth + 1} error={sub} key={i} />
+              ))}
           </Flex>
         </Card>
       )}

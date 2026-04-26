@@ -55,6 +55,25 @@ describe('ErrorDisplay', () => {
     await expect.element(page.getByText('depth-11')).not.toBeInTheDocument();
   });
 
+  it('omits the AggregateError card when depth limit is reached', async () => {
+    // Build a deep chain whose terminal cause is an AggregateError. The Card for the
+    // AggregateError appears at depth MAX_CAUSE_DEPTH (10), so it must be suppressed.
+    const aggAtDepth11 = new AggregateError([new Error('agg-child')], 'agg at limit');
+    let chain: Error = aggAtDepth11;
+    for (let i = 10; i >= 1; i--) {
+      chain = new Error(`depth-${i}`, {cause: chain});
+    }
+    const root = new Error('depth-0', {cause: chain});
+
+    await render(<ErrorDisplay error={root} />);
+
+    await expect.element(page.getByText('depth-10')).toBeVisible();
+    // The AggregateError sits beyond MAX_CAUSE_DEPTH, so neither its message nor its
+    // children should appear.
+    await expect.element(page.getByText('agg at limit')).not.toBeInTheDocument();
+    await expect.element(page.getByText('agg-child')).not.toBeInTheDocument();
+  });
+
   it('skips non-Error items in AggregateError.errors', async () => {
     // errors array contains a mix of Error and non-Error values
     const agg = new AggregateError([new Error('real error'), 'string value'], 'mixed');
