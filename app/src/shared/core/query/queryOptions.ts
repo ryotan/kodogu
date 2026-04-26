@@ -38,8 +38,10 @@ export function queryOptions<TQueryFnData, TData = TQueryFnData, K extends Query
           return Promise.resolve()
             .then(() => queryFn(ctx))
             .catch((e: unknown) => {
-              // Attach call site only when no cause exists — preserve existing cause chains
-              if (e instanceof Error && !e.cause) {
+              // Attach call site only when no cause was set — preserve existing cause chains.
+              // Compare with `=== undefined` rather than `!e.cause` so falsy-but-meaningful values
+              // (null/0/''/false) explicitly assigned to `cause` aren't treated as "no cause".
+              if (e instanceof Error && e.cause === undefined) {
                 try {
                   e.cause = callSite;
                 } catch {
