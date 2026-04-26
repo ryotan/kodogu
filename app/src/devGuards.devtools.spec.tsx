@@ -14,6 +14,7 @@ import {StackTraceInspector} from './(dev)/StackTraceInspector';
 import {AppLayout} from './components/AppLayout';
 import {PopoverAppErrorPage} from './features/menu-popover/components/PopoverAppErrorPage';
 import * as RootRoute from './routes/__root';
+import * as AppRoute from './routes/_app';
 import {ErrorDisplay} from './shared/core/errors/ErrorDisplay';
 
 describe('dev-only components when __DEV_TOOLS__ = true', () => {
@@ -54,5 +55,9 @@ describe('modules evaluate __DEV_TOOLS__ = true branch on import', () => {
 
   it('AppLayout component is defined', () => {
     expect(AppLayout).toBeDefined();
+  });
+
+  it('_app exports Route', () => {
+    expect(AppRoute.Route).toBeDefined();
   });
 });
