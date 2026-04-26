@@ -7,6 +7,6 @@ export class TypedAggregateError<E extends Error> extends AggregateError {
 
   constructor(errors: readonly E[], message?: string, options?: ErrorOptions) {
     super(errors, message, options);
-    this.name = 'TypedAggregateError';
+    this.name = this.constructor.name;
   }
 }
