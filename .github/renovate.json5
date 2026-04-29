@@ -10,27 +10,132 @@
     'helpers:pinGitHubActionDigests',
   ],
   timezone: 'Asia/Tokyo',
+  // Mitigate supply-chain attacks by only considering versions that have been released for at least 1 week.
+  minimumReleaseAge: '7 days',
+  // Suppress branch/PR creation while a version is still inside the minimumReleaseAge window.
+  //   cf. https://docs.renovatebot.com/key-concepts/minimum-release-age/#recommended-settings
+  internalChecksFilter: 'strict',
+  // Use the OSV database (osv.dev) for vulnerability alerts in addition to the GitHub Advisory Database.
+  osvVulnerabilityAlerts: true,
+  // Auto-create a migration PR when the Renovate config syntax becomes outdated.
+  configMigration: true,
   lockFileMaintenance: {
     enabled: true,
     schedule: [
-      'before 20:00 on saturday',
+      'before 20:00 on Saturday',
     ],
   },
+  vulnerabilityAlerts: {
+    // Bypass minimumReleaseAge for security alerts (CVEs) so they are applied immediately.
+    minimumReleaseAge: '0 days',
+  },
   packageRules: [
-    // chacha20poly1305 requires chacha20 ^0.9, so upgrading chacha20 alone breaks Cargo.lock update
     {
-      matchPackageNames: ['chacha20', 'chacha20poly1305'],
-      groupName: 'chacha20 packages',
+      // GitHub Actions are pinned by SHA, so we only check for updates at the same cadence as lockfile maintenance.
+      // PRs are kept per-action (no grouping).
+      matchManagers: [
+        'github-actions',
+      ],
+      schedule: [
+        'before 20:00 on Saturday',
+      ],
     },
-    // aes-gcm and aes-gcm-siv require aes ^0.8, so upgrading aes alone breaks Cargo.lock update
     {
-      matchPackageNames: ['aes', 'aes-gcm', 'aes-gcm-siv'],
-      groupName: 'aes packages',
+      // RustCrypto crates (aes, cbc, ctr, hmac, sha2 etc.) share traits crates (cipher, digest, aead),
+      // so update them together.
+      groupName: 'RustCrypto',
+      matchSourceUrls: [
+        'https://github.com/RustCrypto/**',
+      ],
     },
-    // hkdf/pbkdf2 require hmac ^0.12, bcrypt-pbkdf/scrypt require pbkdf2 ^0.12 and sha2 ^0.10
     {
-      matchPackageNames: ['hmac', 'sha2', 'hkdf', 'pbkdf2', 'bcrypt-pbkdf', 'scrypt'],
-      groupName: 'digest/kdf packages',
+      // Tauri requires the Rust crates and JS packages to share the same version, so update them together.
+      groupName: 'Tauri',
+      matchPackageNames: [
+        '@tauri-apps/*',
+        'tauri',
+        'tauri-build',
+        'tauri-plugin-*',
+      ],
+    },
+    {
+      // Update TanStack packages together.
+      // Note: `@tanstack/eslint-plugin-*` is reassigned to the ESLint group by a later rule.
+      groupName: 'TanStack',
+      matchPackageNames: [
+        '@tanstack/*',
+      ],
+    },
+    {
+      // Vitest, its official plugins, and the peer-dependent playwright must share versions,
+      // so update them together.
+      // Note: `@vitest/eslint-plugin` is reassigned to the ESLint group by a later rule.
+      groupName: 'Vitest',
+      matchPackageNames: [
+        '@vitest/*',
+        'playwright',
+        'vitest',
+        'vitest-browser-react',
+      ],
+    },
+    {
+      // Update Radix UI packages together.
+      groupName: 'Radix UI',
+      matchPackageNames: [
+        '@radix-ui/*',
+      ],
+    },
+    {
+      // Update React together with its type definitions (@types/react, @types/react-dom).
+      groupName: 'React',
+      matchPackageNames: [
+        '@types/react',
+        '@types/react-dom',
+        'react',
+        'react-dom',
+      ],
+    },
+    {
+      // Update Vite together with its plugins.
+      groupName: 'Vite',
+      matchPackageNames: [
+        '@vitejs/*',
+        'vite',
+        'vite-tsconfig-paths',
+      ],
+    },
+    {
+      // Update `tracing` and `tracing-subscriber` together to keep API compatibility.
+      groupName: 'tracing',
+      matchPackageNames: [
+        'tracing',
+        'tracing-subscriber',
+      ],
+    },
+    {
+      // ESLint major upgrades (v9 → v10 etc.) require all plugins to follow the new plugin API,
+      // so update ESLint and its plugins together.
+      // Note: `eslint-plugin-storybook` is reassigned to the Storybook group by a later rule.
+      groupName: 'ESLint',
+      matchPackageNames: [
+        '@eslint/*',
+        '@tanstack/eslint-plugin-*',
+        '@vitest/eslint-plugin',
+        'eslint',
+        'eslint-plugin-*',
+        'typescript-eslint',
+      ],
+    },
+    {
+      // Storybook packages must share the same version, otherwise Storybook can fail to start.
+      // Update them together.
+      groupName: 'Storybook',
+      matchPackageNames: [
+        '@chromatic-com/storybook',
+        '@storybook/*',
+        'eslint-plugin-storybook',
+        'storybook',
+      ],
     },
   ],
 }
