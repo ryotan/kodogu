@@ -20,7 +20,7 @@ app/src/
       domain/                    # Entities, Value Objects (no external deps)
       usecases/                  # Application layer: Use Cases + Input Port types
                                  # (includes Form type definitions and validation rules)
-      adapters/                  # Interface Adapters (Primary + Secondary)
+      adapters/                  # Interface Adapters (Clean Architecture's adapters layer)
       components/                # UI components
   shared/
     core/                        # Foundation code referenced by multiple shared/* modules
@@ -56,10 +56,10 @@ This table mirrors `docs/adr/0006-frontend-application-directory-structure.md`. 
 
 ### adapters/ — Interface Adapters Layer
 
-`adapters/` covers both sides of Hexagonal Architecture:
+`adapters/` is Clean Architecture's **Interface Adapters** layer. It bridges both directions:
 
-- **Primary adapters** (driving side): UI → UseCase paths. `useForm()` wiring, controller hooks
-- **Secondary adapters** (driven side): UseCase → external paths. Tauri IPC, REST, GraphQL
+- **UI → UseCase**: `useForm()` wiring, controller hooks
+- **UseCase → external**: Tauri IPC, REST, GraphQL
 
 Do not split into stereotype subdirectories (`queries/`, `translators/`, `hooks/`).
 One file = one connection target. Data translation, query definitions, and hooks live together in one file.
@@ -90,7 +90,7 @@ export const CreateConnectionInput = type({
   port: "1 <= number.integer <= 65535",
 })
 
-// adapters/createConnection.ts — Primary adapter (how to wire to React)
+// adapters/createConnection.ts — Interface Adapter (how to wire UseCase to React)
 export function useCreateConnectionForm() {
   return useForm({
     validators: { onChange: CreateConnectionInput },
