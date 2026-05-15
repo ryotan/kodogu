@@ -3,17 +3,16 @@
 
 import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import {renderInRouter} from '$storybook/helpers/createStoryRouter';
+import {withMemoryRouter} from '$preview/withMemoryRouter';
 
 import {RootLayout} from './__root';
 
-const RootLayoutStory = () => renderInRouter(RootLayout);
-
-const meta: Meta<typeof RootLayoutStory> = {
-  component: RootLayoutStory,
+const meta: Meta<typeof RootLayout> = {
+  component: RootLayout,
+  decorators: [withMemoryRouter],
 };
 export default meta;
 
-type Story = StoryObj<typeof RootLayoutStory>;
+type Story = StoryObj<typeof RootLayout>;
 
 export const Default: Story = {};

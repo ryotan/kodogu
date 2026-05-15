@@ -19,8 +19,8 @@
     "paths": {
       "#*": ["./src/*"],
       "!#*": ["./gen/*"],
-      "$storybook/*": ["./.storybook/*"]
+      "$preview/*": ["./.storybook/preview/*"]
     }
   },
-  "include": ["src", "gen", ".storybook/preview.tsx", ".storybook/helpers"]
+  "include": ["src", "gen", ".storybook/preview"]
 }
