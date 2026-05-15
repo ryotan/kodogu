@@ -74,14 +74,6 @@ const eslintConfig = defineConfig([
   ...router.configs['flat/recommended'].map(ts).map(name('tanstack/router/flat/recommended')),
   ...storybook.configs['flat/recommended'],
   ...storybook.configs['flat/csf-strict'],
-  name('#customise/typescript-eslint/stylistic-type-checked')(
-    ts({
-      rules: {
-        // https://typescript-eslint.io/rules/consistent-type-definitions
-        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-      },
-    }),
-  ),
   name('#disable/eslint/recommended')(
     ts({
       rules: {
@@ -187,6 +179,7 @@ const eslintConfig = defineConfig([
         '@typescript-eslint/no-unused-vars': 'off',
         // Biome.js
         '@typescript-eslint/array-type': 'off',
+        '@typescript-eslint/consistent-type-definitions': 'off',
         'dot-notation': 'off',
         '@typescript-eslint/dot-notation': 'off',
         '@typescript-eslint/no-confusing-non-null-assertion': 'off',
