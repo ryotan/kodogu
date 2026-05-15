@@ -73,9 +73,7 @@ const connectionsQuery = queryOptions({
   },
 })
 
-export function useConnections() {
-  return useQuery(connectionsQuery)         // hook included
-}
+export const useConnections = () => useQuery(connectionsQuery)   // hook included
 ```
 
 ### Form Responsibility
@@ -91,12 +89,11 @@ export const CreateConnectionInput = type({
 })
 
 // adapters/createConnection.ts — Interface Adapter (how to wire UseCase to React)
-export function useCreateConnectionForm() {
-  return useForm({
-    validators: { onChange: CreateConnectionInput },
-    onSubmit: ({ value }) => createConnectionUseCase(value),
+export const useCreateConnectionForm = () =>
+  useForm({
+    validators: {onChange: CreateConnectionInput},
+    onSubmit: ({value}) => createConnectionUseCase(value),
   })
-}
 ```
 
 ### Tauri IPC
@@ -142,9 +139,9 @@ Ref: [Fintan Santoku TypeScript Style Guide](https://fintan-contents.github.io/m
 
 | Target | Convention | Example |
 |---|---|---|
-| React component | PascalCase, named export | `export const ProfileCard = ...` |
-| Hook | camelCase `use` prefix, named export | `export function useAutoResize()` |
-| Pure function | camelCase, named export | `export function getMaxHeight()` |
+| React component | PascalCase, named export | `export const ProfileCard = (...) => ...` |
+| Hook | camelCase `use` prefix, named export | `export const useAutoResize = () => ...` |
+| Pure function | camelCase, named export | `export const getMaxHeight = () => ...` |
 | Type / Interface | PascalCase, named export | `export interface ConnectionProfile` |
 | Constant | UPPER_SNAKE_CASE | `const MAX_HEIGHT_RATIO = 0.85` |
 | Module-local constant | camelCase or UPPER_SNAKE_CASE | context-dependent |
