@@ -7,7 +7,11 @@
   extends: [
     'config:recommended',
     ':preserveSemverRanges',
-    'helpers:pinGitHubActionDigests',
+    // Note: NOT using 'helpers:pinGitHubActionDigests'. It only sets
+    // `pinDigests: true` for action depTypes, but it also opts us into
+    // perpetual digest-only update PRs that can never satisfy
+    // `minimumReleaseAge` (the new SHA is always freshly committed).
+    // Both pieces are reproduced inline in `packageRules` below.
   ],
   timezone: 'Asia/Tokyo',
   // Mitigate supply-chain attacks by only considering versions that have been released for at least 1 week.
@@ -31,14 +35,31 @@
   },
   packageRules: [
     {
-      // GitHub Actions are pinned by SHA, so we only check for updates at the same cadence as lockfile maintenance.
-      // PRs are kept per-action (no grouping).
-      matchManagers: [
-        'github-actions',
+      // Pin GitHub Action references to immutable SHAs on first sight.
+      // Inlined from `helpers:pinGitHubActionDigests` to colocate with
+      // the digest-only suppression rule below.
+      matchDepTypes: [
+        'action',
       ],
-      schedule: [
-        'before 20:00 on Saturday',
+      pinDigests: true,
+    },
+    {
+      // Suppress digest-only update PRs. Every new digest commit is, by
+      // definition, freshly published, so it can never satisfy the
+      // global `minimumReleaseAge` window — the PR perpetually sits in
+      // pending and gets superseded by the next digest before it ages
+      // out. The defenses we still have:
+      //   - The SHA pin itself (deps are immutable between bumps)
+      //   - Real version bumps (major/minor/patch) still flow and are
+      //     subject to the normal 7-day cooldown
+      //   - CVE-tracked issues bypass cooldown via `vulnerabilityAlerts`
+      matchDepTypes: [
+        'action',
       ],
+      matchUpdateTypes: [
+        'digest',
+      ],
+      enabled: false,
     },
     {
       // RustCrypto crates (aes, cbc, ctr, hmac, sha2 etc.) share traits crates (cipher, digest, aead),
