@@ -1,12 +1,10 @@
-name: 'OSV Scanner (PR)'
+name: 'OSV-Scanner'
 
-# Block PRs that introduce dependencies with a vulnerability listed in
-# the OSV database. Uses Google's osv-scanner-action reusable workflow
-# instead of GitHub's dependency-review-action — the latter requires
-# GitHub Advanced Security on private repositories, which we do not
-# have here. OSV.dev is also the database Renovate is configured to
-# read from (`osvVulnerabilityAlerts: true`), so the two layers stay
-# consistent.
+# Block PRs that introduce dependencies with a vulnerability listed in the OSV database.
+# Uses Google's osv-scanner-action reusable workflow instead of GitHub's dependency-review-action
+# — the latter requires GitHub Advanced Security on private repositories, which we do not have here.
+# OSV.dev is also the database Renovate is configured to read from (`osvVulnerabilityAlerts: true`),
+# so the two layers stay consistent.
 on:
   pull_request:
     branches:

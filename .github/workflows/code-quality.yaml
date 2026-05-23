@@ -18,9 +18,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Harden Runner
-        # Monitor and (in audit mode) report unexpected egress and process
-        # activity on the runner. Once we have a baseline of expected
-        # endpoints we can switch `egress-policy` to `block`.
+        # Monitor and (in audit mode) report unexpected egress and process activity on the runner.
+        # Once we have a baseline of expected endpoints we can switch `egress-policy` to `block`.
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
