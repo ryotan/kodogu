@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {render} from 'vitest-browser-react';
 
 import {useEffect} from 'react';
@@ -13,6 +13,13 @@ const mockInvoke = vi.fn().mockResolvedValue(undefined);
 
 beforeEach(() => {
   mockInvoke.mockClear();
+  // The rollback test triggers `console.error('Failed to persist AppConfig', ...)`; silence it
+  // for every test so the runner output stays clean. The other tests don't log, so the spy is
+  // dormant for them.
+  vi.spyOn(console, 'error').mockImplementation(vi.fn());
+});
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 vi.mock('@tauri-apps/api/core', () => ({

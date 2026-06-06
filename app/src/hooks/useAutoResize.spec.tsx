@@ -126,7 +126,9 @@ describe('useAutoResize', () => {
   });
 
   it('logs error when resize_popover IPC fails', async () => {
-    const errorSpy = vi.spyOn(console, 'error');
+    // mockImplementation silences the underlying console.error call so the test runner output
+    // stays clean; spy.toHaveBeenCalledWith below still asserts that the log fired.
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
     mockInvoke.mockRejectedValueOnce(new Error('IPC timeout'));
 
     try {
@@ -174,7 +176,9 @@ describe('useAutoResize — no scroll area', () => {
   });
 
   it('logs error and skips resize when parentElement is null', async () => {
-    const errorSpy = vi.spyOn(console, 'error');
+    // mockImplementation silences the underlying console.error call so the test runner output
+    // stays clean; spy.toHaveBeenCalledWith below still asserts that the log fired.
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
     mockInvoke.mockClear();
 
     // A component that attaches the ref to a top-level div (no intermediate scroll area).
