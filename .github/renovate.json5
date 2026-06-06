@@ -154,6 +154,18 @@
       ],
     },
     {
+      // `data-encoding-macro` pins `data-encoding`'s exact major (e.g. 0.1.20 requires `^2.11`),
+      // and the three crates are co-published from the same repo on the same day. Updating them
+      // individually risks transient lock-resolution failures because we pin exact versions in
+      // `Cargo.toml`; group them so a single PR bumps the set together.
+      groupName: 'data-encoding',
+      matchPackageNames: [
+        'data-encoding',
+        'data-encoding-macro',
+        'data-encoding-macro-internal',
+      ],
+    },
+    {
       // ESLint major upgrades (v9 → v10 etc.) require all plugins to follow the new plugin API,
       // so update ESLint and its plugins together.
       // Note: `eslint-plugin-storybook` is reassigned to the Storybook group by a later rule.
