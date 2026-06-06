@@ -202,7 +202,7 @@ fn decode_internal(
     text: &str,
     variant: &str,
 ) -> Result<Vec<u8>, BinaryCodecError> {
-    ensure!(text.len() % 2 == 0, HexOddLengthError { length: text.len() });
+    ensure!(text.len().is_multiple_of(2), HexOddLengthError { length: text.len() });
     encoding.decode(text.as_bytes()).context(DataEncodingDecodeError { variant })
 }
 

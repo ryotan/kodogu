@@ -411,11 +411,11 @@ impl BinaryCodec for Base85Ascii85 {
 impl Base85Codec for Base85Z85 {}
 impl BinaryCodec for Base85Z85 {
     fn encode(&self, bytes: &[u8]) -> String {
-        if bytes.len() % 4 != 0 {
+        if !bytes.len().is_multiple_of(4) {
             // Z85 requires input length to be multiple of 4
             // Pad with zeros
             let mut padded = bytes.to_vec();
-            while padded.len() % 4 != 0 {
+            while !padded.len().is_multiple_of(4) {
                 padded.push(0);
             }
             return self.encode_exact(&padded);
@@ -427,7 +427,7 @@ impl BinaryCodec for Base85Z85 {
         let chars: Vec<u8> = text.bytes().collect();
 
         ensure!(
-            chars.len() % 5 == 0,
+            chars.len().is_multiple_of(5),
             InvalidLengthError { encoding: BinaryCodecs::Base85, length: chars.len() }
         );
 
