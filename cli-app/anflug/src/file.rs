@@ -581,10 +581,8 @@ mod tests {
         writeln!(temp_file, "## Section").unwrap();
         writeln!(temp_file, "content").unwrap();
 
-        let options = ProcessFileOptionsBuilder::new()
-            .append_mode(true)
-            .pattern("## Section")
-            .build();
+        let options =
+            ProcessFileOptionsBuilder::new().append_mode(true).pattern("## Section").build();
 
         processor.process_file(temp_file.path(), "new content", &options).unwrap();
 
