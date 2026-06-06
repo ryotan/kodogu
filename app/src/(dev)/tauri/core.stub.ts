@@ -15,9 +15,14 @@ type Handler = (args?: unknown) => Promise<unknown>;
 
 // Map<string, Handler> instead of Record<string, Handler> so that lookups return Handler|undefined
 // without depending on noUncheckedIndexedAccess.
+// Default handlers cover the Tauri commands that real app code calls during render. Returning
+// no-op (or fixture data) keeps stories and component specs renderable without per-test setup.
+// Tests that assert specific Tauri behavior override these via `vi.mock(...)` or by calling
+// `setTauriStubHandler(...)`.
 const handlers = new Map<string, Handler>([
   ['get_config', () => Promise.resolve(defaultAppConfig)],
   ['set_config', () => Promise.resolve()],
+  ['resize_popover', () => Promise.resolve()],
 ]);
 
 export function invoke<T>(cmd: string, args?: unknown): Promise<T> {

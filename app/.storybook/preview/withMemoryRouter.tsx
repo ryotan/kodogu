@@ -26,6 +26,9 @@ export const withMemoryRouter: Decorator = (Story, {parameters}) => {
   const router = createRouter({
     routeTree: createRootRoute({component: () => <Story />}),
     history: createMemoryHistory({initialEntries: ['/']}),
+    // Layout stories render <Outlet /> but configure no child route. Without this, TanStack Router
+    // warns about a missing `notFoundComponent` whenever the Outlet hits a non-existent route.
+    defaultNotFoundComponent: () => null,
   });
   return <RouterProvider router={router} />;
 };

@@ -14,6 +14,13 @@ const VITE_DEFAULT_PORT = 5173;
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Stub for `@tauri-apps/api/core`: browser-based vitest projects don't have Tauri runtime, so any
+// `invoke()` call on the real module fails with `Cannot read properties of undefined (reading 'invoke')`.
+// Storybook applies the same stub via `.storybook/main.ts`; this constant re-uses it for the
+// `browser` and `browser-devtools` projects below. Per-test `vi.mock('@tauri-apps/api/core', ...)`
+// still takes priority over this alias when a test wants to assert specific Tauri behaviour.
+const tauriCoreStub = path.resolve(dirname, 'src/(dev)/tauri/core.stub.ts');
+
 const {TAURI_DEV_HOST: host, TAURI_DEV_SERVER_PORT: portString} = process.env;
 
 // Configurations for mobile app development.
@@ -92,6 +99,7 @@ export default defineConfig(({mode}) => ({
         define: {
           __DEV_TOOLS__: 'false',
         },
+        resolve: {alias: {'@tauri-apps/api/core': tauriCoreStub}},
         test: {
           name: 'browser',
           include: ['src/**/*.spec.tsx'],
@@ -110,6 +118,7 @@ export default defineConfig(({mode}) => ({
         define: {
           __DEV_TOOLS__: 'true',
         },
+        resolve: {alias: {'@tauri-apps/api/core': tauriCoreStub}},
         test: {
           name: 'browser-devtools',
           include: ['src/**/*.devtools.spec.tsx'],
