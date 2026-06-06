@@ -179,18 +179,17 @@ impl FileProcessor {
             String::new()
         };
 
-        let new_content = if options.append_mode || options.pattern.is_none() {
-            // Simple append to end
-            self.append_content(&existing_content, content)
-        } else {
+        let new_content = match options.pattern.as_ref() {
             // Pattern-based insertion
-            self.insert_with_pattern(
+            Some(pattern) if !options.append_mode => self.insert_with_pattern(
                 &existing_content,
                 content,
-                options.pattern.as_ref().unwrap(),
+                pattern,
                 &options.match_mode,
                 options.insert_before,
-            )?
+            )?,
+            // Simple append to end
+            _ => self.append_content(&existing_content, content),
         };
 
         if options.dry_run {
@@ -568,6 +567,31 @@ mod tests {
         let content = fs::read_to_string(temp_file.path()).unwrap();
         assert!(content.contains("existing content"));
         assert!(content.contains("new content"));
+    }
+
+    #[test]
+    fn test_process_file_append_mode_overrides_pattern() {
+        // Even when a pattern is provided, `append_mode: true` must take precedence
+        // and append to the end (the `Some(_) if !append_mode` guard must fail).
+        let config = create_test_config();
+        let processor = FileProcessor::new(&config);
+
+        let mut temp_file = NamedTempFile::new().unwrap();
+        writeln!(temp_file, "# Header").unwrap();
+        writeln!(temp_file, "## Section").unwrap();
+        writeln!(temp_file, "content").unwrap();
+
+        let options =
+            ProcessFileOptionsBuilder::new().append_mode(true).pattern("## Section").build();
+
+        processor.process_file(temp_file.path(), "new content", &options).unwrap();
+
+        let content = fs::read_to_string(temp_file.path()).unwrap();
+        let lines: Vec<&str> = content.lines().collect();
+        assert_eq!(lines[0], "# Header");
+        assert_eq!(lines[1], "## Section");
+        assert_eq!(lines[2], "content");
+        assert_eq!(lines[3], "new content");
     }
 
     #[test]
