@@ -166,6 +166,15 @@
       ],
     },
     {
+      // `serde` couples tightly with `serde_derive` (via the `derive` feature) and `serde_json`
+      // shares its release cadence. Update the whole serde-rs family together so a `serde` major
+      // bump cannot land while companion crates lag behind.
+      groupName: 'serde',
+      matchSourceUrls: [
+        'https://github.com/serde-rs/**',
+      ],
+    },
+    {
       // ESLint major upgrades (v9 → v10 etc.) require all plugins to follow the new plugin API,
       // so update ESLint and its plugins together.
       // Note: `eslint-plugin-storybook` is reassigned to the Storybook group by a later rule.
