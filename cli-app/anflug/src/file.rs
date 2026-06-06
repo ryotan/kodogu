@@ -179,18 +179,17 @@ impl FileProcessor {
             String::new()
         };
 
-        let new_content = if options.append_mode || options.pattern.is_none() {
-            // Simple append to end
-            self.append_content(&existing_content, content)
-        } else {
+        let new_content = match options.pattern.as_ref() {
             // Pattern-based insertion
-            self.insert_with_pattern(
+            Some(pattern) if !options.append_mode => self.insert_with_pattern(
                 &existing_content,
                 content,
-                options.pattern.as_ref().unwrap(),
+                pattern,
                 &options.match_mode,
                 options.insert_before,
-            )?
+            )?,
+            // Simple append to end
+            _ => self.append_content(&existing_content, content),
         };
 
         if options.dry_run {
