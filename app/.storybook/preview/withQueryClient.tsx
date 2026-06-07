@@ -1,9 +1,12 @@
+import type {FC, ReactNode} from 'react';
+
 import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 
 import type {Decorator} from '@storybook/react-vite';
 
 import {defaultAppConfig} from '#commands/appConfig.fixture';
 import {appConfigQuery} from '#hooks/useAppConfig';
+import {useStable} from '#hooks/useStable';
 
 declare module '@storybook/react-vite' {
   // biome-ignore lint/style/useConsistentTypeDefinitions: TypeScript module augmentation requires `interface`; `type` cannot extend an existing interface from another module.
@@ -19,21 +22,31 @@ declare module '@storybook/react-vite' {
   }
 }
 
-// Module-scoped QueryClient: pre-seeded with the default AppConfig fixture so route layouts that
-// read it via useSuspenseQuery render synchronously in stories. Per-story overrides (KDG-78) will
-// extend this decorator to read seeds from `parameters.query` rather than the singleton cache.
-const queryClient = new QueryClient();
-queryClient.setQueryData(appConfigQuery.queryKey, defaultAppConfig);
+// Each story gets a freshly minted QueryClient — pre-seeded with the default AppConfig fixture
+// so route layouts reading it via useSuspenseQuery render synchronously, but isolated from every
+// other story's cache by virtue of being scoped to this component's mount lifecycle.
+// A future change will let stories override the seed via `parameters.query` and may swap this
+// component's identity through a `key` prop to force re-mounting on parameter changes.
+const ScopedQueryClientProvider: FC<{children: ReactNode}> = ({children}) => {
+  const queryClient = useStable(() => {
+    const qc = new QueryClient();
+    qc.setQueryData(appConfigQuery.queryKey, defaultAppConfig);
+    return qc;
+  });
+  return (
+    <QueryClientProvider client={queryClient}>
+      <QueryErrorResetBoundary>{children}</QueryErrorResetBoundary>
+    </QueryClientProvider>
+  );
+};
 
 export const withQueryClient: Decorator = (Story, {parameters}) => {
   if (parameters.query?.skip === true) {
     return <Story />;
   }
   return (
-    <QueryClientProvider client={queryClient}>
-      <QueryErrorResetBoundary>
-        <Story />
-      </QueryErrorResetBoundary>
-    </QueryClientProvider>
+    <ScopedQueryClientProvider>
+      <Story />
+    </ScopedQueryClientProvider>
   );
 };
