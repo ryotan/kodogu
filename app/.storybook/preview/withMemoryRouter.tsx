@@ -16,8 +16,8 @@ declare module '@storybook/react-vite' {
   }
 }
 
-// Wraps a Story in a TanStack Router driven by an in-memory history so route layouts that contain
-// <Outlet /> can render without the full app route tree. Apply at meta level on stories whose
+// Wraps a Story in a TanStack Router driven by an in-memory history, so route layouts that contain
+// <Outlet /> can render without the full app route tree. Apply at meta-level on stories whose
 // component depends on a router context.
 export const withMemoryRouter: Decorator = (Story, {parameters}) => {
   if (parameters.router?.skip === true) {
