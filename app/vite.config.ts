@@ -3,12 +3,35 @@ import {fileURLToPath} from 'node:url';
 
 import react from '@vitejs/plugin-react';
 import {playwright} from '@vitest/browser-playwright';
+import type {Plugin} from 'vite';
 import {defineConfig} from 'vite';
 import paths from 'vite-tsconfig-paths';
 
 import router from '@tanstack/router-plugin/vite';
 
 import {storybookTest} from '@storybook/addon-vitest/vitest-plugin';
+
+// Fails the production build if any module under `src/(dev)/` ends up in the emitted bundle.
+// The dev-only branches in app code are gated by `__DEV_TOOLS__` ternaries so terser should
+// dead-code-eliminate them, but this guards against (1) a future change forgetting the gate
+// and (2) a non-static guard that terser cannot prove unreachable.
+const verifyDevExclusion = (): Plugin => ({
+  name: 'kodogu:verify-dev-exclusion',
+  enforce: 'post', // TODO: 各種プラグインでの設定が終わったあとに確認した方が良いのかなって思ったけど、必要ない？というか、ない方が良い？
+  apply: 'build',
+  generateBundle(_, bundle) {
+    const leaked = Object.values(bundle).flatMap(chunk =>
+      chunk.type === 'chunk'
+        ? Object.keys(chunk.modules)
+            .filter(moduleId => moduleId.includes('/(dev)/'))
+            .map(moduleId => `${chunk.fileName} <- ${moduleId}`)
+        : [],
+    );
+    if (leaked.length > 0) {
+      this.error(`\`(dev)\` modules leaked into production bundle:\n${leaked.map(l => `  - ${l}`).join('\n')}`);
+    }
+  },
+});
 
 const VITE_DEFAULT_PORT = 5173;
 
@@ -41,6 +64,7 @@ export default defineConfig(({mode}) => ({
       routeFileIgnorePattern: '\\.(spec|test|story)\\.[tj]sx?$',
     }),
     react(),
+    verifyDevExclusion(),
   ],
 
   // Build-time flag for dev-only UI (devtools panels, stack-trace UI, etc.).
