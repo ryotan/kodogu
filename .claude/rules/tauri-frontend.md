@@ -133,7 +133,7 @@ Ref: [Fintan Santoku TypeScript Style Guide](https://fintan-contents.github.io/m
 | Tauri command wrapper | camelCase (= export name) | `getConnections.ts` |
 | Test (node) | target + `.test` | `useAutoResize.test.ts` |
 | Test (browser) | target + `.spec` | `useAutoResize.spec.tsx` |
-| Story | target + `.stories` | `ProfileCard.stories.tsx` |
+| Story | target + `.story` | `ProfileCard.story.tsx` |
 
 ### Exports
 

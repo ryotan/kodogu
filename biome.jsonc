@@ -59,7 +59,7 @@
             "devDependencies": [
               "**/*.test.*",
               "**/*.spec.*",
-              "**/*.stories.*",
+              "**/*.story.*",
               "**/*.fixture.*",
               "**/_dev/**",
               "**/(dev)/**",

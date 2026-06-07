@@ -9,13 +9,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * This function is used to resolve the absolute path of a package.
- * It is needed in projects that use Yarn PnP or are set up within a monorepo.
+ * It is necessary in projects that use Yarn PnP or are set up within a monorepo.
  */
 function getAbsolutePath(value: string) {
   return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
 }
 const config: StorybookConfig = {
-  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  stories: ['../src/**/*.mdx', '../src/**/*.story.@(js|jsx|mjs|ts|tsx)'],
   addons: [
     getAbsolutePath('@chromatic-com/storybook'),
     getAbsolutePath('@storybook/addon-vitest'),
@@ -40,7 +40,7 @@ const config: StorybookConfig = {
         alias: {
           // Tauri IPC is not available in the browser — stub @tauri-apps/api/core.
           // The stub lives under app/src/(dev)/ so the same module can be reused outside Storybook
-          // in the future (e.g. a browser-only vitest project).
+          // in the future (e.g., a browser-only vitest project).
           '@tauri-apps/api/core': resolve(__dirname, '../src/(dev)/tauri/core.stub.ts'),
         },
       },
