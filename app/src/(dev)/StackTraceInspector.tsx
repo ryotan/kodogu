@@ -2,6 +2,7 @@ import {useState} from 'react';
 
 import {Badge, Box, Button, Card, Code, Flex, Separator, Text} from '@radix-ui/themes';
 
+import {ApplicationError} from '#shared/core/errors/ApplicationError';
 import {formatOriginLocation, parseFrame} from '#shared/core/errors/stackTrace';
 
 // ---------------------------------------------------------------------------
@@ -9,7 +10,7 @@ import {formatOriginLocation, parseFrame} from '#shared/core/errors/stackTrace';
 // ---------------------------------------------------------------------------
 
 function level3(): never {
-  throw new Error('Stack trace inspector test error');
+  throw new ApplicationError('Stack trace inspector test error');
 }
 
 function level2(): never {
@@ -24,7 +25,12 @@ function level1(): never {
 // Component
 // ---------------------------------------------------------------------------
 
-const StackTraceInspectorDev = () => {
+// TODO: このコンポーネント何に使われてるの？テストにしか登場していない気がする。何でだろう？
+// Dev-only. Consumers must use __DEV_TOOLS__ + lazy() to exclude this module from non-dev bundles:
+//   const StackTraceInspector = __DEV_TOOLS__
+//     ? lazy(() => import('#(dev)/StackTraceInspector').then(m => ({default: m.StackTraceInspector})))
+//     : () => null;
+export const StackTraceInspector = () => {
   const [captured, setCaptured] = useState<Error | null>(null);
 
   const throwAndCapture = () => {
@@ -126,9 +132,3 @@ const StackTraceInspectorDev = () => {
     </Box>
   );
 };
-
-// Dev-only. Consumers must use __DEV_TOOLS__ + lazy() to exclude this module from non-dev bundles:
-//   const StackTraceInspector = __DEV_TOOLS__
-//     ? lazy(() => import('#(dev)/StackTraceInspector').then(m => ({default: m.StackTraceInspector})))
-//     : () => null;
-export const StackTraceInspector = __DEV_TOOLS__ ? StackTraceInspectorDev : () => null;

@@ -9,6 +9,7 @@ import {createRouter, RouterProvider} from '@tanstack/react-router';
 
 import {PopoverAppErrorPage} from '#features/menu-popover/components/PopoverAppErrorPage';
 import {PopoverErrorBoundary} from '#features/menu-popover/components/PopoverErrorBoundary';
+import {ApplicationError} from '#shared/core/errors/ApplicationError';
 
 // Import the generated route tree
 import {routeTree} from '!#router/routes';
@@ -40,7 +41,7 @@ declare module '@tanstack/react-router' {
 
 const root = document.getElementById('root');
 if (!root) {
-  throw new Error('#root element not found in index.html');
+  throw new ApplicationError('#root element not found in index.html');
 }
 createRoot(root).render(
   <StrictMode>

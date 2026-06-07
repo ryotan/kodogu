@@ -202,6 +202,26 @@ const eslintConfig = defineConfig([
   name('#disable/react/recommended')(
     ts({rules: {'react/prop-types': 'off', 'react/jsx-no-undef': 'off', 'react/jsx-key': 'off'}}),
   ),
+  // Production code throws should pick a typed error (ApplicationError or PlatformError) so the
+  // failure category is visible at the throw site. Test/story/fixture files are exempt because
+  // `new Error('test value')` is a common, low-noise pattern there.
+  name('#customise/no-raw-error')(
+    ts({
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'NewExpression[callee.name="Error"]',
+            message: 'Use ApplicationError or PlatformError from #shared/core/errors instead of raw Error.',
+          },
+        ],
+      },
+    }),
+  ),
+  name('#disable/no-raw-error/test-and-fixture')({
+    files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', '**/*.story.{ts,tsx}', '**/*.fixture.{ts,tsx}'],
+    rules: {'no-restricted-syntax': 'off'},
+  }),
 ]);
 
 export default eslintConfig;
