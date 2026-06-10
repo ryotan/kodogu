@@ -1,4 +1,3 @@
-// app/src/(dev)/StackTrace.tsx
 import {useMemo, useState} from 'react';
 
 import {Badge, Button, Card, Code, Flex, Text} from '@radix-ui/themes';

@@ -1,4 +1,3 @@
-// app/src/(dev)/ComponentStack.tsx
 import {useState} from 'react';
 
 import {Code, Flex} from '@radix-ui/themes';

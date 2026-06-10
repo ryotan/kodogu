@@ -4,7 +4,6 @@ import {getConfig} from '#commands/appConfig';
 import type {AppConfig} from '#config';
 import {queryOptions} from '#shared/core/query/queryOptions';
 
-// TODO: Replace `Error` with Rust-side IPC error type once IPC error handling is improved. (KDG-27)
 export type AppConfigQueryOptions<T = AppConfig> = Omit<
   Parameters<typeof queryOptions<AppConfig, T>>[0],
   'queryKey' | 'queryFn' | 'staleTime' | 'gcTime'

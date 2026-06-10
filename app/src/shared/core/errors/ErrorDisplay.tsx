@@ -1,4 +1,3 @@
-// app/src/shared/core/errors/ErrorDisplay.tsx
 import {lazy, Suspense, useMemo} from 'react';
 
 import {Card, Code, Flex, Heading, Text} from '@radix-ui/themes';

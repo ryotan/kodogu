@@ -1,6 +1,6 @@
 // Layout for the /_app route — provides the Radix Theme that all _app/* pages render inside,
 // plus the dev-only Radix theme panel. Lives outside routes/ so the file-based router can
-// keep auto-codesplitting the route module.
+// keep auto code splitting the route module.
 
 import {lazy, Suspense} from 'react';
 
