@@ -186,7 +186,7 @@ describe('parseStackTrace', () => {
   it('strips the first line and parses WebKit stack frames', () => {
     const stack = [
       'Error: test',
-      'level3@http://localhost:5173/src/(dev)/StackTraceInspector.tsx:7:18',
+      'level3@http://localhost:5173/src/foo.tsx:7:18',
       'executeDispatch@http://localhost:5173/node_modules/.vite/deps/react-dom_client.js:13622:19',
     ].join('\n');
     const frames = parseStackTrace(stack);

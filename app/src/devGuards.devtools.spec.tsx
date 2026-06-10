@@ -10,7 +10,6 @@ import {render} from 'vitest-browser-react';
 
 import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 
-import {StackTraceInspector} from './(dev)/StackTraceInspector';
 import {AppLayout} from './components/AppLayout';
 import {PopoverAppErrorPage} from './features/menu-popover/components/PopoverAppErrorPage';
 import * as RootRoute from './routes/__root';
@@ -18,11 +17,6 @@ import * as AppRoute from './routes/_app';
 import {ErrorDisplay} from './shared/core/errors/ErrorDisplay';
 
 describe('dev-only components when __DEV_TOOLS__ = true', () => {
-  it('StackTraceInspector renders its UI', async () => {
-    await render(<StackTraceInspector />);
-    await expect.element(page.getByText('Stack Trace Inspector')).toBeVisible();
-  });
-
   it('ErrorDisplay surfaces a Stack trace toggle', async () => {
     await render(<ErrorDisplay error={new Error('something went wrong')} />);
     await expect.element(page.getByRole('button', {name: /stack trace/i})).toBeVisible();
