@@ -17,7 +17,9 @@ import {storybookTest} from '@storybook/addon-vitest/vitest-plugin';
 // and (2) a non-static guard that terser cannot prove unreachable.
 const verifyDevExclusion = (): Plugin => ({
   name: 'kodogu:verify-dev-exclusion',
-  enforce: 'post', // TODO: 各種プラグインでの設定が終わったあとに確認した方が良いのかなって思ったけど、必要ない？というか、ない方が良い？
+  // `post` so the check runs after every other plugin has had a chance to touch the bundle —
+  // we want to inspect what would actually ship.
+  enforce: 'post',
   apply: 'build',
   generateBundle(_, bundle) {
     const leaked = Object.values(bundle).flatMap(chunk =>
