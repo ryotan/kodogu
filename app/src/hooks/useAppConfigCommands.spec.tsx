@@ -9,7 +9,9 @@ import {defaultAppConfig} from '#commands/appConfig.fixture';
 import type {AppConfig} from '#config';
 import {Milliseconds} from '#config';
 
-const mockInvoke = vi.fn().mockResolvedValue(undefined);
+const {mockInvoke} = vi.hoisted(() => ({
+  mockInvoke: vi.fn().mockResolvedValue(undefined),
+}));
 
 beforeEach(() => {
   mockInvoke.mockClear();
@@ -26,9 +28,10 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
 }));
 
-const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query');
-const {appConfigQuery} = await import('#hooks/useAppConfig');
-const {useAppConfigCommands} = await import('#hooks/useAppConfigCommands');
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+
+import {appConfigQuery} from '#hooks/useAppConfig';
+import {useAppConfigCommands} from '#hooks/useAppConfigCommands';
 
 function createQueryClient() {
   const qc = new QueryClient({
