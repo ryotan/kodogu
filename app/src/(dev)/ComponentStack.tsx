@@ -1,6 +1,10 @@
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 
-import {Code, Flex} from '@radix-ui/themes';
+import {Button, Flex} from '@radix-ui/themes';
+
+import type {FrameView} from './FrameList';
+import {FrameList} from './FrameList';
+import {parseComponentStack} from './parseComponentStack';
 
 type ComponentStackProps = {
   stack: string;
@@ -12,17 +16,23 @@ type ComponentStackProps = {
 //     : null;
 export const ComponentStack = ({stack}: ComponentStackProps) => {
   const [expanded, setExpanded] = useState(false);
+  const frames = useMemo(() => parseComponentStack(stack), [stack]);
+
+  if (frames.length === 0) {
+    return null;
+  }
+
+  const visibleFrames: FrameView[] = frames.map(f => ({
+    name: f.component,
+    ...(f.location !== undefined && {location: f.location}),
+  }));
+
   return (
-    <Flex direction='column' gap='1'>
-      <button onClick={() => setExpanded(v => !v)} type='button'>
-        Component stack
-      </button>
-      {expanded && (
-        // Code asChild preserves whitespace (pre) and applies monospace styling
-        <Code asChild size='1'>
-          <pre>{stack}</pre>
-        </Code>
-      )}
+    <Flex direction='column' gap='2'>
+      <Button onClick={() => setExpanded(v => !v)} size='1' variant='outline'>
+        {expanded ? 'Hide component stack' : 'Show component stack'}
+      </Button>
+      {expanded && <FrameList emptyMessage='No frames could be parsed' frames={visibleFrames} />}
     </Flex>
   );
 };
