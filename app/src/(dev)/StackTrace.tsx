@@ -1,10 +1,13 @@
 import {useMemo, useState} from 'react';
 
-import {Badge, Button, Card, Code, Flex, Text} from '@radix-ui/themes';
+import {Button, Flex} from '@radix-ui/themes';
 
 import StackTraceParser from 'error-stack-parser';
 
 import {formatOriginLocation, isExternalLocation} from '#shared/core/errors/stackTrace';
+
+import type {FrameView} from './FrameList';
+import {FrameList} from './FrameList';
 
 type StackTraceProps = {
   error: Error;
@@ -18,7 +21,7 @@ export const StackTrace = ({error}: StackTraceProps) => {
   const [expanded, setExpanded] = useState(false);
   const [showExternal, setShowExternal] = useState(false);
 
-  const frames = useMemo(() => {
+  const allFrames = useMemo(() => {
     try {
       return StackTraceParser.parse(error);
     } catch {
@@ -26,11 +29,21 @@ export const StackTrace = ({error}: StackTraceProps) => {
     }
   }, [error]);
 
-  if (frames.length === 0) {
+  if (allFrames.length === 0) {
     return null;
   }
 
-  const visibleFrames = showExternal ? frames : frames.filter(f => !isExternalLocation(f.fileName ?? ''));
+  const visibleFrames: FrameView[] = (
+    showExternal ? allFrames : allFrames.filter(f => !isExternalLocation(f.fileName ?? ''))
+  ).map(frame => {
+    const fileName = frame.fileName ?? '(unknown)';
+    const isExternal = isExternalLocation(fileName);
+    return {
+      badge: {text: isExternal ? 'ext' : 'app', color: isExternal ? 'gray' : 'blue'},
+      name: frame.functionName ?? '<anonymous>',
+      location: formatOriginLocation(`${fileName}:${frame.lineNumber ?? '?'}:0`),
+    };
+  });
 
   return (
     <Flex direction='column' gap='2'>
@@ -44,38 +57,7 @@ export const StackTrace = ({error}: StackTraceProps) => {
           </Button>
         )}
       </Flex>
-
-      {expanded && (
-        <Card size='1'>
-          <Flex direction='column' gap='1'>
-            {visibleFrames.map((frame, i) => {
-              const location = frame.fileName ?? '(unknown)';
-              const isExternal = isExternalLocation(location);
-              const shortLocation = formatOriginLocation(`${location}:${frame.lineNumber ?? '?'}:0`);
-              return (
-                <Flex align='baseline' gap='2' key={i}>
-                  <Badge color={isExternal ? 'gray' : 'blue'} size='1' variant='soft'>
-                    {isExternal ? 'ext' : 'app'}
-                  </Badge>
-                  <Flex direction='column' minWidth='0'>
-                    <Code size='1' truncate>
-                      {frame.functionName ?? '<anonymous>'}
-                    </Code>
-                    <Text color='gray' size='1' truncate>
-                      {shortLocation}
-                    </Text>
-                  </Flex>
-                </Flex>
-              );
-            })}
-            {visibleFrames.length === 0 && (
-              <Text color='gray' size='1'>
-                No internal frames found
-              </Text>
-            )}
-          </Flex>
-        </Card>
-      )}
+      {expanded && <FrameList emptyMessage='No internal frames found' frames={visibleFrames} />}
     </Flex>
   );
 };
