@@ -10,6 +10,12 @@ on:
     branches:
       - main
 
+# Force mise to re-verify SLSA / GitHub attestations on every install. `paranoid = true` in the project
+# `.config/mise/config.toml` is a silent no-op (mise 2026.x+ ignores it in non-global configs as a security
+# ratchet), so we enforce it via env in CI.
+env:
+  MISE_PARANOID: 'true'
+
 jobs:
   tauri:
     name: 'Tauri - ${{ matrix.platform }}'
