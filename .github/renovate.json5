@@ -82,11 +82,56 @@
       },
     },
     {
-      // RustCrypto crates (aes, cbc, ctr, hmac, sha2 etc.) share traits crates (cipher, digest, aead),
-      // so update them together.
-      groupName: 'RustCrypto',
+      // RustCrypto crates share traits crates (cipher, digest, aead) and break in lock-step on
+      // trait-version bumps, so update them as one PR. This rule is the future-proof primary
+      // matcher: any crate that Renovate's cargo datasource exposes with a `sourceUrl` under
+      // `RustCrypto/` lands here, including ones added to the workspace later.
+      groupName: 'RustCrypto stack',
       matchSourceUrls: [
         'https://github.com/RustCrypto/**',
+      ],
+    },
+    {
+      // Fallback bucket for two reasons:
+      //   1. Renovate's cargo datasource sometimes leaves `sourceUrl` unset — it only gets
+      //      populated reliably when crates.io `repository` is a subdirectory URL (e.g.
+      //      `RustCrypto/password-hashes/tree/master/pbkdf2`). Crates whose `repository` is
+      //      the repo root (e.g. `RustCrypto/MACs`) end up without sourceUrl, so the
+      //      matchSourceUrls rule above misses them.
+      //   2. ed25519-dalek lives under dalek-cryptography on GitHub but is tightly coupled
+      //      to the RustCrypto trait stack (sha2/digest/ed25519/pkcs8/signature/spki) and
+      //      should bump in lock-step with the rest of the group.
+      // Keep this list in sync with the relevant crates in the workspace.
+      // cf. https://github.com/renovatebot/renovate/issues/3486
+      //     https://github.com/renovatebot/renovate/issues/37537
+      groupName: 'RustCrypto stack',
+      matchPackageNames: [
+        // RustCrypto
+        'aes',
+        'aes-gcm',
+        'aes-gcm-siv',
+        'argon2',
+        'bcrypt-pbkdf',
+        'cbc',
+        'chacha20',
+        'chacha20poly1305',
+        'cmac',
+        'concat-kdf',
+        'ctr',
+        'hex-literal',
+        'hkdf',
+        'hmac',
+        'p256',
+        'p384',
+        'pbkdf2',
+        'pkcs8',
+        'poly1305',
+        'rsa',
+        'scrypt',
+        'sha2',
+        'zeroize',
+        // dalek-cryptography (shares the RustCrypto trait stack)
+        'ed25519-dalek',
       ],
     },
     {
