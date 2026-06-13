@@ -91,7 +91,7 @@
       ],
     },
     {
-      // Fallback bucket for two reasons:
+      // Fallback bucket for three reasons:
       //   1. Renovate's cargo datasource sometimes leaves `sourceUrl` unset — it only gets
       //      populated reliably when crates.io `repository` is a subdirectory URL (e.g.
       //      `RustCrypto/password-hashes/tree/master/pbkdf2`). Crates whose `repository` is
@@ -100,6 +100,10 @@
       //   2. ed25519-dalek lives under dalek-cryptography on GitHub but is tightly coupled
       //      to the RustCrypto trait stack (sha2/digest/ed25519/pkcs8/signature/spki) and
       //      should bump in lock-step with the rest of the group.
+      //   3. rand (rust-random) internally pins its chacha20 dependency to a specific major
+      //      version — bumping rand's major without bumping chacha20's forces a duplicated
+      //      trait generation (cipher 0.4 vs 0.5, crypto-common 0.1 vs 0.2, etc.) in
+      //      Cargo.lock.
       // Keep this list in sync with the relevant crates in the workspace.
       // cf. https://github.com/renovatebot/renovate/issues/3486
       //     https://github.com/renovatebot/renovate/issues/37537
@@ -131,6 +135,8 @@
         'zeroize',
         // dalek-cryptography (shares the RustCrypto trait stack)
         'ed25519-dalek',
+        // rust-random (rand's major is internally pinned to chacha20's major)
+        'rand',
       ],
     },
     {
