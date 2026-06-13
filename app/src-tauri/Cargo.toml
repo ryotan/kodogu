@@ -21,7 +21,6 @@ tauri-build = { workspace = true, features = [] }
 
 [dependencies]
 dirs = { workspace = true }
-openidconnect = { workspace = true }
 redb = { workspace = true }
 rmp-serde = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
