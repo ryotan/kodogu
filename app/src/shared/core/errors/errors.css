@@ -1,0 +1,15 @@
+/* User-facing presentation for ErrorDisplay + ErrorPage.
+   Owned by the shared/core/errors layer. */
+
+/* AggregateChildren — list with a thin red left rule. */
+.error-aggregate-children {
+  border-left: 2px solid var(--red-a6);
+  text-align: left;
+}
+
+/* Hairline divider between the user-facing section and the dev debug section. The caller frames
+   ErrorPage with `<Card><Inset side='all'>`, so the divider bleeds edge-to-edge with no Card-padding
+   override needed. */
+.error-page-debug-divider {
+  border-top: 1px solid var(--gray-a4);
+}

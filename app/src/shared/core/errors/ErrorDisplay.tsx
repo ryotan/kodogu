@@ -1,76 +1,68 @@
-import {lazy, Suspense, useMemo} from 'react';
+import {ExclamationTriangleIcon} from '@radix-ui/react-icons';
+import {Box, Flex, Heading, Text} from '@radix-ui/themes';
 
-import {Card, Code, Flex, Heading, Text} from '@radix-ui/themes';
+import {IconDisc} from '#ui/IconDisc/IconDisc';
 
-import {formatOriginLocation, parseStackTrace} from './stackTrace';
+import './errors.css';
 
-// (dev)/StackTrace uses error-stack-parser (devDependency) — lazy-load only when dev tools are
-// enabled. Vite replaces __DEV_TOOLS__ literally at build time, so the import is eliminated when
-// the flag is false (production builds, Storybook, regular browser tests).
-const StackTrace = __DEV_TOOLS__ ? lazy(() => import('#(dev)/StackTrace').then(m => ({default: m.StackTrace}))) : null;
-
-const MAX_CAUSE_DEPTH = 10;
+import {getUserMessage} from './getUserMessage';
 
 type ErrorDisplayProps = {
   error: Error;
-  // No onReset — retry is the caller's responsibility (PopoverAppErrorPage)
-  depth?: number;
 };
 
-export const ErrorDisplay = ({error, depth = 0}: ErrorDisplayProps) => {
-  const {originFrame} = useMemo(() => {
-    const frames = parseStackTrace(error.stack ?? '');
-    return {originFrame: frames.find(f => !f.isExternal)};
-  }, [error.stack]);
-
+/**
+ * User-facing presentation of an error. Renders the alert icon, the message
+ * (via {@link getUserMessage}, Pattern A from ADR-0007), and — when the
+ * top-level cause is an `AggregateError` — the children as a list.
+ *
+ * No retry, no debug section, no stack traces. Those live in
+ * {@link import('./ErrorPage').ErrorPage} and
+ * {@link import('#(dev)/ErrorDebugSection').ErrorDebugSection} respectively.
+ */
+export const ErrorDisplay = ({error}: ErrorDisplayProps) => {
+  const children = aggregateChildren(error);
   return (
-    <Flex direction='column' gap='2'>
-      {depth === 0 ? (
-        <Heading as='h2' size='3'>
-          {error.message}
-        </Heading>
-      ) : (
-        <Text size='2' weight='bold'>
-          {error.message}
+    <Flex align='center' direction='column' gap='3'>
+      <IconDisc>
+        <ExclamationTriangleIcon height={20} width={20} />
+      </IconDisc>
+      <Heading align='center' size='4' weight='medium'>
+        {getUserMessage(error)}
+      </Heading>
+      {!children && (
+        <Text align='center' color='gray' size='2'>
+          時間をおいて、もう一度お試しください。
         </Text>
       )}
-
-      {originFrame && (
-        <Code color='gray' size='1' variant='ghost'>
-          {error.name} at {formatOriginLocation(originFrame.location)}
-        </Code>
-      )}
-
-      {StackTrace && (
-        <Suspense fallback={null}>
-          <StackTrace error={error} />
-        </Suspense>
-      )}
-
-      {/* Cause: AggregateError — list parallel errors */}
-      {error.cause instanceof AggregateError && depth < MAX_CAUSE_DEPTH && (
-        <Card size='1'>
-          <Flex direction='column' gap='2'>
-            {error.cause.message && (
-              <Text size='1' weight='bold'>
-                {error.cause.message}
-              </Text>
-            )}
-            {error.cause.errors
-              .filter((e): e is Error => e instanceof Error)
-              .map((sub, i) => (
-                <ErrorDisplay depth={depth + 1} error={sub} key={i} />
-              ))}
-          </Flex>
-        </Card>
-      )}
-
-      {/* Cause: single Error — recurse into cause chain */}
-      {error.cause instanceof Error && !(error.cause instanceof AggregateError) && depth < MAX_CAUSE_DEPTH && (
-        <Card size='1'>
-          <ErrorDisplay depth={depth + 1} error={error.cause} />
-        </Card>
-      )}
+      {children && <AggregateChildren errors={children} />}
     </Flex>
   );
 };
+
+const AggregateChildren = ({errors}: {errors: Error[]}) => (
+  // Natural width, centred by the parent Flex's `align='center'`. The red
+  // left rule sits at the block's left edge, items remain left-aligned
+  // inside, but the block as a whole shares the centred rhythm.
+  <Box className='error-aggregate-children' pl='3' py='1'>
+    <Flex direction='column' gap='2'>
+      {errors.map((child, i) => (
+        <Text key={i} size='2'>
+          {getUserMessage(child)}
+        </Text>
+      ))}
+    </Flex>
+  </Box>
+);
+
+/**
+ * Returns the children list when the top-level cause is an `AggregateError`,
+ * otherwise null. Filtered to `Error` instances — non-Error throws in the
+ * aggregate are skipped to avoid leaking arbitrary strings to the user.
+ */
+function aggregateChildren(error: Error): Error[] | null {
+  if (!(error.cause instanceof AggregateError)) {
+    return null;
+  }
+  return error.cause.errors.filter((e): e is Error => e instanceof Error);
+}

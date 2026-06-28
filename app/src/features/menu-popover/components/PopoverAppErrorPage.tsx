@@ -1,49 +1,41 @@
-import {lazy, Suspense, useCallback} from 'react';
+import {useCallback} from 'react';
 
 import {useQueryErrorResetBoundary} from '@tanstack/react-query';
 
-import {Button, Flex, Separator} from '@radix-ui/themes';
+import {Card, Inset} from '@radix-ui/themes';
 
-import {ErrorDisplay} from '#shared/core/errors/ErrorDisplay';
+import type {ComponentErrorInfo} from '#shared/core/errors/ComponentErrorInfo';
+import {ErrorPage} from '#shared/core/errors/ErrorPage';
 
 import {PopoverLayout} from './PopoverLayout';
 
-// Dev-only component stack display — excluded from production bundle
-const ComponentStack = __DEV_TOOLS__
-  ? lazy(() => import('#(dev)/ComponentStack').then(m => ({default: m.ComponentStack})))
-  : null;
-
-// Compatible with TanStack Router's ErrorComponentProps.
-// When used via react-error-boundary's fallbackRender, pass only error + reset (no info).
-// Requires QueryErrorResetBoundary ancestor — provided by PopoverErrorBoundary.
+// Compatible with TanStack Router's ErrorComponentProps (`error`, `reset`) and
+// react-error-boundary's `fallbackRender` (`error`, `resetErrorBoundary`).
+// When used via `fallbackRender`, no `errorInfo` is supplied — `componentStack`
+// is unavailable in that mode (use `FallbackComponent` if you need it).
 type PopoverAppErrorPageProps = {
   error: Error;
   reset: () => void;
-  info?: {componentStack: string} | null;
+  errorInfo?: ComponentErrorInfo;
 };
 
-export const PopoverAppErrorPage = ({error, reset, info}: PopoverAppErrorPageProps) => {
+export const PopoverAppErrorPage = ({error, reset, errorInfo}: PopoverAppErrorPageProps) => {
   const {reset: resetQueries} = useQueryErrorResetBoundary();
 
-  const resetQueriesAndErrorBoundary = useCallback(() => {
+  const onRetry = useCallback(() => {
     resetQueries();
     reset();
   }, [resetQueries, reset]);
 
   return (
     <PopoverLayout>
-      <Flex direction='column' gap='3' p='3'>
-        <ErrorDisplay error={error} />
-        {ComponentStack && info?.componentStack && (
-          <Suspense fallback={null}>
-            <ComponentStack stack={info.componentStack} />
-          </Suspense>
-        )}
-        <Separator size='4' />
-        <Button onClick={resetQueriesAndErrorBoundary} size='2' variant='soft'>
-          Try Again
-        </Button>
-      </Flex>
+      <Card size='3'>
+        {/* Inset side='all' drops the Card padding so each ErrorPage section owns its spacing and
+            the debug divider bleeds to the card edge, respecting the radius. */}
+        <Inset side='all'>
+          <ErrorPage error={error} errorInfo={errorInfo} reset={onRetry} />
+        </Inset>
+      </Card>
     </PopoverLayout>
   );
 };
