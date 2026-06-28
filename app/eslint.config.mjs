@@ -222,6 +222,31 @@ const eslintConfig = defineConfig([
     files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', '**/*.story.{ts,tsx}', '**/*.fixture.{ts,tsx}'],
     rules: {'no-restricted-syntax': 'off'},
   }),
+  // Query factories must go through the call-site-aware wrapper (#shared/core/query/queryOptions),
+  // which attaches a QueryCallSiteError cause. Importing TanStack's queryOptions directly bypasses it.
+  name('#customise/no-direct-tanstack-query-options')(
+    ts({
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: [
+              {
+                name: '@tanstack/react-query',
+                importNames: ['queryOptions'],
+                message: 'Import queryOptions from #shared/core/query/queryOptions instead of @tanstack/react-query.',
+              },
+            ],
+          },
+        ],
+      },
+    }),
+  ),
+  // The wrapper itself must import the real implementation.
+  name('#disable/no-direct-tanstack-query-options/wrapper')({
+    files: ['**/shared/core/query/queryOptions.ts'],
+    rules: {'no-restricted-imports': 'off'},
+  }),
 ]);
 
 export default eslintConfig;
