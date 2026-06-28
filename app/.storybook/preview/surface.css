@@ -1,0 +1,16 @@
+/* Storybook-only. When a story sets `parameters.theme.fill = false`, the surface decorator wraps
+   the surface in `.sb-no-fill`. This collapses the surface's `min-height: 100dvh` (an inline style,
+   hence `!important`) so the canvas sits at content height instead of a tall empty area. Never
+   applied in production — `.sb-no-fill` only exists in the Storybook decorator. */
+/* `fill: false` — the surface shouldn't occupy the canvas. Shrink to content size so the
+   component's own bounds are what you see; no padding, since that would reintroduce the canvas as
+   visible margin. Stories needing a specific width set it on their own content. */
+.sb-no-fill {
+  display: inline-block;
+}
+
+.sb-no-fill .surface-region {
+  /* biome-ignore lint/complexity/noImportantStyles: must beat the surface's inline `min-height:
+     100dvh`; `!important` is the only way a stylesheet overrides an inline style. */
+  min-height: 0 !important;
+}

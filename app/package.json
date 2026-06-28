@@ -46,6 +46,7 @@
     "@tauri-apps/plugin-window-state": "catalog:default",
     "arktype": "catalog:default",
     "mutative": "catalog:default",
+    "radix-ui": "catalog:default",
     "react": "catalog:default",
     "react-dom": "catalog:default",
     "react-error-boundary": "catalog:default"
@@ -59,6 +60,7 @@
     "@storybook/addon-docs": "catalog:default",
     "@storybook/addon-onboarding": "catalog:default",
     "@storybook/addon-vitest": "catalog:default",
+    "@storybook/icons": "catalog:default",
     "@storybook/react-vite": "catalog:default",
     "@tanstack/eslint-plugin-query": "catalog:default",
     "@tanstack/eslint-plugin-router": "catalog:default",

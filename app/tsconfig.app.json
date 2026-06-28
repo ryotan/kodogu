@@ -22,5 +22,5 @@
       "$preview/*": ["./.storybook/preview/*"]
     }
   },
-  "include": ["src", "gen", ".storybook/preview"]
+  "include": ["src", "gen", ".storybook/preview", ".storybook/manager.tsx"]
 }

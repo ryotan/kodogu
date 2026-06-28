@@ -11,10 +11,14 @@ import router from '@tanstack/router-plugin/vite';
 
 import {storybookTest} from '@storybook/addon-vitest/vitest-plugin';
 
-// Fails the production build if any module under `src/(dev)/` ends up in the emitted bundle.
+// Fails the production app build if any module under `src/(dev)/` ends up in the emitted bundle.
 // The dev-only branches in app code are gated by `__DEV_TOOLS__` ternaries so terser should
 // dead-code-eliminate them, but this guards against (1) a future change forgetting the gate
 // and (2) a non-static guard that terser cannot prove unreachable.
+//
+// This guards the *production app* bundle only. The Storybook build drops it (see .storybook/main.ts):
+// it aliases `@tauri-apps/api/core` to the (dev)/ Tauri stub and, in dev-tools mode, bundles (dev)/
+// stories on purpose, so (dev)/ modules are expected there.
 const verifyDevExclusion = (): Plugin => ({
   name: 'kodogu:verify-dev-exclusion',
   // `post` so the check runs after every other plugin has had a chance to touch the bundle —
@@ -25,7 +29,7 @@ const verifyDevExclusion = (): Plugin => ({
     const leaked = Object.values(bundle).flatMap(chunk =>
       chunk.type === 'chunk'
         ? Object.keys(chunk.modules)
-            .filter(moduleId => moduleId.includes('/(dev)/'))
+            .filter(moduleId => moduleId.includes('(dev)'))
             .map(moduleId => `${chunk.fileName} <- ${moduleId}`)
         : [],
     );
@@ -54,6 +58,14 @@ const port =
   portString && Number.isSafeInteger(Number.parseInt(portString, 10))
     ? Number.parseInt(portString, 10)
     : VITE_DEFAULT_PORT;
+
+const defaultBrowser = () => ({
+  enabled: true,
+  headless: true,
+  screenshotFailures: true,
+  provider: playwright(),
+  instances: [{browser: 'chromium' as const}],
+});
 
 // https://vitejs.dev/config/
 export default defineConfig(({mode}) => ({
@@ -111,72 +123,60 @@ export default defineConfig(({mode}) => ({
     },
     projects: [
       {
-        extends: 'vite.config.ts',
-        define: {
-          __DEV_TOOLS__: 'false',
-        },
         test: {
           name: 'unit',
           include: ['src/**/*.test.{ts,tsx}'],
         },
+        extends: 'vite.config.ts',
+        define: {
+          __DEV_TOOLS__: 'false',
+        },
       },
       {
+        test: {
+          name: 'browser',
+          include: ['src/**/*.spec.tsx'],
+          exclude: ['src/**/*.devtools.spec.tsx'],
+          browser: defaultBrowser(),
+        },
         extends: 'vite.config.ts',
         define: {
           __DEV_TOOLS__: 'false',
         },
         resolve: {alias: {'@tauri-apps/api/core': tauriCoreStub}},
-        test: {
-          name: 'browser',
-          include: ['src/**/*.spec.tsx'],
-          exclude: ['src/**/*.devtools.spec.tsx'],
-          browser: {
-            enabled: true,
-            headless: true,
-            screenshotFailures: false,
-            provider: playwright(),
-            instances: [{browser: 'chromium' as const}],
-          },
-        },
       },
       {
+        test: {
+          name: 'browser-devtools',
+          include: ['src/**/*.devtools.spec.tsx'],
+          browser: defaultBrowser(),
+        },
         extends: 'vite.config.ts',
         define: {
           __DEV_TOOLS__: 'true',
         },
         resolve: {alias: {'@tauri-apps/api/core': tauriCoreStub}},
-        test: {
-          name: 'browser-devtools',
-          include: ['src/**/*.devtools.spec.tsx'],
-          browser: {
-            enabled: true,
-            headless: true,
-            screenshotFailures: false,
-            provider: playwright(),
-            instances: [{browser: 'chromium' as const}],
-          },
-        },
       },
       {
+        test: {
+          name: 'storybook',
+          browser: defaultBrowser(),
+          setupFiles: ['.storybook/preview/vitest.setup.ts'],
+        },
         extends: 'vite.config.ts',
+        // Stories run through two entry points: the Storybook CLI (.storybook/main.ts's viteFinal) and
+        // — here — `vitest run` via addon-vitest's storybookTest. This project pins dev tools off for
+        // the `vitest run` path.
         define: {
           __DEV_TOOLS__: 'false',
         },
+        // Tauri IPC isn't available in the browser; stub it for the `vitest run` storybook project.
+        resolve: {alias: {'@tauri-apps/api/core': tauriCoreStub}},
         plugins: [
           // The plugin will run tests for the stories defined in your Storybook config
           // See options at: https://storybook.js.org/docs/writing-tests/test-addon#storybooktest
           storybookTest({configDir: path.join(dirname, '.storybook')}),
         ],
-        test: {
-          name: 'storybook',
-          browser: {
-            enabled: true,
-            headless: true,
-            provider: playwright(),
-            instances: [{browser: 'chromium' as const}],
-          },
-          setupFiles: ['.storybook/preview/vitest.setup.ts'],
-        },
       },
     ],
   },

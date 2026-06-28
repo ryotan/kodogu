@@ -33,3 +33,8 @@ test-results.json
 
 # Storybook
 storybook-static
+
+.vitest-attachments/
+
+# Vitest browser failure screenshots (screenshotFailures output, regenerated on failure — not baselines)
+**/__screenshots__/
