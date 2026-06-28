@@ -1,0 +1,67 @@
+/* Trigger: the native <button> chrome is removed by Radix Themes <Reset>; here we only make it a
+   full-width row with a pointer cursor. Chevron rotation + content height animation are the
+   disclosure's own concerns (they need data-state selectors / keyframes, which props can't express). */
+
+/* Single source for the open/close timing — defined on the root so it cascades to both the chevron
+   rotation and the content height animation. */
+.root {
+  --disclosure-duration: 0.18s;
+}
+
+.trigger {
+  width: 100%;
+  cursor: pointer;
+}
+
+.trigger:disabled {
+  cursor: default;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--gray-11);
+  /* Explicit base rotation so the transition runs (none → rotate doesn't always animate). */
+  transform: rotate(0deg);
+  transition: transform var(--disclosure-duration) ease;
+}
+
+.trigger[data-state='open'] .chevron {
+  transform: rotate(180deg);
+}
+
+.content {
+  overflow: hidden;
+}
+
+.content[data-state='open'] {
+  animation: open var(--disclosure-duration) ease-out;
+}
+
+.content[data-state='closed'] {
+  animation: close var(--disclosure-duration) ease-out;
+}
+
+@keyframes open {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes close {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content[data-state='open'],
+  .content[data-state='closed'] {
+    animation: none;
+  }
+}
