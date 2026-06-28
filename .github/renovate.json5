@@ -18,6 +18,12 @@
   // Suppress branch/PR creation while a version is still inside the minimumReleaseAge window.
   //   cf. https://docs.renovatebot.com/key-concepts/minimum-release-age/#recommended-settings
   internalChecksFilter: 'strict',
+  // Always rebase stale branches before merge. The default `auto` only rebases on a git-level conflict,
+  // but lockfile maintenance (e.g. mise.lock) produces purely additive diffs: when such a branch falls
+  // behind main, the same table can be appended a second time with no textual conflict, leaving a
+  // duplicate key that breaks the parser. Forcing a rebase re-runs the artifact update against current
+  // main, which deduplicates the lockfile instead of stacking entries.
+  rebaseWhen: 'behind-base-branch',
   // Use the OSV database (osv.dev) for vulnerability alerts in addition to the GitHub Advisory Database.
   osvVulnerabilityAlerts: true,
   vulnerabilityAlerts: {
@@ -51,17 +57,28 @@
       minimumReleaseAge: null,
     },
     {
-      // Suppress digest-only update PRs. `helpers:pinGitHubActionDigests` (pulled in via `config:best-practices`)
-      // pins action references to SHAs and then keeps proposing digest bumps, but every new digest commit is by
-      // definition freshly published, so it can never satisfy the 7-day `minimumReleaseAge` window — the PR
-      // perpetually sits in pending and gets superseded by the next digest before it ages out. The defenses we
-      // still have:
-      // - The SHA pin itself (deps are immutable between bumps)
-      // - Real version bumps (major/minor/patch) still flow and are subject to the normal 7-day cooldown
-      // - CVE-tracked issues bypass cooldown via `vulnerabilityAlerts`
-      matchDepTypes: [
-        'action',
+      // `renovate/stability-days` has no per-package release timestamp on lockFileMaintenance PRs (the
+      // entire lockfile is refreshed, not a single tracked version), so the check stays in pending
+      // status forever with the inherited 7-day threshold. Set null to clear it. Cooldown is still
+      // enforced one layer down by each tool's own release-age filter (e.g. bunfig `minimumReleaseAge`,
+      // mise `minimum_release_age`); managers without a native filter have
+      // `lockFileMaintenance: { enabled: false }` set per-rule below.
+      matchUpdateTypes: [
+        'lockFileMaintenance',
       ],
+      minimumReleaseAge: null,
+    },
+    {
+      // Suppress all digest update PRs. `helpers:pinGitHubActionDigests` and `docker:pinDigests` (both
+      // pulled in via `config:best-practices`) pin references to SHAs and then keep proposing digest bumps,
+      // but every new digest commit is by definition freshly published, so it can never satisfy the 7-day
+      // `minimumReleaseAge` window — and the digest update path doesn't wire in the release timestamp
+      // anyway, so the check would stay in pending status forever regardless of the configured value.
+      // Cooldown is structurally unavailable for digest updates, so we suppress them entirely. The
+      // defenses we still have:
+      //   - The SHA pin itself (deps are immutable between bumps)
+      //   - Real version bumps (major/minor/patch) still flow and are subject to the normal 7-day cooldown
+      //   - CVE-tracked issues bypass cooldown via `vulnerabilityAlerts`
       matchUpdateTypes: [
         'digest',
       ],
@@ -82,11 +99,62 @@
       },
     },
     {
-      // RustCrypto crates (aes, cbc, ctr, hmac, sha2 etc.) share traits crates (cipher, digest, aead),
-      // so update them together.
-      groupName: 'RustCrypto',
+      // RustCrypto crates share traits crates (cipher, digest, aead) and break in lock-step on
+      // trait-version bumps, so update them as one PR. This rule is the future-proof primary
+      // matcher: any crate that Renovate's cargo datasource exposes with a `sourceUrl` under
+      // `RustCrypto/` lands here, including ones added to the workspace later.
+      groupName: 'RustCrypto stack',
       matchSourceUrls: [
         'https://github.com/RustCrypto/**',
+      ],
+    },
+    {
+      // Fallback bucket for three reasons:
+      //   1. Renovate's cargo datasource sometimes leaves `sourceUrl` unset — it only gets
+      //      populated reliably when crates.io `repository` is a subdirectory URL (e.g.
+      //      `RustCrypto/password-hashes/tree/master/pbkdf2`). Crates whose `repository` is
+      //      the repo root (e.g. `RustCrypto/MACs`) end up without sourceUrl, so the
+      //      matchSourceUrls rule above misses them.
+      //   2. ed25519-dalek lives under dalek-cryptography on GitHub but is tightly coupled
+      //      to the RustCrypto trait stack (sha2/digest/ed25519/pkcs8/signature/spki) and
+      //      should bump in lock-step with the rest of the group.
+      //   3. rand (rust-random) internally pins its chacha20 dependency to a specific major
+      //      version — bumping rand's major without bumping chacha20's forces a duplicated
+      //      trait generation (cipher 0.4 vs 0.5, crypto-common 0.1 vs 0.2, etc.) in
+      //      Cargo.lock.
+      // Keep this list in sync with the relevant crates in the workspace.
+      // cf. https://github.com/renovatebot/renovate/issues/3486
+      //     https://github.com/renovatebot/renovate/issues/37537
+      groupName: 'RustCrypto stack',
+      matchPackageNames: [
+        // RustCrypto
+        'aes',
+        'aes-gcm',
+        'aes-gcm-siv',
+        'argon2',
+        'bcrypt-pbkdf',
+        'cbc',
+        'chacha20',
+        'chacha20poly1305',
+        'cmac',
+        'concat-kdf',
+        'ctr',
+        'hex-literal',
+        'hkdf',
+        'hmac',
+        'p256',
+        'p384',
+        'pbkdf2',
+        'pkcs8',
+        'poly1305',
+        'rsa',
+        'scrypt',
+        'sha2',
+        'zeroize',
+        // dalek-cryptography (shares the RustCrypto trait stack)
+        'ed25519-dalek',
+        // rust-random (rand's major is internally pinned to chacha20's major)
+        'rand',
       ],
     },
     {

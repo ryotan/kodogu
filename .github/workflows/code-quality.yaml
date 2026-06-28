@@ -12,6 +12,12 @@ on:
 permissions:
   contents: read
 
+# Force mise to re-verify SLSA / GitHub attestations on every install. `paranoid = true` in the project
+# `.config/mise/config.toml` is a silent no-op (mise 2026.x+ ignores it in non-global configs as a security
+# ratchet), so we enforce it via env in CI.
+env:
+  MISE_PARANOID: 'true'
+
 jobs:
   lint:
     name: 'Lint'
@@ -24,7 +30,7 @@ jobs:
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install dependencies (ubuntu only)
         run: |
@@ -40,7 +46,7 @@ jobs:
         run: echo "::add-matcher::.github/problem-matchers.json"
 
       - name: Setup mise
-        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
 
       - name: Cache Bun global cache
         if: github.event_name == 'pull_request'
@@ -131,7 +137,7 @@ jobs:
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: app/coverage/clover.xml,lcov.info
