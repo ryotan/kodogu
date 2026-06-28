@@ -14,27 +14,28 @@ import {AppLayout} from './components/AppLayout';
 import {PopoverAppErrorPage} from './features/menu-popover/components/PopoverAppErrorPage';
 import * as RootRoute from './routes/__root';
 import * as AppRoute from './routes/_app';
-import {ErrorDisplay} from './shared/core/errors/ErrorDisplay';
+import {ErrorPage} from './shared/core/errors/ErrorPage';
 
 describe('dev-only components when __DEV_TOOLS__ = true', () => {
-  it('ErrorDisplay surfaces a Stack trace toggle', async () => {
-    await render(<ErrorDisplay error={new Error('something went wrong')} />);
-    await expect.element(page.getByRole('button', {name: /stack trace/i})).toBeVisible();
+  it('ErrorPage surfaces a Debug info disclosure', async () => {
+    await render(<ErrorPage error={new Error('something went wrong')} />);
+    await expect.element(page.getByText(/debug info/i)).toBeVisible();
   });
 
-  it('PopoverAppErrorPage surfaces a Component stack toggle for componentStack info', async () => {
+  it('PopoverAppErrorPage exposes the component stack via the Debug info disclosure', async () => {
     const queryClient = new QueryClient();
     await render(
       <QueryClientProvider client={queryClient}>
         <QueryErrorResetBoundary>
           <PopoverAppErrorPage
             error={new Error('boom')}
-            info={{componentStack: '\n    at SomeComponent\n    at RouterProvider'}}
+            errorInfo={{componentStack: '\n    at SomeComponent\n    at RouterProvider'}}
             reset={vi.fn()}
           />
         </QueryErrorResetBoundary>
       </QueryClientProvider>,
     );
+    await page.getByText(/debug info/i).click();
     await page.getByRole('button', {name: /component stack/i}).click();
     await expect.element(page.getByText(/SomeComponent/)).toBeVisible();
   });
