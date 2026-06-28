@@ -47,6 +47,24 @@ export const Aggregate: Story = {
   },
 };
 
+export const DirectAggregate: Story = {
+  args: {
+    // The caught error *is* the aggregate (not wrapped in a RootError). Detection
+    // must work on the error itself, not only on its cause.
+    error: new TypedAggregateError(
+      [new ApplicationError('名前は必須です'), new ApplicationError('ポート番号は1〜65535の範囲で入力してください')],
+      '2件の検証エラー',
+    ),
+  },
+  play: async ({canvas}) => {
+    await expect(canvas.getByText('名前は必須です')).toBeVisible();
+    await expect(canvas.getByText('ポート番号は1〜65535の範囲で入力してください')).toBeVisible();
+    // Children present → no fallback subtitle, even though the bare aggregate
+    // has no Pattern-A heading of its own.
+    await expect(canvas.queryByText('時間をおいて、もう一度お試しください。')).toBeNull();
+  },
+};
+
 export const AggregateSkipsNonErrorItems: Story = {
   args: {
     error: new ApplicationError('入力に不備があります', {

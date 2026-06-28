@@ -12,13 +12,17 @@ type ErrorDisplayProps = {
 };
 
 /**
- * User-facing presentation of an error. Renders the alert icon, the message
- * (via {@link getUserMessage}, Pattern A from ADR-0007), and — when the
- * top-level cause is an `AggregateError` — the children as a list.
+ * User-facing presentation of a single caught error: the alert icon, the
+ * user-facing message (via {@link getUserMessage}, Pattern A from ADR-0007),
+ * and — when the error represents *several* failures at once (an
+ * `AggregateError`, e.g. multiple form-validation errors) — each child's
+ * message as a flat list.
  *
- * No retry, no debug section, no stack traces. Those live in
- * {@link import('./ErrorPage').ErrorPage} and
- * {@link import('#(dev)/ErrorDebugSection').ErrorDebugSection} respectively.
+ * Deliberately flat: one error, optionally its direct aggregate children. The
+ * recursive cause *tree* (cause chains, stack traces, component stack) is a
+ * debug concern and lives in
+ * {@link import('#(dev)/ErrorDebugSection').ErrorDebugSection}; retry lives in
+ * {@link import('./ErrorPage').ErrorPage}.
  */
 export const ErrorDisplay = ({error}: ErrorDisplayProps) => {
   const children = aggregateChildren(error);
@@ -56,13 +60,31 @@ const AggregateChildren = ({errors}: {errors: Error[]}) => (
 );
 
 /**
- * Returns the children list when the top-level cause is an `AggregateError`,
- * otherwise null. Filtered to `Error` instances — non-Error throws in the
- * aggregate are skipped to avoid leaking arbitrary strings to the user.
+ * The aggregate's children when this error represents several failures at once,
+ * otherwise null. An aggregate reaches the user in two shapes, both handled here:
+ *   - thrown directly — the caught `error` *is* the `AggregateError`;
+ *   - wrapped — a {@link import('./RootError').RootError} carries the user
+ *     message and holds the aggregate as its `cause`, so {@link getUserMessage}
+ *     has a Pattern-A message to show above the list.
+ * Children are filtered to `Error` instances so non-Error throws in the
+ * aggregate never leak arbitrary strings to the user.
  */
 function aggregateChildren(error: Error): Error[] | null {
-  if (!(error.cause instanceof AggregateError)) {
+  const aggregate = resolveAggregate(error);
+  if (!aggregate) {
     return null;
   }
-  return error.cause.errors.filter((e): e is Error => e instanceof Error);
+  return aggregate.errors.filter((e): e is Error => e instanceof Error);
+}
+
+// An aggregate is detected on the error itself first (a directly-thrown aggregate),
+// then on its cause (a RootError wrapping an aggregate to carry the user message).
+function resolveAggregate(error: Error): AggregateError | null {
+  if (error instanceof AggregateError) {
+    return error;
+  }
+  if (error.cause instanceof AggregateError) {
+    return error.cause;
+  }
+  return null;
 }
