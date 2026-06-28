@@ -2,6 +2,8 @@ import {describe, expect, it, vi} from 'vitest';
 import {page} from 'vitest/browser';
 import {render} from 'vitest-browser-react';
 
+import {Route} from './popover';
+
 const {mockInvoke} = vi.hoisted(() => ({
   mockInvoke: vi.fn().mockResolvedValue(undefined),
 }));
@@ -9,8 +11,6 @@ const {mockInvoke} = vi.hoisted(() => ({
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
 }));
-
-import {Route} from './popover';
 
 const PopoverLayout = Route.options.component;
 if (!PopoverLayout) {
