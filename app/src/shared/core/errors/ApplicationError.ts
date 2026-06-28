@@ -5,7 +5,7 @@ import {RootError} from './RootError';
  * preconditions, input validation failures, and invariants that the app itself owns.
  *
  * Throw `ApplicationError` (or extend it) when the cause is expressible in app-domain terms:
- * "config not yet loaded", "connection name too long", "tried to update before mount", etc.
+ * "config not yet loaded", "connection name too long", "duplicate profile name", etc.
  * The thing went wrong _because of what the app expected_, not because something underneath
  * misbehaved.
  *
