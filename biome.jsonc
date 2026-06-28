@@ -88,7 +88,6 @@
         "useBlockStatements": "error",
         "useCollapsedElseIf": "error",
         "useConsistentArrayType": "error",
-        // @typescript-eslint/consistent-type-definitions（ESLint側はoffにしてBiomeに一本化）
         "useConsistentTypeDefinitions": {
           "level": "error",
           "options": { "style": "type" }
