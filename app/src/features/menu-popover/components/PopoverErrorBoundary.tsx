@@ -9,8 +9,12 @@ import {ApplicationError} from '#shared/core/errors/ApplicationError';
 
 import {PopoverAppErrorPage} from './PopoverAppErrorPage';
 
-// Defined at module scope because it closes over nothing — no component state or props
-const fallbackRender = ({error, resetErrorBoundary}: FallbackProps) => (
+/**
+ * Error fallback for {@link PopoverErrorBoundary}. Adapts react-error-boundary's `FallbackProps`
+ * to {@link PopoverAppErrorPage}: normalises a non-Error throw to an `ApplicationError` and maps
+ * `resetErrorBoundary` → `reset`. Exported so it can be exercised on its own (story/spec).
+ */
+export const PopoverErrorBoundaryFallback = ({error, resetErrorBoundary}: FallbackProps) => (
   <PopoverAppErrorPage
     error={error instanceof Error ? error : new ApplicationError(String(error))}
     reset={resetErrorBoundary}
@@ -19,6 +23,6 @@ const fallbackRender = ({error, resetErrorBoundary}: FallbackProps) => (
 
 export const PopoverErrorBoundary = ({children}: {children: ReactNode}) => (
   <QueryErrorResetBoundary>
-    <ErrorBoundary fallbackRender={fallbackRender}>{children}</ErrorBoundary>
+    <ErrorBoundary fallbackRender={PopoverErrorBoundaryFallback}>{children}</ErrorBoundary>
   </QueryErrorResetBoundary>
 );
