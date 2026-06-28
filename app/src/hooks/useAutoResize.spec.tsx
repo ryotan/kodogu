@@ -39,7 +39,7 @@ type ResizeArgs = {width: number; height: number};
 
 function getResizeArgs(callIndex: number): ResizeArgs {
   const args = mockInvoke.mock.calls[callIndex] as unknown[] | undefined;
-  if (!args || args[0] !== 'resize_popover') {
+  if (args?.[0] !== 'resize_popover') {
     throw new Error(`Expected resize_popover call at index ${String(callIndex)}`);
   }
   return args[1] as ResizeArgs;
@@ -159,7 +159,7 @@ describe('useAutoResize — no scroll area', () => {
       observe = vi.fn();
       disconnect = vi.fn();
       unobserve = vi.fn();
-    } as unknown as typeof ResizeObserver;
+    };
 
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
       cb(performance.now());
