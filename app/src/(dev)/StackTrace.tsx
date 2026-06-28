@@ -8,6 +8,10 @@ import type {FrameView} from './FrameList';
 import {FrameList} from './FrameList';
 import {formatOriginLocation, isExternalLocation} from './frameLocation';
 
+// Frame origin badges, named once instead of rebuilt per frame.
+const APP_FRAME_BADGE = {text: 'app', color: 'blue'} as const;
+const EXTERNAL_FRAME_BADGE = {text: 'ext', color: 'gray'} as const;
+
 type StackTraceProps = {
   error: Error;
   /** Whether external (node_modules/.vite) frames are shown. Owned by the debug section so one
@@ -33,7 +37,7 @@ export const StackTrace = ({error, showExternal}: StackTraceProps) => {
     const fileName = frame.fileName ?? '(unknown)';
     const isExternal = isExternalLocation(fileName);
     return {
-      badge: {text: isExternal ? 'ext' : 'app', color: isExternal ? 'gray' : 'blue'},
+      badge: isExternal ? EXTERNAL_FRAME_BADGE : APP_FRAME_BADGE,
       name: frame.functionName ?? '<anonymous>',
       location: formatOriginLocation(`${fileName}:${frame.lineNumber ?? '?'}:0`),
       isExternal,
