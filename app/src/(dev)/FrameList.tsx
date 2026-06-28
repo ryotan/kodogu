@@ -21,7 +21,9 @@ export type FrameView = {
  * horizontally instead (scrollbar chrome hidden). External frames are dimmed
  * with lower-contrast gray.
  */
-export const FrameList = ({frames, emptyMessage}: {frames: FrameView[]; emptyMessage: string}) =>
+type FrameListProps = {frames: FrameView[]; emptyMessage: string};
+
+export const FrameList = ({frames, emptyMessage}: FrameListProps) =>
   frames.length === 0 ? (
     <Text color='gray' size='1'>
       {emptyMessage}
@@ -36,7 +38,9 @@ export const FrameList = ({frames, emptyMessage}: {frames: FrameView[]; emptyMes
     </Box>
   );
 
-const FrameRow = ({frame}: {frame: FrameView}) => (
+type FrameRowProps = {frame: FrameView};
+
+const FrameRow = ({frame}: FrameRowProps) => (
   <Flex align='baseline' className={`frame-list__row${frame.isExternal ? ' frame-list__row--external' : ''}`} gap='2'>
     {frame.badge && (
       <Badge color={frame.badge.color} size='1' variant='soft'>
