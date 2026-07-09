@@ -2,6 +2,8 @@
 paths:
   - "app/src/**/*.ts"
   - "app/src/**/*.tsx"
+  - "app/.storybook/**/*.ts"
+  - "app/.storybook/**/*.tsx"
   - "app/package.json"
   - "app/eslint.config.mjs"
   - "app/vite.config.ts"
