@@ -1,4 +1,4 @@
-import type {FC, ReactNode} from 'react';
+import type {ReactNode} from 'react';
 
 import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 
@@ -27,8 +27,11 @@ declare module '@storybook/react-vite' {
 // other story's cache by virtue of being scoped to this component's mount lifecycle.
 // A future change will let stories override the seed via `parameters.query` and may swap this
 // component's identity through a `key` prop to force re-mounting on parameter changes.
-const ScopedQueryClientProvider: FC<{children: ReactNode}> = ({children}) => {
+function ScopedQueryClientProvider({children}: {children: ReactNode}) {
   const queryClient = useStable(() => {
+    // useStable wraps useState's lazy initializer (see its own docstring), which is exactly what
+    // this rule wants — it just can't see through the custom hook to verify that.
+    // eslint-disable-next-line @tanstack/query/stable-query-client
     const qc = new QueryClient();
     qc.setQueryData(appConfigQuery.queryKey, defaultAppConfig);
     return qc;
@@ -38,7 +41,7 @@ const ScopedQueryClientProvider: FC<{children: ReactNode}> = ({children}) => {
       <QueryErrorResetBoundary>{children}</QueryErrorResetBoundary>
     </QueryClientProvider>
   );
-};
+}
 
 export const withQueryClient: Decorator = (Story, {parameters}) => {
   if (parameters.query?.skip === true) {

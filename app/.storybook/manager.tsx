@@ -16,7 +16,7 @@ const TOOL_ID = 'kodogu/surface';
 // `Select` component's `onReset` sets the global to `undefined`, which truly clears it — the
 // selection returns to none and the value drops out of the URL — instead of leaving an empty-string
 // sentinel selected (which a declarative `globalTypes.toolbar` item list can only do).
-const SurfaceTool = () => {
+function SurfaceTool() {
   const [globals, updateGlobals] = useGlobals();
   const selected = globals[SURFACE_GLOBAL_KEY] as string | undefined;
 
@@ -32,7 +32,7 @@ const SurfaceTool = () => {
       tooltip='Production surface'
     />
   );
-};
+}
 
 addons.register(TOOL_ID, () => {
   addons.add(TOOL_ID, {
