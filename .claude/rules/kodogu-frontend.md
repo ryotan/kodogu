@@ -73,7 +73,9 @@ const connectionsQuery = queryOptions({
   },
 })
 
-export const useConnections = () => useQuery(connectionsQuery)   // hook included
+export function useConnections() {   // hook included
+  return useQuery(connectionsQuery)
+}
 ```
 
 ### Form Responsibility
@@ -89,11 +91,12 @@ export const CreateConnectionInput = type({
 })
 
 // adapters/createConnection.ts — Interface Adapter (how to wire UseCase to React)
-export const useCreateConnectionForm = () =>
-  useForm({
+export function useCreateConnectionForm() {
+  return useForm({
     validators: {onChange: CreateConnectionInput},
     onSubmit: ({value}) => createConnectionUseCase(value),
   })
+}
 ```
 
 ### Tauri IPC
@@ -139,12 +142,38 @@ Ref: [Fintan Santoku TypeScript Style Guide](https://fintan-contents.github.io/m
 
 | Target | Convention | Example |
 |---|---|---|
-| React component | PascalCase, named export | `export const ProfileCard = (...) => ...` |
-| Hook | camelCase `use` prefix, named export | `export const useAutoResize = () => ...` |
-| Pure function | camelCase, named export | `export const getMaxHeight = () => ...` |
+| React component | PascalCase, named export | `export function ProfileCard(...) {...}` |
+| Hook | camelCase `use` prefix, named export | `export function useAutoResize() {...}` |
+| Pure function | camelCase, named export | `export function getMaxHeight() {...}` |
 | Type / Interface | PascalCase, named export | `export interface ConnectionProfile` |
 | Constant | UPPER_SNAKE_CASE | `const MAX_HEIGHT_RATIO = 0.85` |
 | Module-local constant | camelCase or UPPER_SNAKE_CASE | context-dependent |
+
+### Function Declaration vs Arrow Function
+
+A named, top-level export (component, hook, or pure function) is declared with `function`. An arrow function is
+reserved for anything defined inline at its use site — callbacks, `.map()`/`.filter()` arguments, `queryFn`/`onSubmit`
+handlers, JSX event handlers.
+
+```typescript
+// Top-level, named, reusable — function declaration
+export function useConnections() {
+  return useQuery(connectionsQuery)
+}
+
+// Inline, defined at the call site — arrow function
+const connectionsQuery = queryOptions({
+  queryFn: async () => { /* ... */ },
+})
+```
+
+- **Why**: `function` is hoisted, so the most important declaration in a file can read top-down; a `function`
+  declaration also never needs the `<T,>` trailing-comma workaround that generic arrow components require in `.tsx`
+  files. Reserving arrow functions for inline code keeps them a visual signal for "defined right here, used right here."
+- Biome's `useArrowFunction` (already enabled) auto-corrects the inline half of this rule — it flags `function`
+  expressions used as callbacks/values and proposes arrow, but by design never touches `function` declarations.
+- The named-declaration half is not lint-enforced (no rule distinguishes top-level from nested scope without also
+  flagging legitimate local closures) — apply it by convention and code review.
 
 ### Stereotype Suffixes
 
@@ -171,14 +200,15 @@ Use explicit suffixes to indicate responsibility. The file's role should be clea
 - `QueryKeys` object pattern is deprecated — `queryOptions()` owns the key
 
 ```typescript
-export const buildAppConfigQuery = <T = AppConfig>(opts?: AppConfigQueryOptions<T>) =>
-  queryOptions({
-    queryKey: ['appConfig'],
+export function buildAppConfigQuery<T = AppConfig>(opts?: AppConfigQueryOptions<T>) {
+  return queryOptions({
+    queryKey: ['app-config'] as const,
     queryFn: getConfig,
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
     ...opts,
   });
+}
 export const appConfigQuery = buildAppConfigQuery();
 ```
 
@@ -191,6 +221,7 @@ Mutations with optimistic updates must follow this 3-step lifecycle:
 1. `onMutate`: Cancel queries → save previous → set optimistic data → return `{previous}`
 2. `onError`: Log error + rollback with `context?.previous`
 3. `onSettled`: Invalidate queries (covers both success and error)
+   - **Exception**: Skip `onSettled` invalidation when `staleTime: Infinity` — `invalidateQueries` triggers a refetch on active observers regardless of staleTime, causing an unnecessary round-trip. The optimistic data from `onMutate` is already correct.
 
 Additional requirements:
 - Set `scope: {id: 'xxx'}` to serialize parallel mutations on the same resource
