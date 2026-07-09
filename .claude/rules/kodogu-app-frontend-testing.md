@@ -7,11 +7,11 @@ paths:
   - "app/src/**/*.story.tsx"
 ---
 
-# kodogu Frontend Testing Practices
+# KoDoGu App Frontend Testing Practices
 
 Test-strategy conventions for the Tauri app frontend (`app/src/`) — which test level owns which kind of behavior,
-and the concrete patterns for each. Complements `kodogu-frontend.md` (general frontend conventions) and `testing.md`
-(language-agnostic testing principles).
+and the concrete patterns for each. Complements `kodogu-app-frontend.md` (general frontend conventions) and
+`testing.md` (language-agnostic testing principles).
 
 ## Four Vitest Projects
 

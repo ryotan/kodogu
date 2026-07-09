@@ -11,7 +11,7 @@ paths:
   - "biome.jsonc"
 ---
 
-# Tauri App Frontend Practices
+# KoDoGu App Frontend Practices
 
 Framework-specific practices for the Tauri desktop app frontend (`app/src/`).
 
@@ -131,87 +131,8 @@ export function useCreateConnectionForm() {
 - Each wrapper provides a typed function around `invoke()`
 - Domain logic stays in Rust. The TS side only handles invocation and result mapping
 
-## File Organization
-
-### 1 File = 1 Export
-
-Each file represents a single logical module with one primary export.
-
-- File name = primary export name (`ProfileCard.tsx` → `export const ProfileCard`)
-- Closely related constants/types may co-exist in the same file (e.g., a hook and its constants)
-- Do not mix unrelated exports in one file
-
-Ref: [Fintan Santoku TypeScript Style Guide](https://fintan-contents.github.io/mobile-app-crib-notes/react-native/santoku/development/implement/style-guide/typescript-style-guide/)
-
-## Naming Conventions
-
-### Files
-
-**File name = primary export name** as a rule.
-
-| Target | Convention | Example |
-|---|---|---|
-| Directory | kebab-case | `hooks/`, `components/form/` |
-| Route file | Follow TanStack Router convention | `popover.tsx`, `__root.tsx` |
-| Component | PascalCase (= export name) | `ProfileCard.tsx` |
-| Hook | camelCase `use` prefix (= export name) | `useAutoResize.ts` |
-| Function | camelCase (= export name) | `createResizeHandler.ts` |
-| Type-only | PascalCase (= export name) | `ConnectionProfile.ts` |
-| Tauri command wrapper | camelCase (= export name) | `getConnections.ts` |
-| Test (node) | target + `.test` | `useAutoResize.test.ts` |
-| Test (browser) | target + `.spec` | `useAutoResize.spec.tsx` |
-| Story | target + `.story` | `ProfileCard.story.tsx` |
-
-### Exports
-
-| Target | Convention | Example |
-|---|---|---|
-| React component | PascalCase, named export | `export function ProfileCard(...) {...}` |
-| Hook | camelCase `use` prefix, named export | `export function useAutoResize() {...}` |
-| Pure function | camelCase, named export | `export function getMaxHeight() {...}` |
-| Type / Interface | PascalCase, named export | `export interface ConnectionProfile` |
-| Constant | UPPER_SNAKE_CASE | `const MAX_HEIGHT_RATIO = 0.85` |
-| Module-local constant | camelCase or UPPER_SNAKE_CASE | context-dependent |
-
-### Function Declaration vs Arrow Function
-
-A named, top-level export (component, hook, or pure function) is declared with `function`. An arrow function is
-reserved for anything defined inline at its use site — callbacks, `.map()`/`.filter()` arguments, `queryFn`/`onSubmit`
-handlers, JSX event handlers.
-
-```typescript
-// Top-level, named, reusable — function declaration
-export function useConnections() {
-  return useQuery(connectionsQuery)
-}
-
-// Inline, defined at the call site — arrow function
-const connectionsQuery = queryOptions({
-  queryFn: async () => { /* ... */ },
-})
-```
-
-- **Why**: `function` is hoisted, so the most important declaration in a file can read top-down; a `function`
-  declaration also never needs the `<T,>` trailing-comma workaround that generic arrow components require in `.tsx`
-  files. Reserving arrow functions for inline code keeps them a visual signal for "defined right here, used right here."
-- Biome's `useArrowFunction` (already enabled) auto-corrects the inline half of this rule — it flags `function`
-  expressions used as callbacks/values and proposes arrow, but by design never touches `function` declarations.
-- The named-declaration half is not lint-enforced (no rule distinguishes top-level from nested scope without also
-  flagging legitimate local closures) — apply it by convention and code review.
-
-### Stereotype Suffixes
-
-Use explicit suffixes to indicate responsibility. The file's role should be clear without reading its code.
-
-| Stereotype | Suffix | Example |
-|---|---|---|
-| Hook | `use` prefix | `useAutoResize` |
-| Function | none (starts with verb) | `createResizeHandler`, `getMaxHeight` |
-| Context Provider | `Provider` | `ThemeProvider` |
-| Error class | `Error` | `ConnectionError` |
-| Layout component | `Layout` | `PopoverLayout` |
-
-> **Note**: Stereotypes will be extended as needed (Form, Service, etc.).
+File organization and naming conventions (1 file = 1 export, file/export naming, `function` vs arrow, stereotype
+suffixes) are in `typescript.md` — they're general TypeScript/React patterns, not specific to this app.
 
 ## TanStack Query
 
@@ -284,7 +205,7 @@ const queryClient = new QueryClient({
 ## Vitest
 
 Test-level selection (unit/browser/browser-devtools/storybook), spec vs story, and testing patterns are in
-`kodogu-frontend-test.md`.
+`kodogu-app-frontend-testing.md`.
 
 ## WebKit CSS
 

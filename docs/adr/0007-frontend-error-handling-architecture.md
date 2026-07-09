@@ -235,7 +235,7 @@ function getUserMessage(error: unknown): string {
 }
 ```
 
-開発ビルドでは、フォールバックに置き換える前のエラー情報（stack、cause、name）を別表示で見せる。`__DEV_TOOLS__`フラグで切り替える形を取る（詳細はrules/tauri-frontend.md参照）。
+開発ビルドでは、フォールバックに置き換える前のエラー情報（stack、cause、name）を別表示で見せる。`__DEV_TOOLS__`フラグで切り替える形を取る（詳細はrules/kodogu-app-frontend.md参照）。
 
 ### ErrorBoundaryとの連携
 
@@ -250,7 +250,7 @@ const fallbackRender = ({error, resetErrorBoundary}: FallbackProps) => (
 );
 ```
 
-（このパターンの詳細はrules/tauri-frontend.mdのError Boundaries節を参照）
+（このパターンの詳細はrules/kodogu-app-frontend.mdのError Boundaries節を参照）
 
 ## 結果
 
@@ -279,4 +279,4 @@ const fallbackRender = ({error, resetErrorBoundary}: FallbackProps) => (
 - KDG-26: フロントエンドのグローバルエラーハンドリング方針決定・実装
 - KDG-27: Rust→JSエラー伝播の設計・実装（本ADRのスコープ外、別ADRで扱う）
 - rules/typescript.md: Error Handling節（実装のhow）
-- rules/tauri-frontend.md: Error Boundaries節（ErrorBoundary連携のhow）
+- rules/kodogu-app-frontend.md: Error Boundaries節（ErrorBoundary連携のhow）

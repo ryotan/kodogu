@@ -3,7 +3,7 @@ paths:
   - "app/src-tauri/**/*.rs"
 ---
 
-# Tauri App Backend Practices
+# KoDoGu App Backend Practices
 
 Framework-specific practices for the Tauri desktop app backend (`app/src-tauri/`).
 

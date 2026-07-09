@@ -24,12 +24,13 @@ TypeScript-specific practices for realizing universal principles in this languag
 - Let inference work for local variables
 - **Why**: Clear contracts, better tooling
 
-### Prefer Interfaces for Objects
+### Prefer `type` Over `interface`
 
-- `interface` for object shapes
-- `type` for unions, intersections, primitives
-- Extend interfaces, don't use intersections
-- **Why**: Better error messages, more extensible
+- `type` for object shapes, unions, intersections, primitives — one consistent form
+- `interface` only where structurally required: TS declaration merging / module augmentation
+  (`declare module 'x' { interface Y {...} }`)
+- Enforced by Biome's `useConsistentTypeDefinitions` (`style: "type"`)
+- **Why**: One mental model for every type definition; avoids the `interface` vs `type` bikeshed
 
 ## Null and Undefined
 
@@ -208,6 +209,86 @@ For error classification philosophy, invoke the `coding-practices` skill.
 - Explicit imports are clearer
 - Better for tree-shaking
 - **Why**: Performance and clarity
+
+## File Organization
+
+### 1 File = 1 Export
+
+Each file represents a single logical module with one primary export.
+
+- File name = primary export name (`ProfileCard.tsx` → `export const ProfileCard`)
+- Closely related constants/types may co-exist in the same file (e.g., a hook and its constants)
+- Do not mix unrelated exports in one file
+
+Ref: [Fintan Santoku TypeScript Style Guide](https://fintan-contents.github.io/mobile-app-crib-notes/react-native/santoku/development/implement/style-guide/typescript-style-guide/)
+
+## Naming Conventions
+
+### Files
+
+**File name = primary export name** as a rule.
+
+| Target | Convention | Example |
+|---|---|---|
+| Directory | kebab-case | `hooks/`, `components/form/` |
+| Component | PascalCase (= export name) | `ProfileCard.tsx` |
+| Hook | camelCase `use` prefix (= export name) | `useAutoResize.ts` |
+| Function | camelCase (= export name) | `createResizeHandler.ts` |
+| Type-only | PascalCase (= export name) | `ConnectionProfile.ts` |
+| Test (node) | target + `.test` | `useAutoResize.test.ts` |
+| Test (browser) | target + `.spec` | `useAutoResize.spec.tsx` |
+| Story | target + `.story` | `ProfileCard.story.tsx` |
+
+### Exports
+
+| Target | Convention | Example |
+|---|---|---|
+| React component | PascalCase, named export | `export function ProfileCard(...) {...}` |
+| Hook | camelCase `use` prefix, named export | `export function useAutoResize() {...}` |
+| Pure function | camelCase, named export | `export function getMaxHeight() {...}` |
+| Type | PascalCase, named export | `export type ConnectionProfile = {...}` |
+| Constant | UPPER_SNAKE_CASE | `const MAX_HEIGHT_RATIO = 0.85` |
+| Module-local constant | camelCase or UPPER_SNAKE_CASE | context-dependent |
+
+### Function Declaration vs Arrow Function
+
+A named, top-level export (component, hook, or pure function) is declared with `function`. An arrow function is
+reserved for anything defined inline at its use site — callbacks, `.map()`/`.filter()` arguments, `queryFn`/`onSubmit`
+handlers, JSX event handlers.
+
+```typescript
+// Top-level, named, reusable — function declaration
+export function useConnections() {
+  return useQuery(connectionsQuery)
+}
+
+// Inline, defined at the call site — arrow function
+const connectionsQuery = queryOptions({
+  queryFn: async () => { /* ... */ },
+})
+```
+
+- **Why**: `function` is hoisted, so the most important declaration in a file can read top-down; a `function`
+  declaration also never needs the `<T,>` trailing-comma workaround that generic arrow components require in `.tsx`
+  files. Reserving arrow functions for inline code keeps them a visual signal for "defined right here, used right here."
+- Biome's `useArrowFunction` (already enabled) auto-corrects the inline half of this rule — it flags `function`
+  expressions used as callbacks/values and proposes arrow, but by design never touches `function` declarations.
+- The named-declaration half is not lint-enforced (no rule distinguishes top-level from nested scope without also
+  flagging legitimate local closures) — apply it by convention and code review.
+
+### Stereotype Suffixes
+
+Use explicit suffixes to indicate responsibility. The file's role should be clear without reading its code.
+
+| Stereotype | Suffix | Example |
+|---|---|---|
+| Hook | `use` prefix | `useAutoResize` |
+| Function | none (starts with verb) | `createResizeHandler`, `getMaxHeight` |
+| Context Provider | `Provider` | `ThemeProvider` |
+| Error class | `Error` | `ConnectionError` |
+| Layout component | `Layout` | `PopoverLayout` |
+
+> **Note**: Stereotypes will be extended as needed (Form, Service, etc.).
 
 ## Utility Types
 
@@ -393,5 +474,5 @@ For error classification philosophy, invoke the `coding-practices` skill.
 ## Project Libraries
 
 Library- and framework-specific conventions for this project's stack (TanStack Query/Router, Radix UI, Vitest,
-Tauri integration, error boundaries, state management) live in `kodogu-frontend.md`, not here — this file stays
+Tauri integration, error boundaries, state management) live in `kodogu-app-frontend.md`, not here — this file stays
 project-agnostic TypeScript practice, mirroring `kotlin.md` / `rust.md`.
