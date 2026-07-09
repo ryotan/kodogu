@@ -26,35 +26,41 @@ type RootProps = PropsWithChildren<{disabled?: boolean}> & OpenProps;
 
 // Owns the open/closed state via Radix Collapsible. Layout and padding live in the consumer's
 // composition inside Trigger / Content — the primitive only provides the mechanism.
-const Root = ({children, disabled, open, defaultOpen, onOpenChange}: RootProps) => (
-  <Collapsible.Root
-    className={styles.root}
-    defaultOpen={defaultOpen}
-    disabled={disabled}
-    onOpenChange={onOpenChange}
-    open={open}
-  >
-    {children}
-  </Collapsible.Root>
-);
+function Root({children, disabled, open, defaultOpen, onOpenChange}: RootProps) {
+  return (
+    <Collapsible.Root
+      className={styles.root}
+      defaultOpen={defaultOpen}
+      disabled={disabled}
+      onOpenChange={onOpenChange}
+      open={open}
+    >
+      {children}
+    </Collapsible.Root>
+  );
+}
 
 // The trigger. Radix `Collapsible.Trigger` is already a real <button> (aria-expanded + keyboard);
 // `<Reset>` strips the native button chrome. The consumer composes the inner row — label, chevron,
 // padding — as children; the primitive only forces the full-width row so triggers stay uniform.
-const Trigger = ({children}: PropsWithChildren) => (
-  <Reset>
-    <Collapsible.Trigger className={styles.trigger}>{children}</Collapsible.Trigger>
-  </Reset>
-);
+function Trigger({children}: PropsWithChildren) {
+  return (
+    <Reset>
+      <Collapsible.Trigger className={styles.trigger}>{children}</Collapsible.Trigger>
+    </Reset>
+  );
+}
 
 // Chevron that rotates when its enclosing Trigger opens. Must be rendered inside a `Trigger` — the
 // rotation is driven by the Trigger's `data-state` via a descendant selector.
-const Chevron = () => <ChevronDownIcon className={styles.chevron} />;
+function Chevron() {
+  return <ChevronDownIcon className={styles.chevron} />;
+}
 
 // The collapsible region (with open/close height animation). The consumer pads its children.
-const Content = ({children}: PropsWithChildren) => (
-  <Collapsible.Content className={styles.content}>{children}</Collapsible.Content>
-);
+function Content({children}: PropsWithChildren) {
+  return <Collapsible.Content className={styles.content}>{children}</Collapsible.Content>;
+}
 
 // Padding scale for the Section shorthand. Selecting from a fixed scale (rather than taking raw
 // padding values) keeps spacing consistent; `1` is the compact step for nested sections.
@@ -75,7 +81,7 @@ type SectionProps = PropsWithChildren<{
 // Shorthand for the common case: a labelled trigger (label left, chevron right) over padded
 // content. For anything non-standard (e.g. a second trigger at the bottom of the content), compose
 // Root / Trigger / Chevron / Content directly instead.
-const Section = ({label, size = '2', children, ...rootProps}: SectionProps) => {
+function Section({label, size = '2', children, ...rootProps}: SectionProps) {
   const pad = SECTION_PADDING[size];
   return (
     <Root {...rootProps}>
@@ -92,7 +98,7 @@ const Section = ({label, size = '2', children, ...rootProps}: SectionProps) => {
       </Content>
     </Root>
   );
-};
+}
 
 Root.displayName = 'Disclosure.Root';
 Trigger.displayName = 'Disclosure.Trigger';

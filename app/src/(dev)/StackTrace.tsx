@@ -22,7 +22,7 @@ type StackTraceProps = {
 // Dev-only. Renders an error's parsed stack frames; the collapsing is owned by ErrorTreeNode (the
 // node's `name: message` header is the toggle), so this is just the content. Reached only through
 // ErrorDebugSection, which is gated behind __DEV_TOOLS__ + lazy().
-export const StackTrace = ({error, showExternal}: StackTraceProps) => {
+export function StackTrace({error, showExternal}: StackTraceProps) {
   const allFrames = useMemo(() => {
     try {
       return StackTraceParser.parse(error);
@@ -49,4 +49,4 @@ export const StackTrace = ({error, showExternal}: StackTraceProps) => {
       <FrameList emptyMessage='No internal frames found' frames={visibleFrames} />
     </Box>
   );
-};
+}

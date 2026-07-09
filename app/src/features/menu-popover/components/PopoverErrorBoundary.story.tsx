@@ -33,12 +33,12 @@ export const FallbackOnThrow: Story = {
 // "the failing dependency recovered, then the user retried". `shouldThrow` is module-scoped but only
 // this story mutates it, and each story runs once per `vitest run`.
 let shouldThrow = true;
-const ConditionalThrow = () => {
+function ConditionalThrow() {
   if (shouldThrow) {
     throw new Error('boundary test error');
   }
   return <Text>recovered</Text>;
-};
+}
 
 export const RecoversAfterRetry: Story = {
   render: () => (

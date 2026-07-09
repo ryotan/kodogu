@@ -4,4 +4,6 @@ import {ThemePanel} from '@radix-ui/themes';
 //   const RadixThemePanel = __DEV_TOOLS__
 //     ? lazy(() => import('#(dev)/RadixThemePanel').then(m => ({default: m.RadixThemePanel})))
 //     : () => null;
-export const RadixThemePanel = () => <ThemePanel defaultOpen={false} />;
+export function RadixThemePanel() {
+  return <ThemePanel defaultOpen={false} />;
+}

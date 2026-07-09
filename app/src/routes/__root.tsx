@@ -16,7 +16,7 @@ export type RouterContext = {
   queryClient: QueryClient;
 };
 
-export const RootLayout = () => {
+export function RootLayout() {
   useConfiguredDesignTokens();
   return (
     <>
@@ -26,7 +26,7 @@ export const RootLayout = () => {
       </Suspense>
     </>
   );
-};
+}
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   loader: ({context: {queryClient}}) => queryClient.ensureQueryData(appConfigQuery),

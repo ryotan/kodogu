@@ -5,9 +5,11 @@ import {TanStackRouterDevtools} from '@tanstack/react-router-devtools';
 //   const TanStackTools = __DEV_TOOLS__
 //     ? lazy(() => import('#(dev)/TanStackTools').then(m => ({default: m.TanStackTools})))
 //     : () => null;
-export const TanStackTools = () => (
-  <>
-    <TanStackRouterDevtools />
-    <ReactQueryDevtools />
-  </>
-);
+export function TanStackTools() {
+  return (
+    <>
+      <TanStackRouterDevtools />
+      <ReactQueryDevtools />
+    </>
+  );
+}

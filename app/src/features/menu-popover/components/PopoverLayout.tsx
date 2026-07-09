@@ -8,7 +8,7 @@ type PopoverLayoutProps = {
   children: ReactNode;
 };
 
-export const PopoverLayout = ({children}: PopoverLayoutProps) => {
+export function PopoverLayout({children}: PopoverLayoutProps) {
   const {resizeCallbackRef} = useAutoResize();
   return (
     <Theme appearance='dark' hasBackground={false}>
@@ -21,4 +21,4 @@ export const PopoverLayout = ({children}: PopoverLayoutProps) => {
       </div>
     </Theme>
   );
-};
+}

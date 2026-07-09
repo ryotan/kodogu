@@ -27,7 +27,7 @@ type Props = {
 //   Debug info
 //   ├─ Error            the caught error as a cause tree (name: message, frames, nested causes)
 //   └─ Component stack   where in the React tree the error surfaced (one, shared)
-export const ErrorDebugSection = ({error, errorInfo}: Props) => {
+export function ErrorDebugSection({error, errorInfo}: Props) {
   // External-frame visibility is owned here so a single switch governs every stack in the tree.
   const [showExternal, setShowExternal] = useState(false);
   const tree = useMemo(() => buildErrorTree(error), [error]);
@@ -77,10 +77,12 @@ export const ErrorDebugSection = ({error, errorInfo}: Props) => {
       </Disclosure.Content>
     </Disclosure.Root>
   );
-};
+}
 
-const Caption = ({children}: {children: string}) => (
-  <Text as='div' className='error-debug-section__caption' color='gray' size='1' weight='medium'>
-    {children}
-  </Text>
-);
+function Caption({children}: {children: string}) {
+  return (
+    <Text as='div' className='error-debug-section__caption' color='gray' size='1' weight='medium'>
+      {children}
+    </Text>
+  );
+}

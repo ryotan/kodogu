@@ -43,13 +43,13 @@ function createQueryClient() {
 type UpdateFn = (recipe: (draft: Draft<AppConfig>) => void) => void;
 const captured: {update: UpdateFn | null} = {update: null};
 
-const TestComponent = () => {
+function TestComponent() {
   const {update} = useAppConfigCommands();
   useEffect(() => {
     captured.update = update;
   }, [update]);
   return <div data-testid='ready' />;
-};
+}
 
 describe('useAppConfigCommands', () => {
   beforeEach(() => {

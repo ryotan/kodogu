@@ -17,41 +17,43 @@ type ErrorTreeNodeProps = {
 // the chevron sits inline at its left and clicking the row reveals this error's own stack frames.
 // Causes are always shown, nested below under a left rule. Recurses for child errors. Reached only
 // through ErrorDebugSection, which is already gated behind __DEV_TOOLS__ + lazy().
-export const ErrorTreeNode = ({node, showExternal}: ErrorTreeNodeProps) => (
-  <Flex direction='column' gap='1'>
-    <Disclosure.Root>
-      <Disclosure.Trigger>
-        <Flex align='center' gap='1'>
-          <Disclosure.Chevron />
-          <Box>
-            <Code color='red' size='2' variant='ghost'>
-              {node.error.name}
-            </Code>
-            <Text color='gray' size='2'>
-              : {node.error.message}
-            </Text>
-          </Box>
-        </Flex>
-      </Disclosure.Trigger>
-      <Disclosure.Content>
-        <StackTrace error={node.error} showExternal={showExternal} />
-      </Disclosure.Content>
-    </Disclosure.Root>
-    {node.children.length > 0 && (
-      <Box className='error-tree-node__causes' pl='3'>
-        <Flex direction='column' gap='1'>
-          {node.children.map((child, i) => (
-            <CauseView child={child} key={i} showExternal={showExternal} />
-          ))}
-        </Flex>
-      </Box>
-    )}
-  </Flex>
-);
+export function ErrorTreeNode({node, showExternal}: ErrorTreeNodeProps) {
+  return (
+    <Flex direction='column' gap='1'>
+      <Disclosure.Root>
+        <Disclosure.Trigger>
+          <Flex align='center' gap='1'>
+            <Disclosure.Chevron />
+            <Box>
+              <Code color='red' size='2' variant='ghost'>
+                {node.error.name}
+              </Code>
+              <Text color='gray' size='2'>
+                : {node.error.message}
+              </Text>
+            </Box>
+          </Flex>
+        </Disclosure.Trigger>
+        <Disclosure.Content>
+          <StackTrace error={node.error} showExternal={showExternal} />
+        </Disclosure.Content>
+      </Disclosure.Root>
+      {node.children.length > 0 && (
+        <Box className='error-tree-node__causes' pl='3'>
+          <Flex direction='column' gap='1'>
+            {node.children.map((child, i) => (
+              <CauseView child={child} key={i} showExternal={showExternal} />
+            ))}
+          </Flex>
+        </Box>
+      )}
+    </Flex>
+  );
+}
 
 // One cause of a node: a nested error recurses; a non-Error cause and a truncation point each
 // render as a single muted line so nothing is silently dropped.
-const CauseView = ({child, showExternal}: {child: ErrorChild; showExternal: boolean}) => {
+function CauseView({child, showExternal}: {child: ErrorChild; showExternal: boolean}) {
   switch (child.kind) {
     case 'error':
       return <ErrorTreeNode node={child.node} showExternal={showExternal} />;
@@ -68,4 +70,4 @@ const CauseView = ({child, showExternal}: {child: ErrorChild; showExternal: bool
         </Text>
       );
   }
-};
+}

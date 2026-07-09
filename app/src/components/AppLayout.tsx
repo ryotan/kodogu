@@ -13,11 +13,13 @@ const RadixThemePanel = __DEV_TOOLS__
   ? lazy(() => import('#(dev)/RadixThemePanel').then(m => ({default: m.RadixThemePanel})))
   : () => null;
 
-export const AppLayout = () => (
-  <Theme panelBackground='solid'>
-    <Outlet />
-    <Suspense fallback={null}>
-      <RadixThemePanel />
-    </Suspense>
-  </Theme>
-);
+export function AppLayout() {
+  return (
+    <Theme panelBackground='solid'>
+      <Outlet />
+      <Suspense fallback={null}>
+        <RadixThemePanel />
+      </Suspense>
+    </Theme>
+  );
+}

@@ -23,8 +23,8 @@ export type FrameView = {
  */
 type FrameListProps = {frames: FrameView[]; emptyMessage: string};
 
-export const FrameList = ({frames, emptyMessage}: FrameListProps) =>
-  frames.length === 0 ? (
+export function FrameList({frames, emptyMessage}: FrameListProps) {
+  return frames.length === 0 ? (
     <Text color='gray' size='1'>
       {emptyMessage}
     </Text>
@@ -37,20 +37,23 @@ export const FrameList = ({frames, emptyMessage}: FrameListProps) =>
       </Flex>
     </Box>
   );
+}
 
 type FrameRowProps = {frame: FrameView};
 
-const FrameRow = ({frame}: FrameRowProps) => (
-  <Flex align='baseline' className={`frame-list__row${frame.isExternal ? ' frame-list__row--external' : ''}`} gap='2'>
-    {frame.badge && (
-      <Badge color={frame.badge.color} size='1' variant='soft'>
-        {frame.badge.text}
-      </Badge>
-    )}
-    <Box>
-      <Text color='gray'>at </Text>
-      <Text className='frame-list__name'>{frame.name}</Text>
-      {frame.location && <Text className='frame-list__location'> · {frame.location}</Text>}
-    </Box>
-  </Flex>
-);
+function FrameRow({frame}: FrameRowProps) {
+  return (
+    <Flex align='baseline' className={`frame-list__row${frame.isExternal ? ' frame-list__row--external' : ''}`} gap='2'>
+      {frame.badge && (
+        <Badge color={frame.badge.color} size='1' variant='soft'>
+          {frame.badge.text}
+        </Badge>
+      )}
+      <Box>
+        <Text color='gray'>at </Text>
+        <Text className='frame-list__name'>{frame.name}</Text>
+        {frame.location && <Text className='frame-list__location'> · {frame.location}</Text>}
+      </Box>
+    </Flex>
+  );
+}

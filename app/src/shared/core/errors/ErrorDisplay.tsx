@@ -24,7 +24,7 @@ type ErrorDisplayProps = {
  * {@link import('#(dev)/ErrorDebugSection').ErrorDebugSection}; retry lives in
  * {@link import('./ErrorPage').ErrorPage}.
  */
-export const ErrorDisplay = ({error}: ErrorDisplayProps) => {
+export function ErrorDisplay({error}: ErrorDisplayProps) {
   const children = aggregateChildren(error);
   return (
     <Flex align='center' direction='column' gap='3'>
@@ -42,22 +42,24 @@ export const ErrorDisplay = ({error}: ErrorDisplayProps) => {
       {children && <AggregateChildren errors={children} />}
     </Flex>
   );
-};
+}
 
-const AggregateChildren = ({errors}: {errors: Error[]}) => (
+function AggregateChildren({errors}: {errors: Error[]}) {
   // Natural width, centred by the parent Flex's `align='center'`. The red
   // left rule sits at the block's left edge, items remain left-aligned
   // inside, but the block as a whole shares the centred rhythm.
-  <Box className='error-aggregate-children' pl='3' py='1'>
-    <Flex direction='column' gap='2'>
-      {errors.map((child, i) => (
-        <Text key={i} size='2'>
-          {getUserMessage(child)}
-        </Text>
-      ))}
-    </Flex>
-  </Box>
-);
+  return (
+    <Box className='error-aggregate-children' pl='3' py='1'>
+      <Flex direction='column' gap='2'>
+        {errors.map((child, i) => (
+          <Text key={i} size='2'>
+            {getUserMessage(child)}
+          </Text>
+        ))}
+      </Flex>
+    </Box>
+  );
+}
 
 /**
  * The aggregate's children when this error represents several failures at once,

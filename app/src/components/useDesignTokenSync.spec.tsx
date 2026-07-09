@@ -17,10 +17,10 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {useConfiguredDesignTokens} from '#components/useDesignTokenSync';
 import {appConfigQuery} from '#hooks/useAppConfig';
 
-const DesignTokenConsumer = () => {
+function DesignTokenConsumer() {
   useConfiguredDesignTokens();
   return <div data-testid='synced' />;
-};
+}
 
 const cssVarNames = [
   '--kodogu-surface-color',

@@ -17,8 +17,10 @@ type IconDiscProps = {
 
 // A tinted circular plate that gives a status glyph (error, warning, …) visual weight. Framing-only:
 // the consumer supplies the icon as children. `data-accent-color` drives the tint (see the CSS).
-export const IconDisc = ({children, color = 'red'}: IconDiscProps) => (
-  <Flex align='center' className={styles.disc} data-accent-color={color} justify='center'>
-    {children}
-  </Flex>
-);
+export function IconDisc({children, color = 'red'}: IconDiscProps) {
+  return (
+    <Flex align='center' className={styles.disc} data-accent-color={color} justify='center'>
+      {children}
+    </Flex>
+  );
+}

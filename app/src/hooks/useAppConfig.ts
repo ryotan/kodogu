@@ -9,14 +9,15 @@ export type AppConfigQueryOptions<T = AppConfig> = Omit<
   'queryKey' | 'queryFn' | 'staleTime' | 'gcTime'
 >;
 
-export const buildAppConfigQuery = <T = AppConfig>(opts?: AppConfigQueryOptions<T>) =>
-  queryOptions({
+export function buildAppConfigQuery<T = AppConfig>(opts?: AppConfigQueryOptions<T>) {
+  return queryOptions({
     queryKey: ['app-config'] as const,
     queryFn: getConfig,
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
     ...opts,
   });
+}
 
 export const appConfigQuery = buildAppConfigQuery();
 

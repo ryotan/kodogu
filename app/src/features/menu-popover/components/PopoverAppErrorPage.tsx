@@ -19,7 +19,7 @@ type PopoverAppErrorPageProps = {
   errorInfo?: ComponentErrorInfo;
 };
 
-export const PopoverAppErrorPage = ({error, reset, errorInfo}: PopoverAppErrorPageProps) => {
+export function PopoverAppErrorPage({error, reset, errorInfo}: PopoverAppErrorPageProps) {
   const {reset: resetQueries} = useQueryErrorResetBoundary();
 
   const onRetry = useCallback(() => {
@@ -38,4 +38,4 @@ export const PopoverAppErrorPage = ({error, reset, errorInfo}: PopoverAppErrorPa
       </Card>
     </PopoverLayout>
   );
-};
+}
