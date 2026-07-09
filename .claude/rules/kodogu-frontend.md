@@ -2,11 +2,31 @@
 paths:
   - "app/src/**/*.ts"
   - "app/src/**/*.tsx"
+  - "app/package.json"
+  - "app/eslint.config.mjs"
+  - "app/vite.config.ts"
 ---
 
 # Tauri App Frontend Practices
 
 Framework-specific practices for the Tauri desktop app frontend (`app/src/`).
+
+## Running Checks
+
+Always invoke via the `package.json` scripts below — not an ad-hoc `eslint`/`tsc`/`vitest` invocation. An ad-hoc
+`eslint src` (rather than `eslint .`) silently excluded `.storybook/` and let a real violation sit there undetected.
+
+```bash
+bun run --cwd app fix              # biome fix + eslint fix + cargo fmt + cargo clippy fix (run before lint)
+
+bun run --cwd app lint              # everything below, in parallel
+bun run --cwd app lint:es           # eslint .
+bun run --cwd app lint:tsc          # tsc --noEmit, both tsconfig.app.json and tsconfig.node.json
+bun run --cwd app lint:biome        # biome ci --error-on-warnings .
+
+bun run --cwd app test              # vitest run + cargo test
+bun run --cwd app test:coverage     # with coverage
+```
 
 ## Application Structure
 
