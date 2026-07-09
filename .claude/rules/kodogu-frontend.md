@@ -7,6 +7,8 @@ paths:
   - "app/package.json"
   - "app/eslint.config.mjs"
   - "app/vite.config.ts"
+  - "app/tsconfig*.json"
+  - "biome.jsonc"
 ---
 
 # Tauri App Frontend Practices
