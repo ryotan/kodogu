@@ -54,6 +54,13 @@ AI agents MUST NOT commit automatically when:
 - User hasn't reviewed the changes
 - Multiple unrelated changes are mixed
 
+## Running Commands
+
+Before running lint/test/build tooling, check the relevant `package.json` `scripts` (or `Cargo.toml`/`mise.toml`
+task equivalents) for the project's actual invocation instead of typing a plausible-looking command from memory.
+An ad-hoc invocation can silently narrow the scope (e.g. `eslint src` instead of the real `eslint .`) and hide
+real violations outside that narrower scope.
+
 ## Coding Philosophy
 
 - **FP-first**: Prefer pure functions, immutable data, and iterator chains. Use structs/enums for data, functions for
