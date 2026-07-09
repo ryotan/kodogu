@@ -259,11 +259,8 @@ const queryClient = new QueryClient({
 
 ## Vitest
 
-- Vitest for unit and component testing
-- Fast test execution with Vite integration
-- Compatible with Jest API
-- vitest-browser-react for hook/component tests (no jsdom/happy-dom)
-- **Why**: Modern testing with great TypeScript support
+Test-level selection (unit/browser/browser-devtools/storybook), spec vs story, and testing patterns are in
+`kodogu-frontend-test.md`.
 
 ## WebKit CSS
 
