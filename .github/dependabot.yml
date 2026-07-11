@@ -59,3 +59,13 @@ updates:
     labels:
       - "dependencies"
       - "security"
+
+  - package-ecosystem: npm
+    directory: /app
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly

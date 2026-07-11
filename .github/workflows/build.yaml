@@ -16,6 +16,9 @@ on:
 env:
   MISE_PARANOID: 'true'
 
+permissions:
+  contents: read
+
 jobs:
   tauri:
     name: 'Tauri - ${{ matrix.platform }}'
@@ -78,7 +81,7 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Setup Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        uses: step-security/setup-rust-toolchain@v1
         with:
           cache-workspace-crates: true
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
@@ -88,7 +91,7 @@ jobs:
         run: echo "::add-matcher::.github/problem-matchers.json"
 
       - name: Setup mise
-        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
+        uses: step-security/mise-action@v4
 
       - name: Cache Bun global cache
         if: github.event_name == 'pull_request'
@@ -112,7 +115,7 @@ jobs:
         run: bun install --frozen-lock-file
 
       - name: Build app
-        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
+        uses: step-security/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
