@@ -1,6 +1,5 @@
 import '@radix-ui/themes/styles.css';
 import '#main.css';
-import './radix-ui-theme.css';
 import './surface.css';
 
 import type {Preview} from '@storybook/react-vite';
