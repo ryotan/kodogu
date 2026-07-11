@@ -13,7 +13,7 @@ const meta: Meta<typeof Disclosure.Section> = {
   // A primitive doesn't need a full-height production shell; `fill: false` collapses the surface's
   // 100dvh so docs/story canvases sit at content height.
   // `docs.canvas.withToolbar` shows the zoom / open-in-new toolbar on each docs Canvas block.
-  parameters: {theme: {surface: 'app-dark', fill: false}, docs: {canvas: {withToolbar: true}}},
+  parameters: {surface: {value: 'app-dark', fill: false}, docs: {canvas: {withToolbar: true}}},
   // Section is the flat shorthand, so its props map cleanly onto controls. The compound stories
   // below render their own composition and don't use args.
   argTypes: {

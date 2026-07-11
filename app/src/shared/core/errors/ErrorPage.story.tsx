@@ -19,7 +19,7 @@ const meta: Meta<typeof ErrorPage> = {
       </Card>
     ),
   ],
-  parameters: {theme: {surface: 'popover-dark'}},
+  parameters: {surface: {value: 'popover-dark'}},
 };
 export default meta;
 

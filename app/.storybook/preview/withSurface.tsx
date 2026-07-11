@@ -8,10 +8,10 @@ declare module '@storybook/react-vite' {
   // biome-ignore lint/style/useConsistentTypeDefinitions: TypeScript module augmentation requires `interface`; `type` cannot extend an existing interface from another module.
   interface Parameters {
     /**
-     * Story configuration consumed by the {@link withTheme} decorator.
+     * Story configuration consumed by the {@link withSurface} decorator.
      * Has no effect when the decorator is not applied to the story.
      */
-    theme?: {
+    surface?: {
       /** Render the story without wrapping it in the Radix Theme. */
       skip?: boolean;
       /**
@@ -26,7 +26,7 @@ declare module '@storybook/react-vite' {
        * `inherit` follows the OS / browser `prefers-color-scheme` (same value
        * Radix Theme uses to defer to system).
        */
-      surface?: Surface;
+      value?: Surface;
       /**
        * Whether the surface fills the canvas height (`min-height: 100dvh`).
        * Defaults to `true` — production surfaces (popover window, app panel)
@@ -125,8 +125,8 @@ function parseSurface(s: Surface): {kind: SurfaceKind; appearance: Appearance} {
   };
 }
 
-export const withTheme: Decorator = (Story, {parameters, globals}) => {
-  if (parameters.theme?.skip === true) {
+export const withSurface: Decorator = (Story, {parameters, globals}) => {
+  if (parameters.surface?.skip === true) {
     return <Story />;
   }
   // Empty string from the toolbar's `Reset surface` item means "fall through
@@ -135,20 +135,20 @@ export const withTheme: Decorator = (Story, {parameters, globals}) => {
   //
   // Caveat: this is the best we can do with `globalTypes.toolbar.items` —
   // the item still appears as "selected" in the dropdown, and the URL still
-  // carries `themeSurface:` (empty). To get a truly atomic clear (URL
+  // carries `surface:` (empty). To get a truly atomic clear (URL
   // disappears, dropdown returns to no selection) we'd need to register a
   // custom TOOL via the Storybook manager API, like the Backgrounds addon
   // does. Out of scope for this prototype.
-  const toolbarSurface = globals.themeSurface as Surface | '' | undefined;
+  const toolbarSurface = globals.surface as Surface | undefined;
   // `||` (not `??`) is intentional: the `Reset surface` toolbar item is the empty string, which
   // must fall through to the story parameter — `??` would treat `''` as a set value.
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-  const surface = toolbarSurface || (parameters.theme?.surface ?? 'app-inherit');
+  const surface = toolbarSurface || (parameters.surface?.value ?? 'app-inherit');
   const {kind, appearance} = parseSurface(surface);
   const SurfaceComponent = kind === 'popover' ? PopoverSurface : AppSurface;
   // `fill` defaults to true (production surfaces occupy full height). When false, the wrapper class
   // collapses the surface's `min-height: 100dvh` (see surface.css) so the canvas fits content.
-  const fill = parameters.theme?.fill ?? true;
+  const fill = parameters.surface?.fill ?? true;
   const surfaceElement = (
     <SurfaceComponent appearance={appearance}>
       <Story />

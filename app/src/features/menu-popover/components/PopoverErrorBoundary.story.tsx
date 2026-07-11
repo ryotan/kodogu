@@ -7,7 +7,7 @@ import {PopoverErrorBoundary} from './PopoverErrorBoundary';
 
 const meta: Meta<typeof PopoverErrorBoundary> = {
   component: PopoverErrorBoundary,
-  parameters: {theme: {surface: 'popover-dark'}},
+  parameters: {surface: {value: 'popover-dark'}},
 };
 export default meta;
 

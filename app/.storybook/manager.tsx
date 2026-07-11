@@ -12,7 +12,7 @@ import {SURFACE_GLOBAL_KEY, SURFACE_OPTIONS} from './preview/surfaces';
 
 const TOOL_ID = 'kodogu/surface';
 
-// Custom toolbar for the `themeSurface` global, modelled on Storybook's own Backgrounds tool. The
+// Custom toolbar for the `surface` global, modeled on Storybook's own Backgrounds tool. The
 // `Select` component's `onReset` sets the global to `undefined`, which truly clears it — the
 // selection returns to none and the value drops out of the URL — instead of leaving an empty-string
 // sentinel selected (which a declarative `globalTypes.toolbar` item list can only do).

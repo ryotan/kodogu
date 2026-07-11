@@ -15,7 +15,7 @@ import {ErrorDebugSection} from './ErrorDebugSection';
 // cutoff leaves, the external-frame switch, and the component stack.
 const meta: Meta<typeof ErrorDebugSection> = {
   component: ErrorDebugSection,
-  parameters: {theme: {surface: 'app-dark', fill: false}},
+  parameters: {surface: {value: 'app-dark', fill: false}},
   decorators: [
     Story => (
       <Box width='420px'>

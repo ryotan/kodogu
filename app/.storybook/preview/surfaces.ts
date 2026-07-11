@@ -1,4 +1,4 @@
-import type {Surface} from './withTheme';
+import type {Surface} from './withSurface.tsx';
 
 // The selectable surfaces, shared by the preview's `globalTypes` declaration and the manager-side
 // custom toolbar. The toolbar adds its own "Reset" entry that clears the global (sets it to
@@ -13,4 +13,4 @@ export const SURFACE_OPTIONS: {value: Surface; title: string}[] = [
   {value: 'popover-dark', title: 'Popover (dark)'},
 ];
 
-export const SURFACE_GLOBAL_KEY = 'themeSurface';
+export const SURFACE_GLOBAL_KEY = 'surface';

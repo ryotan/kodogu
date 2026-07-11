@@ -19,7 +19,7 @@ const meta: Meta<typeof PopoverAppErrorPage> = {
       </QueryErrorResetBoundary>
     ),
   ],
-  parameters: {theme: {surface: 'popover-dark'}},
+  parameters: {surface: {value: 'popover-dark'}},
 };
 export default meta;
 

@@ -1,4 +1,4 @@
-/* Storybook-only. When a story sets `parameters.theme.fill = false`, the surface decorator wraps
+/* Storybook-only. When a story sets `parameters.surface.fill = false`, the surface decorator wraps
    the surface in `.sb-no-fill`. This collapses the surface's `min-height: 100dvh` (an inline style,
    hence `!important`) so the canvas sits at content height instead of a tall empty area. Never
    applied in production — `.sb-no-fill` only exists in the Storybook decorator. */

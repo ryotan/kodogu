@@ -8,7 +8,7 @@ import {IconDisc} from './IconDisc';
 const meta: Meta<typeof IconDisc> = {
   component: IconDisc,
   // A primitive doesn't need the production shell; `fill: false` collapses the surface to content height.
-  parameters: {theme: {surface: 'app-dark', fill: false}, docs: {canvas: {withToolbar: true}}},
+  parameters: {surface: {value: 'app-dark', fill: false}, docs: {canvas: {withToolbar: true}}},
   argTypes: {
     color: {control: 'inline-radio', options: ['red', 'amber', 'green', 'blue', 'gray']},
   },
