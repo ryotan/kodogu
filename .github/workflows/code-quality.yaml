@@ -31,16 +31,21 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             azure.archive.ubuntu.com:80
+            _http._tcp.azure.archive.ubuntu.com:80
             cli.codecov.io:443
             dl.google.com:443
+            _https._tcp.dl.google.com:443
             esm.ubuntu.com:443
+            _https._tcp.esm.ubuntu.com:443
             github.com:443
             index.crates.io:443
             ingest.codecov.io:443
             keybase.io:443
             motd.ubuntu.com:443
+            _https._tcp.motd.ubuntu.com:443
             o26192.ingest.us.sentry.io:443
             packages.microsoft.com:443
+            _https._tcp.packages.microsoft.com:443
             registry.npmjs.org:443
             static.crates.io:443
             static.rust-lang.org:443

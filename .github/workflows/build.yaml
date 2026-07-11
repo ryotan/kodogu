@@ -42,12 +42,17 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             azure.archive.ubuntu.com:80
+            _http._tcp.azure.archive.ubuntu.com:80
             dl.google.com:443
+            _https._tcp.dl.google.com:443
             esm.ubuntu.com:443
+            _https._tcp.esm.ubuntu.com:443
             github.com:443
             index.crates.io:443
             motd.ubuntu.com:443
+            _https._tcp.motd.ubuntu.com:443
             packages.microsoft.com:443
+            _https._tcp.packages.microsoft.com:443
             raw.githubusercontent.com:443
             registry.npmjs.org:443
             release-assets.githubusercontent.com:443
