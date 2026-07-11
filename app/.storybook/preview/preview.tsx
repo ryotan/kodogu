@@ -4,6 +4,7 @@ import './surface.css';
 
 import type {Preview} from '@storybook/react-vite';
 
+import {SURFACE_GLOBAL_KEY} from './surfaces';
 import {withQueryClient} from './withQueryClient';
 import {withSurface} from './withSurface.tsx';
 
@@ -21,7 +22,7 @@ const preview: Preview = {
   // `globalTypes.toolbar`, so that "Reset" can truly clear the global (set it to `undefined`),
   // returning to no selection — a declarative item list can only ever set a value.
   globalTypes: {
-    surface: {
+    [SURFACE_GLOBAL_KEY]: {
       name: 'Surface',
       description: 'Production surface the story renders inside',
     },

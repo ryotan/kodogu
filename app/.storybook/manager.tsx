@@ -1,6 +1,6 @@
 /** @jsxRuntime classic */
 // The Storybook manager bundle uses the classic JSX runtime, so `React` must be in scope. The
-// pragma above tells tsc the same; biome doesn't read the pragma, hence the ignore.
+// pragma above tells tsc the same; biome doesn't read the pragma, hence ignoring this.
 // biome-ignore lint/correctness/noUnusedImports: required in scope by the classic JSX runtime.
 import React from 'react';
 
@@ -8,7 +8,7 @@ import {BrowserIcon} from '@storybook/icons';
 import {Select} from 'storybook/internal/components';
 import {addons, types, useGlobals} from 'storybook/manager-api';
 
-import {SURFACE_GLOBAL_KEY, SURFACE_OPTIONS} from './preview/surfaces';
+import {isSurfaceLiteral, SURFACE_GLOBAL_KEY, SURFACE_OPTIONS} from './preview/surfaces';
 
 const TOOL_ID = 'kodogu/surface';
 
@@ -18,7 +18,8 @@ const TOOL_ID = 'kodogu/surface';
 // sentinel selected (which a declarative `globalTypes.toolbar` item list can only do).
 function SurfaceTool() {
   const [globals, updateGlobals] = useGlobals();
-  const selected = globals[SURFACE_GLOBAL_KEY] as string | undefined;
+  const toolbarValue: unknown = globals[SURFACE_GLOBAL_KEY];
+  const selected = isSurfaceLiteral(toolbarValue) ? toolbarValue : undefined;
 
   return (
     <Select
