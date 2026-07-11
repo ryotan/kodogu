@@ -44,6 +44,7 @@ jobs:
             ingest.codecov.io:443
             keybase.io:443
             mise.jdx.dev:443
+            mise-java.jdx.dev:443
             mise-versions.jdx.dev:443
             motd.ubuntu.com:443
             _https._tcp.motd.ubuntu.com:443
