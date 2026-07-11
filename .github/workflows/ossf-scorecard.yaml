@@ -1,0 +1,48 @@
+name: 'Scorecard'
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # Weekly on Saturdays.
+    - cron: '30 1 * * 6'
+
+# Default-deny token permissions; the analysis job below grants the extra scope it needs.
+permissions:
+  contents: read
+
+jobs:
+  analysis:
+    name: 'Scorecard analysis'
+    runs-on: ubuntu-latest
+    # This repository is private, so results can't be published to the public Scorecard dataset and SARIF
+    # upload to Code Scanning needs GitHub Advanced Security, which we do not have here.
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        # New workflow — audit first to baseline expected egress, then switch to block once we have a
+        # sample of real runs (same rollout process used for the other workflows in this repo).
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: 'Checkout code'
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: 'Run analysis'
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: false
+
+      - name: 'Upload artifact'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
