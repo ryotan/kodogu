@@ -17,9 +17,15 @@ jobs:
     name: 'Scorecard analysis'
     runs-on: ubuntu-latest
     # This repository is private, so results can't be published to the public Scorecard dataset and SARIF
-    # upload to Code Scanning needs GitHub Advanced Security, which we do not have here.
+    # upload to Code Scanning needs GitHub Advanced Security, which we do not have here. Several checks
+    # (e.g. Maintained, Code-Review) query commit/review/check-run history via the GitHub GraphQL API, which
+    # 403s on private repos without these extra read scopes — see the "Permissions (Private Repo)" section of
+    # https://github.com/ossf/scorecard-action#example.
     permissions:
       contents: read
+      issues: read
+      pull-requests: read
+      checks: read
     steps:
       - name: Harden Runner
         # New workflow — audit first to baseline expected egress, then switch to block once we have a
