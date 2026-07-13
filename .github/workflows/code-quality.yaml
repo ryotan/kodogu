@@ -24,11 +24,44 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Harden Runner
-        # Monitor and (in audit mode) report unexpected egress and process activity on the runner.
-        # Once we have a baseline of expected endpoints we can switch `egress-policy` to `block`.
+        # Block unexpected egress and process activity on the runner. Endpoints below were baselined from
+        # the audit-mode log observed across recent successful runs.
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            aka.ms:443
+            azure.archive.ubuntu.com:80
+            _http._tcp.azure.archive.ubuntu.com:80
+            cli.codecov.io:443
+            dl.google.com:443
+            _https._tcp.dl.google.com:443
+            download.visualstudio.microsoft.com:443
+            esm.ubuntu.com:443
+            _https._tcp.esm.ubuntu.com:443
+            github.com:443
+            index.crates.io:443
+            ingest.codecov.io:443
+            keybase.io:443
+            mise.jdx.dev:443
+            mise-java.jdx.dev:443
+            mise-versions.jdx.dev:443
+            motd.ubuntu.com:443
+            _https._tcp.motd.ubuntu.com:443
+            nodejs.org:443
+            o26192.ingest.us.sentry.io:443
+            packages.microsoft.com:443
+            _https._tcp.packages.microsoft.com:443
+            registry.npmjs.org:443
+            release-assets.githubusercontent.com:443
+            static.crates.io:443
+            static.rust-lang.org:443
+            storage.googleapis.com:443
+            storybook.js.org:443
+            tuf-repo-cdn.sigstore.dev:443
+            *.actions.githubusercontent.com:443
+            *.githubapp.com:443
+            *.blob.core.windows.net:443
 
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -38,7 +71,7 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Setup Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        uses: step-security/setup-rust-toolchain@a8823c6cdb5668ac7528d7756acfee772bf71809 # v1.16.1
         with:
           cache-workspace-crates: true
 
@@ -46,11 +79,11 @@ jobs:
         run: echo "::add-matcher::.github/problem-matchers.json"
 
       - name: Setup mise
-        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
+        uses: step-security/mise-action@2796166110dee826668caddd4bffedae5116e7cd # v4.2.0
 
       - name: Cache Bun global cache
         if: github.event_name == 'pull_request'
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.bun/install/cache
           key: 0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-${{ hashFiles('**/bun.lock') }}
@@ -59,7 +92,7 @@ jobs:
 
       - name: Cache node_modules
         if: github.event_name == 'pull_request'
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules
           key: 0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-${{ hashFiles('**/bun.lock') }}
@@ -83,7 +116,7 @@ jobs:
           fi
 
       - name: Cache Playwright Browsers
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: 0-${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
@@ -137,7 +170,7 @@ jobs:
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        uses: step-security/codecov-action@db5c3605ff3c9dc7f0b2791e6bea84a561bacab8 # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: app/coverage/clover.xml,lcov.info

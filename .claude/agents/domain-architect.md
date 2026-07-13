@@ -3,7 +3,7 @@ name: domain-architect
 description: |-
   Use this agent PROACTIVELY for domain modeling, DDD design decisions, and architectural evaluation.
   This agent MUST BE USED before making architectural changes or cross-context integration decisions.
-  
+
   Launch this agent when:
   <example>
     Context: User is designing a new domain feature.
@@ -13,7 +13,7 @@ description: |-
       New domain features require DDD analysis to identify aggregates, bounded contexts, and invariants. The domain-architect ensures designs align with DDD principles.
     </commentary>
   </example>
-  
+
   <example>
     Context: User needs to evaluate an architectural decision.
     user: "Should Order own PaymentMethod or should it be a separate aggregate?"
@@ -22,7 +22,7 @@ description: |-
       Aggregate boundary decisions are critical DDD design choices. The domain-architect analyzes invariants, consistency requirements, and coupling to recommend the right approach.
     </commentary>
   </example>
-  
+
   <example>
     Context: User mentions integrating bounded contexts.
     user: "The Order context needs to access User information"
@@ -31,7 +31,7 @@ description: |-
       Cross-context integration requires careful boundary design and anti-corruption layers. This is a MUST BE USED scenario for the domain-architect.
     </commentary>
   </example>
-  
+
   <example>
     Context: User suspects a DDD anti-pattern.
     user: "This service has a lot of business logic but our entities are mostly getters/setters"
@@ -40,7 +40,7 @@ description: |-
       Anemic domain models are a common DDD anti-pattern. The domain-architect identifies these issues and recommends behavior-rich alternatives.
     </commentary>
   </example>
-  
+
   <anti_patterns>
     Don't invoke for:
     - Implementation task breakdown (use planner agent)
