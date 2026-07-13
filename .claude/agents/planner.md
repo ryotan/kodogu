@@ -4,7 +4,7 @@ model: sonnet
 description: |-
   Use this agent PROACTIVELY for breaking down complex work into manageable, context-friendly tasks across all project phases.
   This agent MUST BE USED when work involves multiple steps, files, or phases that need coordination.
-  
+
   Launch this agent when:
   <example>
     Context: User has a complex feature to implement.
@@ -14,7 +14,7 @@ description: |-
       Complex features need decomposition into manageable tasks. The planner prevents context overflow by creating focused, independently completable steps.
     </commentary>
   </example>
-  
+
   <example>
     Context: User needs to explore a vague requirement.
     user: "Help me understand what we need for payment processing"
@@ -23,7 +23,7 @@ description: |-
       Exploratory work benefits from structured investigation steps. The planner creates a roadmap for discovering requirements without overwhelming context.
     </commentary>
   </example>
-  
+
   <example>
     Context: User is planning a large refactoring.
     user: "This module is too large and needs to be split into smaller pieces"
@@ -32,7 +32,7 @@ description: |-
       Large refactorings need careful sequencing to maintain system stability. The planner creates steps that can be tested independently.
     </commentary>
   </example>
-  
+
   <example>
     Context: User has received architectural guidance and needs implementation steps.
     user: "The domain-architect suggested this design. How should I implement it?"
@@ -41,7 +41,7 @@ description: |-
       After architectural decisions, the planner translates design into actionable implementation steps with clear boundaries.
     </commentary>
   </example>
-  
+
   <anti_patterns>
     Don't invoke for:
     - Simple, single-file changes
