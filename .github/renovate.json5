@@ -89,6 +89,15 @@
       matchSourceUrls: [
         'https://github.com/RustCrypto/**',
       ],
+      // `separateMajorMinor` defaults to true and takes priority over `groupName`: a major
+      // bump on one grouped crate still splits into its own branch, separate from a
+      // same-cycle minor/patch bump on another grouped crate it depends on for compatible
+      // traits. E.g. ed25519-dalek's major bump requires pkcs8's paired minor bump; merging
+      // the major-only branch alone duplicates the shared trait crates (pkcs8, signature,
+      // spki, crypto-common, digest, ...) at two incompatible versions each in Cargo.lock.
+      // Set false so every update type in this group lands in one branch.
+      // cf. https://docs.renovatebot.com/configuration-options/#separatemajorminor
+      separateMajorMinor: false,
     },
     {
       // Fallback bucket for three reasons:
@@ -108,6 +117,11 @@
       // cf. https://github.com/renovatebot/renovate/issues/3486
       //     https://github.com/renovatebot/renovate/issues/37537
       groupName: 'RustCrypto stack',
+      // Same `separateMajorMinor` override as the sourceUrl-matcher rule above — required
+      // here too because it's evaluated per matching packageRule, and members that only
+      // match this fallback rule (e.g. ed25519-dalek) wouldn't inherit the override from
+      // the other rule.
+      separateMajorMinor: false,
       matchPackageNames: [
         // RustCrypto
         'aes',
