@@ -39,10 +39,16 @@ jobs:
     steps:
       - name: Harden Runner
         # Block unexpected egress and process activity on the runner. Endpoints below were baselined from
-        # the audit-mode log observed across recent successful runs.
+        # the audit-mode log observed across recent successful runs — on Linux only, since that is the sole
+        # platform currently enabled in the matrix above.
+        #
+        # Since v2.20.0 the block policy is enforced on macOS and Windows too, and it is applied by the
+        # action's `pre` step, which has no `pre-if` and therefore cannot be skipped with a step-level `if:`.
+        # Re-enabling the macOS/Windows matrix entries would otherwise fail them against this Linux-only
+        # allowlist; keeping those platforms on audit lets their first runs produce their own baseline.
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
-          egress-policy: block
+          egress-policy: ${{ runner.os == 'Linux' && 'block' || 'audit' }}
           allowed-endpoints: >
             aka.ms:443
             azure.archive.ubuntu.com:80
