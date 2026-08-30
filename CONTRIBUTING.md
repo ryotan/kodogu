@@ -129,8 +129,9 @@ See `docs/.ai/` and `.claude/rules/` for comprehensive development practices:
 
 Language/framework-specific practices are in `.claude/rules/`:
 - `rust.md`, `typescript.md`, `kotlin.md` - Language-specific conventions
-- `tauri-frontend.md`, `tauri-backend.md` - Framework-specific practices
-- `testing.md` - Testing strategy and patterns
+- `kodogu-app-frontend.md`, `kodogu-app-backend.md` - This app's architecture and framework conventions
+- `kodogu-app-frontend-testing.md` - Frontend test-strategy conventions
+- `testing.md` - Language-agnostic testing principles
 
 ## Stereotypical Structure of a Tauri App
 

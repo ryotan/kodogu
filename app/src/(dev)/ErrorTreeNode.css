@@ -1,0 +1,7 @@
+/* A node's causes nest under a left rule so the causal descent reads as a tree; nested causes
+   gain their own inner rule. The rule uses an alpha-gray token (a color, not the opacity
+   property). */
+
+.error-tree-node__causes {
+  border-left: 1px solid var(--gray-a5);
+}

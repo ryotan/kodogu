@@ -3,7 +3,7 @@
     "composite": true,
     "target": "es2020",
     "useDefineForClassFields": true,
-    "lib": ["es2020", "dom", "dom.iterable"],
+    "lib": ["es2022", "dom", "dom.iterable"],
     "module": "esnext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -18,8 +18,9 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "#*": ["./src/*"],
-      "!#*": ["./gen/*"]
+      "!#*": ["./gen/*"],
+      "$preview/*": ["./.storybook/preview/*"]
     }
   },
-  "include": ["src", "gen", ".storybook/preview.tsx"]
+  "include": ["src", "gen", ".storybook/preview", ".storybook/manager.tsx"]
 }

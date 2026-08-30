@@ -1,0 +1,43 @@
+/* FrameList — compact stack-frame list shared by StackTrace and ComponentStack. Long locations
+   scroll horizontally (no wrapping); the scrollbar chrome is hidden because it reads as noise in a
+   dense debug list. Scrolling still works via trackpad / shift-wheel. */
+
+.frame-list {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-left: 1px solid var(--gray-a4);
+  padding-left: var(--space-1);
+  scrollbar-width: none;
+}
+
+/* WKWebView (Tauri on macOS) and Chromium hide the bar via the vendor pseudo-element. */
+.frame-list::-webkit-scrollbar {
+  display: none;
+}
+
+.frame-list__row {
+  white-space: nowrap;
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+  line-height: 1.7;
+  padding-left: var(--space-2);
+}
+
+.frame-list__name {
+  color: var(--gray-12);
+  font-weight: 500;
+}
+
+.frame-list__location {
+  color: var(--gray-11);
+}
+
+/* External (node_modules/.vite) frames are de-emphasised by dropping to lower-contrast gray steps
+   rather than `opacity`, so text stays crisp and the dimming reads as intentional hierarchy. */
+.frame-list__row--external .frame-list__name {
+  color: var(--gray-11);
+}
+
+.frame-list__row--external .frame-list__location {
+  color: var(--gray-10);
+}

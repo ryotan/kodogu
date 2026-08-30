@@ -1,0 +1,12 @@
+/* A tinted circular plate behind a status glyph. `data-accent-color` (set in IconDisc.tsx) remaps
+   Radix's `--accent-*` scale, so the tint, glow and glyph all follow the chosen color. */
+
+.disc {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--accent-a3);
+  box-shadow: 0 0 20px -2px var(--accent-a4);
+  color: var(--accent-10);
+  flex-shrink: 0;
+}

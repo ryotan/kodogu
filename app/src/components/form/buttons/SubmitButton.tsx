@@ -1,10 +1,10 @@
-import type {FC, PropsWithChildren} from 'react';
+import type {PropsWithChildren} from 'react';
 
 import {Button} from '@radix-ui/themes';
 
 import {useFormContext} from '../FormContext';
 
-export const SubmitButton: FC<PropsWithChildren> = ({children}) => {
+export function SubmitButton({children}: PropsWithChildren) {
   const form = useFormContext();
   return (
     <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
@@ -15,4 +15,4 @@ export const SubmitButton: FC<PropsWithChildren> = ({children}) => {
       )}
     </form.Subscribe>
   );
-};
+}

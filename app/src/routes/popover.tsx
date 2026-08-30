@@ -11,7 +11,7 @@ import {useAutoResize} from '#hooks/useAutoResize';
 // Popover shell — window management and layout skeleton
 // =============================================================================
 
-const PopoverLayout = () => {
+function PopoverLayout() {
   const {resizeCallbackRef} = useAutoResize();
 
   return (
@@ -33,7 +33,7 @@ const PopoverLayout = () => {
       </div>
     </Theme>
   );
-};
+}
 
 export const Route = createFileRoute('/popover')({
   component: PopoverLayout,

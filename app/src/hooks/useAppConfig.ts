@@ -1,22 +1,23 @@
-import {queryOptions, useSuspenseQuery} from '@tanstack/react-query';
+import {useSuspenseQuery} from '@tanstack/react-query';
 
 import {getConfig} from '#commands/appConfig';
 import type {AppConfig} from '#config';
+import {queryOptions} from '#shared/core/query/queryOptions';
 
-// TODO: Replace `Error` with Rust-side IPC error type once IPC error handling is improved. (KDG-27)
 export type AppConfigQueryOptions<T = AppConfig> = Omit<
-  Parameters<typeof queryOptions<AppConfig, Error, T>>[0],
+  Parameters<typeof queryOptions<AppConfig, T>>[0],
   'queryKey' | 'queryFn' | 'staleTime' | 'gcTime'
 >;
 
-export const buildAppConfigQuery = <T = AppConfig>(opts?: AppConfigQueryOptions<T>) =>
-  queryOptions({
+export function buildAppConfigQuery<T = AppConfig>(opts?: AppConfigQueryOptions<T>) {
+  return queryOptions({
     queryKey: ['app-config'] as const,
     queryFn: getConfig,
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
     ...opts,
   });
+}
 
 export const appConfigQuery = buildAppConfigQuery();
 

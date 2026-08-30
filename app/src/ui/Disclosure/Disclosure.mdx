@@ -1,0 +1,54 @@
+import {Canvas, Controls, Meta, Story} from '@storybook/addon-docs/blocks';
+
+import * as DisclosureStories from './Disclosure.story';
+
+<Meta of={DisclosureStories} />
+
+# Disclosure
+
+A collapsible section built on Radix Primitives `Collapsible`. The trigger is a real `<button>`
+(`aria-expanded` + keyboard), the native button chrome is removed with Radix Themes `Reset`, and the
+chevron rotates and the content animates off the trigger's `data-state`.
+
+It comes in two layers:
+
+- **`Disclosure.Section`** — the shorthand for the common case. Pass a `label` and children; it lays
+  out the standard trigger row (label left, chevron right) and pads the content for you.
+- **Compound parts** (`Disclosure.Root` / `.Trigger` / `.Chevron` / `.Content`) — the unstyled
+  mechanism, for anything the Section can't express (e.g. a second trigger inside the content).
+
+## Section
+
+The shorthand. `size` selects the padding scale (`2` standard, `1` compact for nesting). Open state
+is uncontrolled by default (`defaultOpen`) or controlled (`open` + `onOpenChange`).
+
+<Canvas of={DisclosureStories.Section} />
+
+<Controls of={DisclosureStories.Section} />
+
+### Nesting
+
+Sections nest; inner ones use `size='1'`.
+
+<Canvas of={DisclosureStories.SectionNested} />
+
+## Compound parts
+
+Use the compound parts directly when the layout is non-standard. Because `Trigger` is just a button
+driving the shared open state, you can place a second one — here a "Collapse" affordance at the
+bottom of the content.
+
+<Canvas of={DisclosureStories.CompoundWithFooterToggle} />
+
+A `Chevron` with no label, centred by the consumer:
+
+<Canvas of={DisclosureStories.ChevronOnly} />
+
+## Guidelines
+
+- Reach for **`Section`** first. Drop to the compound parts only when its layout doesn't fit.
+- The consumer owns the **surface** (background, border, radius). A bare Section sits flat on its
+  parent; wrap it in a `Card` for a panelled list — see the connection list below.
+- `Chevron` must live **inside** a `Trigger`; its rotation is driven by the trigger's `data-state`.
+
+<Canvas of={DisclosureStories.RealisticUsage} />

@@ -1,20 +1,22 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {render} from 'vitest-browser-react';
 
-const mockInvoke = vi.fn().mockResolvedValue(undefined);
+import {useAutoResize} from '#hooks/useAutoResize';
 
-beforeEach(() => {
-  mockInvoke.mockClear();
-});
+const {mockInvoke} = vi.hoisted(() => ({
+  mockInvoke: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
 }));
 
-const {useAutoResize} = await import('#hooks/useAutoResize');
+beforeEach(() => {
+  mockInvoke.mockClear();
+});
 
 // Simulates the popover layout: outer (viewport) > scroll area > content (ref).
-const TestComponent = ({contentHeight}: {contentHeight: number}) => {
+function TestComponent({contentHeight}: {contentHeight: number}) {
   const {resizeCallbackRef} = useAutoResize();
   return (
     <div style={{height: 500, display: 'flex', flexDirection: 'column'}}>
@@ -25,7 +27,7 @@ const TestComponent = ({contentHeight}: {contentHeight: number}) => {
       <div style={{height: 40, flexShrink: 0}}>footer</div>
     </div>
   );
-};
+}
 
 // Wait two animation frames — the hook schedules resize via requestAnimationFrame,
 // so two frames guarantees any pending observer→RAF cycle has completed.
@@ -126,7 +128,9 @@ describe('useAutoResize', () => {
   });
 
   it('logs error when resize_popover IPC fails', async () => {
-    const errorSpy = vi.spyOn(console, 'error');
+    // mockImplementation silences the underlying console.error call so the test runner output
+    // stays clean; spy.toHaveBeenCalledWith below still asserts that the log fired.
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
     mockInvoke.mockRejectedValueOnce(new Error('IPC timeout'));
 
     try {
@@ -174,16 +178,18 @@ describe('useAutoResize — no scroll area', () => {
   });
 
   it('logs error and skips resize when parentElement is null', async () => {
-    const errorSpy = vi.spyOn(console, 'error');
+    // mockImplementation silences the underlying console.error call so the test runner output
+    // stays clean; spy.toHaveBeenCalledWith below still asserts that the log fired.
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
     mockInvoke.mockClear();
 
     // A component that attaches the ref to a top-level div (no intermediate scroll area).
     // When the mock ResizeObserver fires the callback with a *detached* element,
     // entry.target.parentElement is null — matching the defensive branch in the hook.
-    const NoScrollAreaComponent = () => {
+    function NoScrollAreaComponent() {
       const {resizeCallbackRef} = useAutoResize();
       return <div data-testid='probe' ref={resizeCallbackRef} />;
-    };
+    }
 
     try {
       await render(<NoScrollAreaComponent />);

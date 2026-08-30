@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
     "composite": true,
-    "lib": ["es2020"],
-    "skipLibCheck": true,
+    "target": "es2022",
+    "lib": ["es2022"],
     "module": "esnext",
+    "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
-    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "strict": true,
     "noEmit": true,
     "noUnusedLocals": true,
@@ -14,11 +17,5 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node"]
   },
-  "include": [
-    "vite.config.ts",
-    ".storybook/main.ts",
-    ".storybook/vitest.setup.ts",
-    ".storybook/preview.tsx",
-    ".storybook/tauri-api-stub.ts"
-  ]
+  "include": ["vite.config.ts", ".storybook/main.ts"]
 }

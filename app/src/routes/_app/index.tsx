@@ -17,7 +17,7 @@ const formInput = type({
 });
 const initialValues = {name: ''} satisfies typeof formInput.infer;
 
-const App = () => {
+function App() {
   const [greetMsg, setGreetMsg] = useState('');
 
   const form = useAppForm({
@@ -61,7 +61,7 @@ const App = () => {
       <p>{greetMsg}</p>
     </main>
   );
-};
+}
 
 export const Route = createFileRoute('/_app/')({
   component: App,

@@ -7,6 +7,7 @@ import {create} from 'mutative';
 
 import {setConfig} from '#commands/appConfig';
 import type {AppConfig} from '#config';
+import {ApplicationError} from '#shared/core/errors/ApplicationError';
 
 import {appConfigQuery} from './useAppConfig';
 
@@ -49,7 +50,7 @@ export function useAppConfigCommands() {
       // so the cache is always populated at this point.
       const current = queryClient.getQueryData(appConfigQuery.queryKey);
       if (!current) {
-        throw new Error('update() called before AppConfig was loaded — this should be unreachable');
+        throw new ApplicationError('update() called before AppConfig was loaded — this should be unreachable');
       }
       mutate(create(current, recipe));
     },

@@ -59,7 +59,8 @@
             "devDependencies": [
               "**/*.test.*",
               "**/*.spec.*",
-              "**/*.stories.*",
+              "**/*.story.*",
+              "**/*.fixture.*",
               "**/_dev/**",
               "**/(dev)/**",
               "**/eslint.config.mjs",
@@ -87,6 +88,10 @@
         "useBlockStatements": "error",
         "useCollapsedElseIf": "error",
         "useConsistentArrayType": "error",
+        "useConsistentTypeDefinitions": {
+          "level": "error",
+          "options": { "style": "type" }
+        },
         "useForOf": "error",
         "useFragmentSyntax": "error",
         // Next.jsやExpo Routerのファイル命名規約に従えない（[fragment].tsxや+html.tsxなど）
@@ -167,5 +172,40 @@
   "files": {
     "includes": ["**", "!**/.idea", "!**/.github", "!**/patches", "!**/src-tauri", "!kernel", "!**/*.svg"],
     "ignoreUnknown": true
-  }
+  },
+  "overrides": [
+    {
+      // Query factories must go through the call-site-aware wrapper (#shared/core/query/queryOptions),
+      // which attaches a QueryCallSiteError cause. Importing TanStack's queryOptions directly bypasses it.
+      "includes": ["app/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@tanstack/react-query": {
+                    "importNames": ["queryOptions"],
+                    "message": "Import queryOptions from #shared/core/query/queryOptions instead of @tanstack/react-query."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // The wrapper itself must import the real implementation.
+      "includes": ["app/src/shared/core/query/queryOptions.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
+          }
+        }
+      }
+    }
+  ]
 }

@@ -1,66 +1,55 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {render} from 'vitest-browser-react';
 
 import {useEffect} from 'react';
 
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+
 import type {Draft} from 'mutative';
 
+import {defaultAppConfig} from '#commands/appConfig.fixture';
 import type {AppConfig} from '#config';
-import {CssColor, CssFilter, CssFontFamily, CssLength, CssPadding, LogicalPixel, Milliseconds} from '#config';
+import {Milliseconds} from '#config';
+import {appConfigQuery} from '#hooks/useAppConfig';
+import {useAppConfigCommands} from '#hooks/useAppConfigCommands';
 
-const mockInvoke = vi.fn().mockResolvedValue(undefined);
-
-beforeEach(() => {
-  mockInvoke.mockClear();
-});
+const {mockInvoke} = vi.hoisted(() => ({
+  mockInvoke: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
 }));
 
-const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query');
-const {appConfigQuery} = await import('#hooks/useAppConfig');
-const {useAppConfigCommands} = await import('#hooks/useAppConfigCommands');
-
-const defaultConfig: AppConfig = {
-  popover: {
-    behavior: {toggleDebounceMs: Milliseconds(300)},
-    layout: {
-      initialWidth: LogicalPixel(480),
-      bottomMargin: LogicalPixel(8),
-      trayGap: LogicalPixel(4),
-      fallbackMaxHeight: LogicalPixel(600),
-      minMaxHeight: LogicalPixel(200),
-      headerHeight: CssLength('40px'),
-      cardListPadding: CssPadding('6px 0'),
-    },
-    appearance: {
-      surfaceColor: CssColor('rgba(28, 28, 30, 0.92)'),
-      borderColor: CssColor('rgba(255, 255, 255, 0.08)'),
-      backdropFilter: CssFilter('blur(24px) saturate(180%)'),
-      fontFamily: CssFontFamily("-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"),
-    },
-  },
-};
+beforeEach(() => {
+  mockInvoke.mockClear();
+  // The rollback test triggers `console.error('Failed to persist AppConfig', ...)`; silence it
+  // for every test so the runner output stays clean. The other tests don't log, so the spy is
+  // dormant for them.
+  vi.spyOn(console, 'error').mockImplementation(vi.fn());
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function createQueryClient() {
   const qc = new QueryClient({
     defaultOptions: {queries: {retry: false}, mutations: {retry: false}},
   });
-  qc.setQueryData(appConfigQuery.queryKey, defaultConfig);
+  qc.setQueryData(appConfigQuery.queryKey, defaultAppConfig);
   return qc;
 }
 
 type UpdateFn = (recipe: (draft: Draft<AppConfig>) => void) => void;
 const captured: {update: UpdateFn | null} = {update: null};
 
-const TestComponent = () => {
+function TestComponent() {
   const {update} = useAppConfigCommands();
   useEffect(() => {
     captured.update = update;
   }, [update]);
   return <div data-testid='ready' />;
-};
+}
 
 describe('useAppConfigCommands', () => {
   beforeEach(() => {
@@ -100,9 +89,9 @@ describe('useAppConfigCommands', () => {
     await vi.waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('set_config', {
         config: {
-          ...defaultConfig,
+          ...defaultAppConfig,
           popover: {
-            ...defaultConfig.popover,
+            ...defaultAppConfig.popover,
             behavior: {toggleDebounceMs: 999},
           },
         },

@@ -1,0 +1,7 @@
+/* ErrorDebugSection — the disclosure UI is the shared `Disclosure` primitive; only the caption
+   treatment remains. */
+
+.error-debug-section__caption {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
