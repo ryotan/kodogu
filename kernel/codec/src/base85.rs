@@ -41,7 +41,6 @@ use crate::{
     Base85OverflowError, BinaryCodec, BinaryCodecError, BinaryCodecs, InvalidCharacterError,
     InvalidLengthError, InvalidWrapperError,
 };
-use std::slice::ChunksExact;
 use suzunari_error::{OptionExt, ensure};
 
 // ============================================================================
@@ -332,9 +331,9 @@ fn pad_with_highest_value(
 
 /// Encode ASCII85-style chunks (handles 'z' compression for all-zero blocks)
 #[inline]
-fn encode_chunks_ascii85(out: &mut Vec<u8>, chunks: ChunksExact<u8>) {
-    for chunk in chunks {
-        let value = u32::from_be_bytes(chunk.try_into().unwrap());
+fn encode_chunks_ascii85(out: &mut Vec<u8>, chunks: &[[u8; 4]]) {
+    for &chunk in chunks {
+        let value = u32::from_be_bytes(chunk);
         if value == 0 {
             out.push(b'z');
         } else {
@@ -377,8 +376,7 @@ impl BinaryCodec for Base85Ascii85 {
         let mut out = Vec::with_capacity(bytes.len() * 5 / 4 + 4);
         out.extend_from_slice(b"<~");
 
-        let chunks = bytes.chunks_exact(4);
-        let remainder = chunks.remainder();
+        let (chunks, remainder) = bytes.as_chunks::<4>();
 
         encode_chunks_ascii85(&mut out, chunks);
 
@@ -426,14 +424,15 @@ impl BinaryCodec for Base85Z85 {
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
         let chars: Vec<u8> = text.bytes().collect();
 
+        let (chunks, remainder) = chars.as_chunks::<5>();
         ensure!(
-            chars.len().is_multiple_of(5),
+            remainder.is_empty(),
             InvalidLengthError { encoding: BinaryCodecs::Base85, length: chars.len() }
         );
 
         let mut out = Vec::with_capacity(chars.len() * 4 / 5);
 
-        for (i, chunk) in chars.chunks(5).enumerate() {
+        for (i, chunk) in chunks.iter().enumerate() {
             let value = decode_chunk(chunk, &DECODE_TABLE_Z85, i * 5)?;
             out.extend_from_slice(&value.to_be_bytes());
         }
@@ -447,8 +446,8 @@ impl Base85Z85 {
     fn encode_exact(&self, input: &[u8]) -> String {
         let mut out = Vec::with_capacity(input.len() * 5 / 4);
 
-        for chunk in input.chunks_exact(4) {
-            let value = u32::from_be_bytes(chunk.try_into().unwrap());
+        for &chunk in input.as_chunks::<4>().0 {
+            let value = u32::from_be_bytes(chunk);
             encode_chunk(value, ALPHABET_Z85, &mut out);
         }
 
@@ -484,11 +483,10 @@ impl BinaryCodec for Base85Rfc1924 {
     fn encode(&self, bytes: &[u8]) -> String {
         let mut out = Vec::with_capacity(bytes.len() * 5 / 4 + 2);
 
-        let chunks = bytes.chunks_exact(4);
-        let remainder = chunks.remainder();
+        let (chunks, remainder) = bytes.as_chunks::<4>();
 
-        for chunk in chunks {
-            let value = u32::from_be_bytes(chunk.try_into().unwrap());
+        for &chunk in chunks {
+            let value = u32::from_be_bytes(chunk);
             encode_chunk(value, ALPHABET_RFC1924, &mut out);
         }
 
@@ -502,10 +500,9 @@ impl BinaryCodec for Base85Rfc1924 {
         let chars: Vec<u8> = text.bytes().collect();
         let mut out = Vec::with_capacity(chars.len() * 4 / 5);
 
-        let chunks = chars.chunks_exact(5);
-        let remainder = chunks.remainder();
+        let (chunks, remainder) = chars.as_chunks::<5>();
 
-        for (i, chunk) in chunks.enumerate() {
+        for (i, chunk) in chunks.iter().enumerate() {
             let value = decode_chunk(chunk, &DECODE_TABLE_RFC1924, i * 5)?;
             out.extend_from_slice(&value.to_be_bytes());
         }
@@ -605,8 +602,7 @@ impl BinaryCodec for Base85Btoa {
         let mut out = Vec::with_capacity(bytes.len() * 5 / 4 + 64);
         out.extend_from_slice(b"xbtoa Begin\n");
 
-        let chunks = bytes.chunks_exact(4);
-        let remainder = chunks.remainder();
+        let (chunks, remainder) = bytes.as_chunks::<4>();
 
         encode_chunks_ascii85(&mut out, chunks);
 
