@@ -51,7 +51,7 @@ pkcs8 = "=0.10.2"
 poly1305 = { version = "=0.8.0", features = ["zeroize"] }
 proptest = "=1.11.0"
 quoted_printable = "=0.5.2"
-dirs = "=6.0.0"
+dirs = "=7.0.0"
 rand = "=0.9.4"
 redb = "=4.2.0"
 regex = "=1.13.1"
