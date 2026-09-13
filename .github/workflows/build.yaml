@@ -46,7 +46,7 @@ jobs:
         # action's `pre` step, which has no `pre-if` and therefore cannot be skipped with a step-level `if:`.
         # Re-enabling the macOS/Windows matrix entries would otherwise fail them against this Linux-only
         # allowlist; keeping those platforms on audit lets their first runs produce their own baseline.
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
           egress-policy: ${{ runner.os == 'Linux' && 'block' || 'audit' }}
           allowed-endpoints: >
