@@ -49,7 +49,7 @@ locked = false
 node = "24.20.0"
 bun = "1.4.2"
 java = "microsoft-17.35.1"
-"github:taiki-e/cargo-llvm-cov" = "v0.9.0"
+"github:taiki-e/cargo-llvm-cov" = "v0.9.1"
 prek = "0.5.2"
 
 [tasks."cargo:fix"]
