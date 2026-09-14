@@ -46,7 +46,7 @@ lockfile = true
 locked = false
 
 [tools]
-node = "24.20.0"
+node = "24.21.0"
 bun = "1.4.2"
 java = "microsoft-17.35.1"
 "github:taiki-e/cargo-llvm-cov" = "v0.9.1"
