@@ -19,7 +19,7 @@ const name = name => config => ({name, ...config});
 const ts = config => ({...config, files: tslint.configs.eslintRecommended.files});
 
 const eslintConfig = defineConfig([
-  globalIgnores(['src-tauri', 'src/stories', '!.storybook']),
+  globalIgnores(['src-tauri', '!.storybook']),
   includeIgnoreFile(gitignore),
   name('#setup/typescript-react')(
     ts({

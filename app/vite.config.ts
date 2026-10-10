@@ -64,7 +64,6 @@ export default defineConfig(() => ({
         '**/[(]dev[)]/**',
         '**/[(]prototype[)]/**',
         '**/main.tsx',
-        '**/stories/**',
         '**/.storybook/**',
       ],
     },
