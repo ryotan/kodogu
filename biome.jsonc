@@ -165,7 +165,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/.idea", "!**/.github", "!**/patches", "!**/src-tauri", "!kernel", "!**/*.svg"],
+    "includes": ["**", "!**/.idea", "!**/.github", "!**/patches", "!**/src-tauri", "!app/gen", "!kernel", "!**/*.svg"],
     "ignoreUnknown": true
   }
 }

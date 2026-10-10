@@ -47,9 +47,6 @@ vite.config.d.ts
 vite.config.js
 dist/
 
-# Generated files for frontend
-gen/
-
 # Rust
 out/
 target/

@@ -127,10 +127,6 @@ jobs:
         working-directory: app
         run: bun run playwright:install
 
-      - name: Generate route files
-        working-directory: app
-        run: bun run build
-
       - id: tsc
         name: TypeScript
         working-directory: app
