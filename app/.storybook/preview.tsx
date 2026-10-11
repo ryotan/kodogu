@@ -4,7 +4,7 @@ import './radix-ui-theme.css';
 
 import type {FC} from 'react';
 
-import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 
 import {Theme} from '@radix-ui/themes';
 
@@ -25,11 +25,9 @@ const preview: Preview = {
     (Story: FC) => {
       return (
         <QueryClientProvider client={queryClient}>
-          <QueryErrorResetBoundary>
-            <Theme panelBackground='solid'>
-              <Story />
-            </Theme>
-          </QueryErrorResetBoundary>
+          <Theme panelBackground='solid'>
+            <Story />
+          </Theme>
         </QueryClientProvider>
       );
     },

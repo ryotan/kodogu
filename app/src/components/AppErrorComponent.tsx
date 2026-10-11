@@ -1,6 +1,5 @@
 import {useMemo, useState} from 'react';
 
-import {useQueryErrorResetBoundary} from '@tanstack/react-query';
 import type {ErrorComponentProps} from '@tanstack/react-router';
 
 import {Button, Theme} from '@radix-ui/themes';
@@ -25,7 +24,6 @@ const StackFrameRow = ({frame}: {frame: StackFrame}) => {
 // ---------------------------------------------------------------------------
 
 export const AppErrorComponent = ({error, reset}: ErrorComponentProps) => {
-  const {reset: resetQueries} = useQueryErrorResetBoundary();
   const [stackExpanded, setStackExpanded] = useState(false);
 
   const {frames, originFrame} = useMemo(() => {
@@ -74,13 +72,7 @@ export const AppErrorComponent = ({error, reset}: ErrorComponentProps) => {
         )}
 
         <div className={styles.footer}>
-          <Button
-            onClick={() => {
-              resetQueries();
-              reset();
-            }}
-            variant='surface'
-          >
+          <Button onClick={reset} variant='surface'>
             Try Again
           </Button>
         </div>
