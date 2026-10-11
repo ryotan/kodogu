@@ -197,9 +197,9 @@ const eslintConfig = defineConfig([
         '@typescript-eslint/prefer-function-type': 'off',
         '@typescript-eslint/prefer-namespace-keyword': 'off',
         '@typescript-eslint/prefer-optional-chain': 'off',
-        // そもそも不要
-        '@typescript-eslint/ban-tslint-comment': 'off', // tslintは使っていない
-        '@typescript-eslint/consistent-type-assertions': 'off', // そもそも型アサーションはasしか使わない
+        // Not applicable
+        '@typescript-eslint/ban-tslint-comment': 'off', // No TSLint
+        '@typescript-eslint/consistent-type-assertions': 'off', // Only `as` assertions are written
       },
     }),
   ),
