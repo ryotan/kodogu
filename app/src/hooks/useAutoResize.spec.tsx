@@ -62,7 +62,7 @@ describe('useAutoResize', () => {
 
     await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(1));
 
-    // The hook computes: desiredHeight = content.clientHeight + chromeHeight
+    // The hook computes: desiredHeight = the content's border-box height + chromeHeight
     // where chromeHeight = window.innerHeight - scrollArea.clientHeight.
     // Verify by measuring the same DOM values the hook reads.
     const content = document.querySelector('[data-testid="content"]');

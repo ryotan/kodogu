@@ -12,7 +12,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query');
 const {appConfigQuery} = await import('#hooks/useAppConfig');
-const {useConfiguredDesignTokens} = await import('#components/useDesignTokenSync');
+const {useConfiguredDesignTokens} = await import('#components/useConfiguredDesignTokens');
 
 function createConfig(overrides?: Partial<AppConfig['popover']['appearance']>): AppConfig {
   return {

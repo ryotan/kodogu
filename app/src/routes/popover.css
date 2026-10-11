@@ -14,7 +14,7 @@ body {
 }
 
 /* Shell-level design tokens.
-   TODO: Replace with values synced from AppConfig via useDesignTokenSync. */
+   TODO: Replace with values synced from AppConfig via useConfiguredDesignTokens. */
 :root {
   --kodogu-surface: rgba(28, 28, 30, 0.92);
   --kodogu-border: rgba(255, 255, 255, 0.08);

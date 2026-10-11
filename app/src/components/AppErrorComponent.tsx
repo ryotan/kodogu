@@ -24,8 +24,6 @@ const StackFrameRow = ({frame}: {frame: StackFrame}) => {
 // Component
 // ---------------------------------------------------------------------------
 
-// Requires QueryErrorResetBoundary in ancestor — used in main.tsx ErrorBoundary
-// and as TanStack Router's defaultErrorComponent.
 export const AppErrorComponent = ({error, reset}: ErrorComponentProps) => {
   const {reset: resetQueries} = useQueryErrorResetBoundary();
   const [stackExpanded, setStackExpanded] = useState(false);
