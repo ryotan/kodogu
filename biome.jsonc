@@ -47,11 +47,8 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        // react-hooks/rules-of-hooksの代替にはならないので、無効にしておく。
-        // （Reactコンポーネントもしくはカスタムフック以外でuseXXXを呼んでもエラーにならない）
+        // Hook rules are left to ESLint's react-hooks.
         "useHookAtTopLevel": "off",
-        // react-hooks/exhaustive-depsの代替にはならないので、無効にしておく。
-        // （依存変数配列を自動では修正してくれない）
         "useExhaustiveDependencies": "off",
         "noUndeclaredDependencies": {
           "level": "error",
@@ -88,35 +85,16 @@
         "useConsistentArrayType": "error",
         "useForOf": "error",
         "useFragmentSyntax": "error",
-        // Next.jsやExpo Routerのファイル命名規約に従えない（[fragment].tsxや+html.tsxなど）
-        "useFilenamingConvention": {
-          "level": "off",
-          "options": {
-            "filenameCases": ["kebab-case"],
-            "requireAscii": true,
-            "strictCase": true
-          }
-        },
+        // File names follow their export names: PascalCase components, camelCase hooks.
+        "useFilenamingConvention": "off",
         "useImportType": {
           "level": "error",
           "options": {
             "style": "separatedType"
           }
         },
-        // React Componentの命名規約（PascalCase）が守れなくなるので無効にしておく
-        "useNamingConvention": {
-          "level": "off",
-          "options": {
-            "conventions": [
-              {
-                "selector": { "kind": "enumMember" },
-                "formats": ["CONSTANT_CASE"]
-              }
-            ],
-            "strictCase": false,
-            "requireAscii": false
-          }
-        },
+        // Components are PascalCase even as object properties.
+        "useNamingConvention": "off",
         "useSelfClosingElements": "error",
         "useShorthandAssign": "error",
         "useConsistentCurlyBraces": "error"
