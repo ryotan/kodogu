@@ -42,8 +42,7 @@ pub enum MacError {
 
     /// Verification failed
     ///
-    /// 検証失敗時のエラー。タイミング攻撃を防ぐため、
-    /// 失敗理由の詳細は意図的に提供しない。
+    /// A wrong-length tag and a mismatched tag give the same error.
     #[suzu(display("{algorithm:?}: verification failed"))]
     VerificationFailed { algorithm: MacAlgorithms, source: hmac::digest::MacError },
 

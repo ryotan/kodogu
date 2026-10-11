@@ -40,8 +40,7 @@ pub(crate) fn validate_nonce_length<const N: usize>(
 pub(crate) mod test_helpers {
     use crate::{Ciphertext, Nonce, Plaintext};
 
-    /// ストリーム暗号のパディング不要テスト。
-    /// 平文長 0..=33 で暗号化/復号をテストし、暗号文長が平文長と等しいことを確認。
+    /// Checks that ciphertext is as long as plaintext and round-trips, for 0..=33 bytes.
     pub fn assert_no_padding_needed<E, D>(nonce: &Nonce, encrypt: E, decrypt: D)
     where
         E: Fn(&Plaintext, &Nonce) -> Ciphertext,
@@ -51,7 +50,6 @@ pub(crate) mod test_helpers {
             let plaintext = Plaintext::from(vec![0xABu8; len]);
             let ciphertext = encrypt(&plaintext, nonce);
 
-            // 暗号文長 == 平文長（パディングなし）
             assert_eq!(ciphertext.as_bytes().len(), len);
 
             let decrypted = decrypt(&ciphertext, nonce);
@@ -59,7 +57,6 @@ pub(crate) mod test_helpers {
         }
     }
 
-    /// 異なる鍵で異なる暗号文が生成されることをテスト。
     pub fn assert_different_keys_produce_different_ciphertext(
         plaintext: &Plaintext,
         ciphertext1: &Ciphertext,
@@ -72,7 +69,6 @@ pub(crate) mod test_helpers {
         );
     }
 
-    /// 異なる nonce で異なる暗号文が生成されることをテスト。
     pub fn assert_different_nonces_produce_different_ciphertext(
         plaintext: &Plaintext,
         ciphertext1: &Ciphertext,

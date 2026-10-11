@@ -112,7 +112,7 @@ impl AeadEncryptor for Aes128Gcm {
             .encrypt((&nonce_array).into(), payload)
             .context(AuthenticationFailedError { cipher })?;
 
-        // aes-gcm は ciphertext || tag を返す
+        // aes-gcm returns ciphertext || tag
         let (ct, tag) = combined.split_at(combined.len() - AES_GCM_TAG_SIZE);
         Ok((Ciphertext::from(ct), AuthenticationTag::from(tag)))
     }
@@ -136,7 +136,7 @@ impl AeadDecryptor for Aes128Gcm {
 
         let aes_gcm = Aes128GcmImpl::new((&key.0).into());
 
-        // aes-gcm は ciphertext || tag を期待する
+        // aes-gcm expects ciphertext || tag
         let mut combined = ciphertext.as_bytes().to_vec();
         combined.extend_from_slice(&tag_array);
 
@@ -387,7 +387,6 @@ mod tests {
 
         let (mut ciphertext, tag) = Aes128Gcm.encrypt(&plaintext, &key, &nonce, &aad).unwrap();
 
-        // 暗号文を改竄
         let mut bytes = ciphertext.into_bytes();
         bytes[0] ^= 0xFF;
         ciphertext = Ciphertext::from(bytes);
@@ -405,7 +404,6 @@ mod tests {
 
         let (ciphertext, mut tag) = Aes256Gcm.encrypt(&plaintext, &key, &nonce, &aad).unwrap();
 
-        // タグを改竄
         let mut bytes = tag.as_bytes().to_vec();
         bytes[0] ^= 0xFF;
         tag = AuthenticationTag::from(bytes);

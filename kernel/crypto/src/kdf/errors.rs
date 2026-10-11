@@ -101,10 +101,6 @@ pub enum KdfError {
     X963KdfDerivationFailed { algorithm: KdfAlgorithm, source: X963KdfError },
 
     /// bcrypt-pbkdf derivation failed (invalid parameters or output length exceeded).
-    ///
-    /// Note: upstream `bcrypt_pbkdf::Error` distinguishes `InvalidRounds` / `InvalidParamLen` /
-    /// `InvalidOutputLen`, but our `BcryptPbkdfParams` and zero-length guard already prevent
-    /// these, so a single variant suffices.
     #[suzu(display("bcrypt-pbkdf: derivation failed: {source}"))]
     BcryptPbkdfDerivationFailed {
         #[suzu(from)]
@@ -133,7 +129,6 @@ mod tests {
 
     #[test]
     fn test_x963kdf_error_display() {
-        // セレクタ経由で構築（suzunari_error が location フィールドを追加するため直接構築不可）
         fn make_err(f: fn() -> Result<(), X963KdfError>) -> String {
             f().unwrap_err().to_string()
         }

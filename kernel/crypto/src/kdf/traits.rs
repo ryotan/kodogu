@@ -32,8 +32,8 @@ pub trait KeyDeriver {
 ///
 /// # Salt requirements
 ///
-/// All implementations accept any salt length, including empty.
-/// However, **using an empty or short salt is cryptographically dangerous** --
+/// Whether an empty salt is accepted depends on the implementation.
+/// Either way, **using an empty or short salt is cryptographically dangerous** --
 /// it makes the output deterministic across all users with the same password.
 /// Always use a cryptographically random salt of at least 16 bytes (OWASP recommendation).
 pub trait PasswordDeriver {

@@ -1,7 +1,7 @@
 use super::errors::{InvalidKeyLengthError, MacAlgorithms, MacError};
 use suzunari_error::ResultExt;
 
-/// 鍵長を検証し、固定サイズ配列に変換する。
+/// Checks the key length and converts the key to a fixed-size array.
 pub(crate) fn validate_key_length<const N: usize>(
     key: &[u8],
     algorithm: MacAlgorithms,

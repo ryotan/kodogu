@@ -112,7 +112,7 @@ proptest! {
         }),
         nonce1 in nonce_of_len(12),
         nonce2 in nonce_of_len(12),
-        // 16バイト以上にして衝突確率を無視できるレベルに（1バイトだと1/256で衝突）
+        // Shorter plaintexts can produce equal ciphertexts by chance
         plaintext in prop::collection::vec(any::<u8>(), 16..100).prop_map(Plaintext::from),
     ) {
         let aad = AdditionalData::empty();
@@ -678,8 +678,7 @@ proptest! {
     fn prop_different_ciphers_produce_different_ciphertext(
         key_bytes in prop::collection::vec(any::<u8>(), 32),
         nonce_bytes in prop::collection::vec(any::<u8>(), 12),
-        // 暗号文長 = 平文長なので、短い平文だと異なるアルゴリズム間で偶然一致する確率が無視できない（1バイトなら 1/256）。
-        // 16バイト以上にすれば衝突確率は 1/2^128 で事実上ゼロ。
+        // Shorter plaintexts can produce equal ciphertexts by chance
         plaintext in prop::collection::vec(any::<u8>(), 16..100).prop_map(Plaintext::from),
     ) {
         let key256: [u8; 32] = key_bytes.clone().try_into().unwrap();
@@ -697,7 +696,7 @@ proptest! {
         let (ct_chacha, _) = ChaCha20Poly1305.encrypt(&plaintext, &key_chacha, &nonce, &aad).unwrap();
         let (ct_gcmsiv, _) = Aes256GcmSiv.encrypt(&plaintext, &key_aes256, &nonce, &aad).unwrap();
 
-        // 全て異なる暗号文になる（同じ鍵・nonce でもアルゴリズムが違えば結果が異なる）
+        // Different algorithms give different ciphertexts for the same key bytes and nonce
         prop_assert_ne!(ct_aes128, ct_aes256.clone());
         prop_assert_ne!(ct_aes256.clone(), ct_chacha);
         prop_assert_ne!(ct_aes256, ct_gcmsiv);

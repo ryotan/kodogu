@@ -62,7 +62,7 @@ impl AeadEncryptor for Aes256GcmSiv {
             .encrypt((&nonce_array).into(), payload)
             .context(AuthenticationFailedError { cipher })?;
 
-        // aes-gcm-siv は ciphertext || tag を返す
+        // aes-gcm-siv returns ciphertext || tag
         let (ct, tag) = combined.split_at(combined.len() - AES_GCM_SIV_TAG_SIZE);
         Ok((Ciphertext::from(ct), AuthenticationTag::from(tag)))
     }
@@ -86,7 +86,7 @@ impl AeadDecryptor for Aes256GcmSiv {
 
         let aes_gcm_siv = Aes256GcmSivImpl::new((&key.0).into());
 
-        // aes-gcm-siv は ciphertext || tag を期待する
+        // aes-gcm-siv expects ciphertext || tag
         let mut combined = ciphertext.as_bytes().to_vec();
         combined.extend_from_slice(&tag_array);
 

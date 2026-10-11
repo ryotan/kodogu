@@ -1,8 +1,6 @@
-//! RFC/NIST 公式テストベクターによる暗号アルゴリズムの検証
+//! Known-answer tests against published test vectors, to check interoperability with other implementations.
 //!
-//! 外部ツールとの相互運用性を保証するため、公式テストベクターを使用してテストを実行する。
-//!
-//! # 参照
+//! # References
 //! - RFC 5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF)
 //! - RFC 7914: The scrypt Password-Based Key Derivation Function
 //! - RFC 8018: PKCS #5: Password-Based Cryptography Specification
@@ -13,6 +11,7 @@
 //! - NIST SP 800-38A: Recommendation for Block Cipher Modes of Operation
 //! - NIST SP 800-38B: The CMAC Mode for Authentication
 //! - NIST SP 800-38D: Galois/Counter Mode (GCM) and GMAC
+//! - McGrew and Viega: The Galois/Counter Mode of Operation (GCM), the source of the GCM test cases
 
 use crypto::{
     AdditionalData, AeadDecryptor, AeadEncryptor, Aes128Cbc, Aes128Ctr, Aes128Gcm, Aes128GcmKey,
@@ -25,7 +24,7 @@ use crypto::{
 use hex_literal::hex;
 
 // ============================================================================
-// RFC 8439: ChaCha20-Poly1305 AEAD テストベクター
+// RFC 8439: ChaCha20-Poly1305 AEAD test vectors
 // https://www.rfc-editor.org/rfc/rfc8439.html Appendix A.5
 // ============================================================================
 
@@ -102,8 +101,7 @@ mod chacha20_poly1305_rfc8439 {
 }
 
 // ============================================================================
-// NIST GCM Spec: AES-GCM テストベクター
-// https://csrc.nist.gov/pubs/sp/800/38/d/final
+// GCM specification (McGrew and Viega): AES-GCM test cases
 // ============================================================================
 
 mod aes_gcm_nist {
@@ -323,7 +321,7 @@ mod aes_gcm_nist {
 }
 
 // ============================================================================
-// RFC 4231: HMAC-SHA-256/384/512 テストベクター
+// RFC 4231: HMAC-SHA-256/384/512 test vectors
 // https://www.rfc-editor.org/rfc/rfc4231.html
 // ============================================================================
 
@@ -440,7 +438,7 @@ mod hmac_rfc4231 {
 }
 
 // ============================================================================
-// RFC 4493 / NIST SP 800-38B: CMAC-AES テストベクター
+// RFC 4493 / NIST SP 800-38B: CMAC-AES test vectors
 // https://www.rfc-editor.org/rfc/rfc4493.html
 // ============================================================================
 
@@ -559,12 +557,11 @@ mod cmac_rfc4493 {
 }
 
 // ============================================================================
-// NIST SP 800-38A: AES-CBC テストベクター
+// NIST SP 800-38A: AES-CBC test vectors
 // https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf
 //
-// 注意: 実装は PKCS7 パディングを使用するため、生の NIST テストベクターとは
-// 出力が異なる。暗号文の先頭ブロックが NIST ベクターと一致することを検証し、
-// ラウンドトリップで正確性を確認する。
+// The implementation adds PKCS7 padding, so only the first ciphertext block matches NIST.
+// The tests check that block and the round-trip.
 // ============================================================================
 
 mod aes_cbc_nist {
@@ -572,8 +569,6 @@ mod aes_cbc_nist {
 
     // ------------------------------------------------------------------------
     // AES-128-CBC (F.2.1, F.2.2)
-    // PKCS7 パディングにより暗号文は 32 バイトになるが、
-    // 先頭 16 バイトは NIST ベクターと一致する
     // ------------------------------------------------------------------------
 
     #[test]
@@ -585,13 +580,12 @@ mod aes_cbc_nist {
 
         let ciphertext = Aes128Cbc.encrypt(&plaintext, &key, &iv).unwrap();
 
-        // 先頭ブロックが NIST ベクターと一致
         assert_eq!(
             &ciphertext.as_bytes()[..16],
             expected_first_block,
             "first block should match NIST test vector"
         );
-        // PKCS7 パディングで 32 バイト（16 + 16）
+        // PKCS7 padding adds a full block
         assert_eq!(ciphertext.as_bytes().len(), 32);
     }
 
@@ -622,13 +616,12 @@ mod aes_cbc_nist {
 
         let ciphertext = Aes256Cbc.encrypt(&plaintext, &key, &iv).unwrap();
 
-        // 先頭ブロックが NIST ベクターと一致
         assert_eq!(
             &ciphertext.as_bytes()[..16],
             expected_first_block,
             "first block should match NIST test vector"
         );
-        // PKCS7 パディングで 32 バイト
+        // PKCS7 padding adds a full block
         assert_eq!(ciphertext.as_bytes().len(), 32);
     }
 
@@ -648,7 +641,7 @@ mod aes_cbc_nist {
 }
 
 // ============================================================================
-// NIST SP 800-38A: AES-CTR テストベクター
+// NIST SP 800-38A: AES-CTR test vectors
 // https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf
 // ============================================================================
 
@@ -715,30 +708,27 @@ mod aes_ctr_nist {
 }
 
 // ============================================================================
-// RFC 8439 Section 2.3.2: ChaCha20 テストベクター
-// https://www.rfc-editor.org/rfc/rfc8439.html#section-2.3.2
+// RFC 8439 Appendix A.1: ChaCha20 block function test vectors
+// https://www.rfc-editor.org/rfc/rfc8439.html#appendix-A.1
 //
-// 注意: RFC 8439 Section 2.4.2 は counter=1 を使用するが、
-// 実装は counter=0 から開始する。Section 2.3.2 の counter=0 ベクターを使用。
+// The implementation starts at block counter 0, so only the counter-0 vectors apply.
 // ============================================================================
 
 mod chacha20_rfc8439 {
     use super::*;
     use crypto::ChaCha20;
 
-    /// RFC 8439 Section 2.3.2 - ChaCha20 Block Function Test Vector (counter=0)
-    /// ゼロ平文を暗号化してキーストリームを検証
+    /// RFC 8439 Appendix A.1 - Test Vector #1 (counter=0)
     #[test]
-    fn test_rfc8439_section_2_3_2_keystream() {
+    fn test_rfc8439_a1_vector1() {
         let key = hex!(
             "00000000000000000000000000000000"
             "00000000000000000000000000000000"
         );
         let nonce = Nonce::from(hex!("000000000000000000000000").to_vec());
-        // ゼロ平文を暗号化するとキーストリームそのものが得られる
+        // Encrypting zeros yields the keystream itself
         let plaintext = Plaintext::from(vec![0u8; 64]);
 
-        // RFC 8439 Section 2.3.2 のキーストリーム出力
         let expected_keystream = hex!(
             "76b8e0ada0f13d90405d6ae55386bd28"
             "bdd219b8a08ded1aa836efcc8b770dc7"
@@ -750,9 +740,9 @@ mod chacha20_rfc8439 {
         assert_eq!(ciphertext.as_bytes(), expected_keystream);
     }
 
-    /// RFC 8439 Section 2.3.2 - Test Vector #2 (counter=0, different key/nonce)
+    /// Key ending in 01, counter=0. Not an RFC 8439 vector: A.1 #3 uses this key with counter=1.
     #[test]
-    fn test_rfc8439_section_2_3_2_vector2() {
+    fn test_chacha20_key_ending_01_counter0() {
         let key = hex!(
             "00000000000000000000000000000000"
             "00000000000000000000000000000001"
@@ -771,9 +761,9 @@ mod chacha20_rfc8439 {
         assert_eq!(ciphertext.as_bytes(), expected_keystream);
     }
 
-    /// RFC 8439 Section 2.3.2 - Test Vector #3 (counter=0, different nonce)
+    /// RFC 8439 Appendix A.1 - Test Vector #5 (counter=0)
     #[test]
-    fn test_rfc8439_section_2_3_2_vector3() {
+    fn test_rfc8439_a1_vector5() {
         let key = hex!(
             "00000000000000000000000000000000"
             "00000000000000000000000000000000"
@@ -792,7 +782,6 @@ mod chacha20_rfc8439 {
         assert_eq!(ciphertext.as_bytes(), expected_keystream);
     }
 
-    /// ラウンドトリップテスト
     #[test]
     fn test_chacha20_roundtrip() {
         let key = hex!(
@@ -812,7 +801,7 @@ mod chacha20_rfc8439 {
 }
 
 // ============================================================================
-// RFC 8439 Section 2.5: Poly1305 テストベクター
+// RFC 8439 Section 2.5: Poly1305 test vectors
 // https://www.rfc-editor.org/rfc/rfc8439.html#section-2.5.2
 // ============================================================================
 
@@ -891,7 +880,7 @@ mod poly1305_rfc8439 {
     }
 
     /// RFC 8439 Appendix A.3 - Poly1305 Test Vector #5
-    /// Edge case: r が 2^130-5 に近い値
+    /// Edge case: the partially reduced final result is not fully reduced
     #[test]
     fn test_rfc8439_appendix_a3_vector5() {
         let key = Poly1305Key::from(hex!(
@@ -1008,7 +997,7 @@ mod poly1305_rfc8439 {
 }
 
 // ============================================================================
-// RFC 8452: AES-GCM-SIV テストベクター
+// RFC 8452: AES-GCM-SIV test vectors
 // https://www.rfc-editor.org/rfc/rfc8452.html Appendix C
 // ============================================================================
 
@@ -1452,7 +1441,7 @@ mod aes_gcm_siv_rfc8452 {
 }
 
 // ============================================================================
-// XChaCha20-Poly1305 テストベクター
+// XChaCha20-Poly1305 test vectors
 // draft-irtf-cfrg-xchacha Appendix A.3.1
 // https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha
 // ============================================================================
@@ -1495,14 +1484,12 @@ mod xchacha20_poly1305_vectors {
         assert_eq!(ciphertext.as_bytes(), expected_ciphertext);
         assert_eq!(tag.as_bytes(), expected_tag);
 
-        // ラウンドトリップ
         let decrypted = XChaCha20Poly1305
             .decrypt(&ciphertext, &tag, &key, &nonce, &aad)
             .expect("decryption should succeed");
         assert_eq!(decrypted.as_bytes(), plaintext.as_bytes());
     }
 
-    /// ラウンドトリップテスト
     #[test]
     fn test_xchacha20poly1305_roundtrip() {
         let key = ChaCha20Poly1305Key::from(hex!(
@@ -1549,24 +1536,22 @@ mod xchacha20_poly1305_vectors {
 }
 
 // ============================================================================
-// NIST SP 800-38D: GMAC テストベクター
-// GMAC は GCM で空の平文を使用した場合と同等
+// GMAC test vectors (GMAC is GCM with an empty plaintext)
 // ============================================================================
 
 mod gmac_nist {
     use super::*;
     use crypto::Gmac;
 
-    /// GMAC test using NIST GCM Test Case 1 (empty plaintext = GMAC)
-    /// Key, Nonce, AAD → Tag
+    /// GCM specification Test Case 13 (AES-256, empty plaintext and AAD)
     #[test]
-    fn test_gmac_nist_vector1() {
+    fn test_gmac_gcm_test_case_13() {
         let key = Aes256GcmKey::from(hex!(
             "00000000000000000000000000000000"
             "00000000000000000000000000000000"
         ));
         let nonce = Nonce::from(hex!("000000000000000000000000").to_vec());
-        let message: &[u8] = &[]; // 空のメッセージで GMAC
+        let message: &[u8] = &[];
 
         let expected_tag = hex!("530f8afbc74536b9a963b4f1c4cb738b");
 
@@ -1574,8 +1559,8 @@ mod gmac_nist {
         assert_eq!(tag.as_bytes(), expected_tag);
     }
 
-    /// GMAC with non-empty AAD
-    /// GCM Test Case 4 から AAD 部分を検証
+    /// GMAC with non-empty AAD, using the key, IV and AAD of GCM Test Case 16.
+    /// The spec has no AAD-only tag for them, so this only checks the round-trip.
     #[test]
     fn test_gmac_with_aad() {
         let key = Aes256GcmKey::from(hex!(
@@ -1585,12 +1570,8 @@ mod gmac_nist {
         let nonce = Nonce::from(hex!("cafebabefacedbaddecaf888").to_vec());
         let aad = hex!("feedfacedeadbeeffeedfacedeadbeefabaddad2");
 
-        // GMAC: 空の平文 + AAD = AAD の認証タグ
-        // GCM Test Case 16 のタグと同じはずだが、AAD のみの場合は異なる
-        // ラウンドトリップで検証
         let tag = Gmac.generate_with_nonce(&aad, &key, &nonce).unwrap();
 
-        // 検証が成功すること
         Gmac.verify_with_nonce(&aad, &tag, &key, &nonce).unwrap();
     }
 
@@ -1610,7 +1591,7 @@ mod gmac_nist {
 }
 
 // ============================================================================
-// RFC 5869: HKDF テストベクター
+// RFC 5869: HKDF test vectors
 // https://www.rfc-editor.org/rfc/rfc5869
 // ============================================================================
 
@@ -1688,7 +1669,7 @@ mod hkdf_rfc5869 {
         assert_eq!(key.as_bytes(), expected_okm);
     }
 
-    /// HkdfAlgorithm::Sha256 が ZST と同じ結果を生成することを確認
+    /// HkdfAlgorithm::Sha256 gives the same result as the ZST
     #[test]
     fn test_hkdf_algorithm_sha256_matches_rfc_vector() {
         let ikm = hex!("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
@@ -1705,9 +1686,9 @@ mod hkdf_rfc5869 {
         assert_eq!(key.as_bytes(), expected_okm);
     }
 
-    /// RFC 5869 Appendix A.4 - Test Case 4 (SHA-384, with salt and info)
+    /// HKDF-SHA384 over the RFC 5869 A.1 inputs. RFC 5869 has no SHA-384 vectors.
     #[test]
-    fn test_rfc5869_a4_sha384_with_salt_and_info() {
+    fn test_hkdf_sha384_with_rfc5869_a1_inputs() {
         let ikm = hex!("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
         let salt = hex!("000102030405060708090a0b0c");
         let info = hex!("f0f1f2f3f4f5f6f7f8f9");
@@ -1724,7 +1705,7 @@ mod hkdf_rfc5869 {
 }
 
 // ============================================================================
-// RFC 7914: Scrypt テストベクター
+// RFC 7914: scrypt test vectors
 // https://www.rfc-editor.org/rfc/rfc7914
 // ============================================================================
 
@@ -1766,21 +1747,19 @@ mod scrypt_rfc7914 {
 }
 
 // ============================================================================
-// RFC 9106: Argon2id テストベクター
-// https://www.rfc-editor.org/rfc/rfc9106 Appendix B
+// Argon2id test vectors
+// https://www.rfc-editor.org/rfc/rfc9106
 // ============================================================================
 
 mod argon2id_rfc9106 {
     use crypto::{Argon2Params, Argon2id, OutputLength, PasswordDeriver};
     use hex_literal::hex;
 
-    /// Argon2id PHC リファレンステストベクタ（secret なし）
+    /// Argon2id PHC reference vector (no secret)
     ///
-    /// 出典: RustCrypto argon2 クレート kat.rs PHC reference tests
+    /// Source: RustCrypto argon2 crate, kat.rs PHC reference tests
     ///
-    /// 注: RFC 9106 Appendix B.4 の完全なベクタは secret (key) と associated data を含むが、
-    /// 本 API は `derive(password, salt, params, length)` インタフェースのみ対応。
-    /// secret/assoc data が必要なユースケースは将来の拡張として管理する。
+    /// RFC 9106 Section 5.3 vectors need a secret and associated data, which `derive` does not take.
     ///
     /// password = "password"
     /// salt     = "somesalt"
@@ -1799,7 +1778,7 @@ mod argon2id_rfc9106 {
         assert_eq!(key.as_bytes(), expected);
     }
 
-    /// Argon2id PHC リファレンステストベクタ（secret なし、larger memory）
+    /// Argon2id PHC reference vector (no secret, larger memory)
     ///
     /// password = "password"
     /// salt     = "somesalt"
@@ -1820,8 +1799,8 @@ mod argon2id_rfc9106 {
 }
 
 // ============================================================================
-// NIST SP 800-56A: ConcatKDF テストベクター
-// 出典: concat-kdf クレート付属テストベクター（NIST SP 800-56A Section 5.8.2）
+// NIST SP 800-56A: ConcatKDF test vectors
+// Source: the concat-kdf crate's test vectors (NIST SP 800-56A Section 5.8.1)
 // ============================================================================
 
 mod concat_kdf_sp800_56a {
@@ -1855,8 +1834,8 @@ mod concat_kdf_sp800_56a {
 }
 
 // ============================================================================
-// ANSI X9.63: X963KDF テストベクター
-// 出典: BouncyCastle KDF2BytesGenerator 互換テストベクター（ANSI X9.63-2011）
+// ANSI X9.63: X963KDF test vectors
+// Source: vectors generated with BouncyCastle KDF2BytesGenerator
 // ============================================================================
 
 mod x963_kdf_ansi {
@@ -1888,9 +1867,9 @@ mod x963_kdf_ansi {
         assert_eq!(key.as_bytes(), expected);
     }
 
-    /// CAVS 12.0 SHA-256 マルチブロック出力（128バイト = 4ブロック）: COUNT=0
+    /// CAVS 12.0 SHA-256, 128-byte output (4 blocks): COUNT=0
     ///
-    /// chunks_mut ループと counter increment を検証する。
+    /// Exercises the counter increment across blocks.
     #[test]
     fn test_cavs_x963_kdf_sha256_multiblock_count0() {
         let z = hex!("22518b10e70f2a3f243810ae3254139efbee04aa57c7af7d");
@@ -1909,7 +1888,7 @@ mod x963_kdf_ansi {
         assert_eq!(key.as_bytes(), expected);
     }
 
-    /// CAVS 12.0 SHA-256 マルチブロック出力（128バイト = 4ブロック）: COUNT=1
+    /// CAVS 12.0 SHA-256, 128-byte output (4 blocks): COUNT=1
     #[test]
     fn test_cavs_x963_kdf_sha256_multiblock_count1() {
         let z = hex!("7e335afa4b31d772c0635c7b0e06f26fcd781df947d2990a");
@@ -1928,8 +1907,8 @@ mod x963_kdf_ansi {
         assert_eq!(key.as_bytes(), expected);
     }
     // =========================================================================
-    // CAVS 12.0 SHA-384 テストベクター
-    // 出典: NIST CAVP ANS X9.63-2001 KDF (pyca/cryptography vectors)
+    // CAVS 12.0 SHA-384 test vectors
+    // Source: NIST CAVP ANS X9.63-2001 KDF (pyca/cryptography vectors)
     // =========================================================================
 
     /// CAVS SHA-384 [shared secret length=192, SharedInfo length=0, key data length=128]: COUNT=0
@@ -1952,7 +1931,7 @@ mod x963_kdf_ansi {
 
     /// CAVS SHA-384 [shared secret length=192, SharedInfo length=128, key data length=1024]: COUNT=0
     ///
-    /// マルチブロック出力（128バイト ≈ 2.67ブロック）で counter increment を検証する。
+    /// Exercises the counter increment with a 128-byte output (about 2.67 blocks).
     #[test]
     fn test_cavs_x963_kdf_sha384_with_info_count0() {
         let z = hex!("c051fd22539c9de791d6c43a854b8f80a6bf70190050854a");
@@ -1973,12 +1952,7 @@ mod x963_kdf_ansi {
 }
 
 // ============================================================================
-// OpenBSD bcrypt-pbkdf テストベクター
-// 出典: bcrypt-pbkdf クレート付属 OpenBSD テストベクター
-// ============================================================================
-
-// ============================================================================
-// RFC 7914 Section 11: PBKDF2-HMAC-SHA256 テストベクター
+// RFC 7914 Section 11: PBKDF2-HMAC-SHA256 test vectors
 // https://www.rfc-editor.org/rfc/rfc7914.html#section-11
 // ============================================================================
 
@@ -2001,7 +1975,7 @@ mod pbkdf2_hmac_sha256_rfc7914 {
 
     /// RFC 7914 Section 11 - Vector 2: password="Password", salt="NaCl", c=80000, dkLen=64
     #[test]
-    #[ignore = "高コスト（80000反復）: cargo test -- --ignored で実行"]
+    #[ignore = "slow (80000 iterations): run with cargo test -- --ignored"]
     fn test_rfc7914_pbkdf2_vector2_c80000() {
         let params = Pbkdf2Params::new(80000);
         let expected = hex!(
@@ -2016,6 +1990,11 @@ mod pbkdf2_hmac_sha256_rfc7914 {
         assert_eq!(key.as_bytes(), expected);
     }
 }
+
+// ============================================================================
+// OpenBSD bcrypt-pbkdf test vectors
+// Source: the bcrypt-pbkdf crate's OpenBSD test vectors
+// ============================================================================
 
 mod bcrypt_pbkdf_openbsd {
     use super::*;
