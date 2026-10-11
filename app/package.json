@@ -13,7 +13,7 @@
     "build-storybook": "storybook build",
     "lint": "concurrently 'bun:lint:*'",
     "lint:es": "eslint .",
-    "lint:tsc": "tsc --noEmit -p tsconfig.app.json",
+    "lint:tsc": "tsc -b",
     "lint:biome": "biome ci --error-on-warnings .",
     "lint:cargo:fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
     "lint:cargo:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml --locked --no-deps --all-features --all-targets --release",
