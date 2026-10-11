@@ -92,7 +92,8 @@ proptest! {
             Aes128GcmKey::from(arr)
         }),
         nonce in nonce_of_len(12),
-        plaintext in prop::collection::vec(any::<u8>(), 1..100).prop_map(Plaintext::from),
+        // Shorter plaintexts can produce equal ciphertexts by chance
+        plaintext in prop::collection::vec(any::<u8>(), 16..100).prop_map(Plaintext::from),
     ) {
         let aad = AdditionalData::empty();
         if key1 != key2 {
