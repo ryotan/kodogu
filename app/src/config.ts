@@ -29,7 +29,6 @@ export const CssPadding = (s: string): CssPadding => s as CssPadding;
 //
 // No runtime validation on invoke<AppConfig> — the type parameter is
 // compile-time only. Rust's serde serialization is the source of truth.
-// TODO(KDG-27): Consider runtime parsing (e.g. arktype) once IPC error handling improves.
 // =============================================================================
 
 export type PopoverBehaviorConfig = {

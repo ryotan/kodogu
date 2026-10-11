@@ -166,7 +166,7 @@ pub(crate) struct PopoverConfig {
 /// Add new fields at any time — missing fields in stored data are filled from `Default::default()`.
 ///
 /// ## Schema evolution
-/// See ADR-0004. `#[serde(default)]` on each struct enables forward-compatible field additions.
+/// `#[serde(default)]` on each struct enables forward-compatible field additions.
 /// Renaming or changing field types requires bumping `StoredAppConfig` to a new variant.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]

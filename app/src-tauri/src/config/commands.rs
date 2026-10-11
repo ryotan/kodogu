@@ -13,8 +13,6 @@ use super::store::{AppConfigStore, ConfigError};
 ///
 /// Serializes as a plain JSON string so callers can display the message directly.
 /// Using a newtype instead of `String` makes the intent explicit at the call site.
-///
-/// TODO(KDG-27): Consider structured error format `{kind, message}` for typed JS-side handling.
 #[derive(Debug, Serialize)]
 #[serde(transparent)]
 pub(crate) struct CommandError(String);
