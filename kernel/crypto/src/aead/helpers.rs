@@ -44,7 +44,6 @@ pub(crate) mod test_helpers {
     use crate::Nonce;
     use crate::{Ciphertext, Plaintext};
 
-    /// AEAD ラウンドトリップテスト（AAD なし）。
     pub fn assert_aead_roundtrip<E, D>(nonce: &Nonce, encrypt: E, decrypt: D)
     where
         E: Fn(&Plaintext, &Nonce, &AdditionalData) -> (Ciphertext, AuthenticationTag),
@@ -59,7 +58,6 @@ pub(crate) mod test_helpers {
         }
     }
 
-    /// AEAD ラウンドトリップテスト（AAD あり）。
     pub fn assert_aead_roundtrip_with_aad<E, D>(
         nonce: &Nonce,
         aad: &AdditionalData,
@@ -75,7 +73,6 @@ pub(crate) mod test_helpers {
         assert_eq!(plaintext, decrypted);
     }
 
-    /// 結合型 API ラウンドトリップテスト。
     pub fn assert_combined_roundtrip<E, D>(nonce: &Nonce, encrypt: E, decrypt: D)
     where
         E: Fn(&Plaintext, &Nonce, &AdditionalData) -> AeadCiphertext,

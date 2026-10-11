@@ -1,6 +1,6 @@
 //! # KoDoGu Crypto Library
 //!
-//! Cryptographic utilities for symmetric/asymmetric encryption, signatures, and key derivation.
+//! Cryptographic utilities for symmetric encryption, AEAD, MACs, and key derivation.
 //!
 //! ## Design Patterns
 //!

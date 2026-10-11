@@ -6,7 +6,6 @@ use aes_gcm::aead::Aead;
 use aes_gcm::{Aes256Gcm, KeyInit};
 use suzunari_error::ResultExt;
 
-// GMAC 固定サイズ
 const GMAC_NONCE_SIZE: usize = 12;
 const GMAC_TAG_SIZE: usize = 16;
 
@@ -56,20 +55,15 @@ impl Gmac {
         let nonce_array = validate_nonce_length(nonce)?;
         let cipher = Aes256Gcm::new(key.as_bytes().into());
 
-        // GMAC = AES-GCM で空の平文を暗号化し、AAD として message を使用
-        // 結果は tag のみ（暗号文は空）
+        // GMAC is AES-GCM over an empty plaintext with the message as AAD
         let ciphertext_with_tag = cipher
             .encrypt(
                 nonce_array.as_slice().into(),
-                aes_gcm::aead::Payload {
-                    msg: &[],     // 空の平文
-                    aad: message, // message を AAD として使用
-                },
+                aes_gcm::aead::Payload { msg: &[], aad: message },
             )
             .map_err(|_| hmac::digest::MacError)
             .context(VerificationFailedError { algorithm: MacAlgorithms::Gmac })?;
 
-        // 空の平文なので、出力は tag のみ
         debug_assert_eq!(ciphertext_with_tag.len(), GMAC_TAG_SIZE);
         Ok(MacTag::from(ciphertext_with_tag))
     }
@@ -87,14 +81,11 @@ impl Gmac {
         let nonce_array = validate_nonce_length(nonce)?;
         let cipher = Aes256Gcm::new(key.as_bytes().into());
 
-        // GMAC 検証 = AES-GCM で空の暗号文 + tag を復号
+        // Verify by decrypting an empty ciphertext followed by the tag
         cipher
             .decrypt(
                 nonce_array.as_slice().into(),
-                aes_gcm::aead::Payload {
-                    msg: tag.as_bytes(), // tag を暗号文として渡す
-                    aad: message,
-                },
+                aes_gcm::aead::Payload { msg: tag.as_bytes(), aad: message },
             )
             .map_err(|_| hmac::digest::MacError)
             .context(VerificationFailedError { algorithm: MacAlgorithms::Gmac })?;
@@ -122,8 +113,8 @@ fn validate_nonce_length(nonce: &Nonce) -> Result<[u8; GMAC_NONCE_SIZE], MacErro
 }
 
 // ========================================
-// MacGenerator / MacVerifier 実装
-// GMAC は nonce が必要なため、Key として (key, nonce) ペアを受け取る
+// MacGenerator / MacVerifier
+// GMAC needs a nonce, so the key is a (key, nonce) pair
 // ========================================
 
 /// GMAC key with embedded nonce.

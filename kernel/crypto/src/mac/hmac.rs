@@ -5,7 +5,6 @@ use hmac::{Hmac, Mac as HmacMac};
 use sha2::{Sha256, Sha384, Sha512};
 use suzunari_error::ResultExt;
 
-// HMAC 出力サイズ
 const HMAC_SHA256_OUTPUT_SIZE: usize = 32;
 const HMAC_SHA384_OUTPUT_SIZE: usize = 48;
 const HMAC_SHA512_OUTPUT_SIZE: usize = 64;
@@ -41,7 +40,7 @@ impl MacGenerator for HmacSha256 {
     type Error = MacError;
 
     fn generate(&self, message: &[u8], key: &Self::Key) -> Result<MacTag, Self::Error> {
-        // HMAC は任意の鍵長を受け入れる (RFC 2104)
+        // Cannot fail: HMAC accepts any key length (RFC 2104)
         let mut mac = HmacSha256Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::HmacSha256 })?;
         mac.update(message);
@@ -55,11 +54,11 @@ impl MacVerifier for HmacSha256 {
     type Error = MacError;
 
     fn verify(&self, message: &[u8], tag: &MacTag, key: &Self::Key) -> Result<(), Self::Error> {
-        // HMAC は任意の鍵長を受け入れる (RFC 2104)
+        // Cannot fail: HMAC accepts any key length (RFC 2104)
         let mut mac = HmacSha256Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::HmacSha256 })?;
         mac.update(message);
-        // verify_slice は constant-time 比較を行う
+        // verify_slice compares in constant time
         mac.verify_slice(tag.as_bytes())
             .context(VerificationFailedError { algorithm: MacAlgorithms::HmacSha256 })
     }
@@ -108,7 +107,7 @@ impl MacGenerator for HmacSha384 {
     type Error = MacError;
 
     fn generate(&self, message: &[u8], key: &Self::Key) -> Result<MacTag, Self::Error> {
-        // HMAC は任意の鍵長を受け入れる (RFC 2104)
+        // Cannot fail: HMAC accepts any key length (RFC 2104)
         let mut mac = HmacSha384Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::HmacSha384 })?;
         mac.update(message);
@@ -122,7 +121,7 @@ impl MacVerifier for HmacSha384 {
     type Error = MacError;
 
     fn verify(&self, message: &[u8], tag: &MacTag, key: &Self::Key) -> Result<(), Self::Error> {
-        // HMAC は任意の鍵長を受け入れる (RFC 2104)
+        // Cannot fail: HMAC accepts any key length (RFC 2104)
         let mut mac = HmacSha384Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::HmacSha384 })?;
         mac.update(message);
@@ -169,7 +168,7 @@ impl MacGenerator for HmacSha512 {
     type Error = MacError;
 
     fn generate(&self, message: &[u8], key: &Self::Key) -> Result<MacTag, Self::Error> {
-        // HMAC は任意の鍵長を受け入れる (RFC 2104)
+        // Cannot fail: HMAC accepts any key length (RFC 2104)
         let mut mac = HmacSha512Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::HmacSha512 })?;
         mac.update(message);
@@ -183,7 +182,7 @@ impl MacVerifier for HmacSha512 {
     type Error = MacError;
 
     fn verify(&self, message: &[u8], tag: &MacTag, key: &Self::Key) -> Result<(), Self::Error> {
-        // HMAC は任意の鍵長を受け入れる (RFC 2104)
+        // Cannot fail: HMAC accepts any key length (RFC 2104)
         let mut mac = HmacSha512Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::HmacSha512 })?;
         mac.update(message);
@@ -200,7 +199,7 @@ impl Mac for HmacSha512 {
 impl HmacCipher for HmacSha512 {}
 
 // ========================================
-// HMAC Enum (ランタイム選択)
+// HmacAlgorithm enum
 // ========================================
 
 /// HMAC algorithm variants for runtime selection.
@@ -256,7 +255,7 @@ impl MacGenerator for HmacAlgorithm {
 
         match self {
             HmacAlgorithm::Sha256 => {
-                // HMAC は任意の鍵長を受け入れる (RFC 2104)
+                // Cannot fail: HMAC accepts any key length (RFC 2104)
                 let mut mac = HmacSha256Impl::new_from_slice(key)
                     .context(KeyInitFailedError { algorithm })?;
                 mac.update(message);

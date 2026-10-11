@@ -93,7 +93,7 @@ impl DerivedKey {
     ///
     /// The returned [`Zeroizing`] wrapper ensures the bytes are cleared on drop.
     pub fn into_bytes(mut self) -> Zeroizing<Vec<u8>> {
-        // take で内容を移動。self.0 は空 vec になり、drop 時のゼロ化は空操作。
+        // take moves the bytes out, so drop zeroizes an empty Vec
         Zeroizing::new(std::mem::take(&mut self.0))
     }
 }
@@ -220,7 +220,8 @@ pub enum Argon2ParamsError {
 /// Argon2id parameters.
 ///
 /// Note: the upstream `argon2` crate requires `memory_kib >= 8 * parallelism`.
-/// Values violating this constraint will cause [`KdfError::Argon2InvalidParams`] at derive time.
+/// Values violating this constraint will cause
+/// [`KdfError::Argon2InvalidParams`](crate::KdfError::Argon2InvalidParams) at derive time.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Argon2Params {
     /// Memory cost in KiB.
@@ -298,7 +299,8 @@ pub enum ScryptParamsError {
 /// Scrypt parameters.
 ///
 /// Note: the upstream `scrypt` crate requires `r * p < 2^30`.
-/// Values violating this constraint will cause [`KdfError::ScryptInvalidParams`] at derive time.
+/// Values violating this constraint will cause
+/// [`KdfError::ScryptInvalidParams`](crate::KdfError::ScryptInvalidParams) at derive time.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ScryptParams {
     /// Logarithm of CPU/memory cost parameter N (N = 2^log_n).

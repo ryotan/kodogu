@@ -6,7 +6,6 @@ use poly1305::universal_hash::KeyInit;
 use subtle::ConstantTimeEq;
 use suzunari_error::ResultExt;
 
-// Poly1305 固定サイズ
 const POLY1305_TAG_SIZE: usize = 16;
 
 // ========================================
@@ -60,9 +59,9 @@ impl MacGenerator for Poly1305Mac {
     type Error = MacError;
 
     fn generate(&self, message: &[u8], key: &Self::Key) -> Result<MacTag, Self::Error> {
-        // Poly1305Key は常に 32 バイト
+        // Cannot panic: Poly1305Key is always 32 bytes
         let mac = Poly1305Impl::new(key.as_bytes().into());
-        // compute_unpadded: 生の Poly1305（AEAD 用の padding なし）
+        // Raw Poly1305, without the zero padding used in AEAD
         let result = mac.compute_unpadded(message);
         Ok(MacTag::from(result.as_slice().to_vec()))
     }
@@ -75,11 +74,10 @@ impl MacVerifier for Poly1305Mac {
     fn verify(&self, message: &[u8], tag: &MacTag, key: &Self::Key) -> Result<(), Self::Error> {
         let expected = MacGenerator::generate(self, message, key)?;
 
-        // constant-time 比較
         if expected.as_bytes().ct_eq(tag.as_bytes()).into() {
             Ok(())
         } else {
-            // Poly1305 は verify_slice を持たないため、hmac::digest::MacError を source として使用
+            // Poly1305 has no verify_slice, so build the MacError source here
             Err(hmac::digest::MacError)
                 .context(VerificationFailedError { algorithm: MacAlgorithms::Poly1305 })
         }
@@ -101,7 +99,7 @@ mod tests {
     use super::*;
 
     fn test_key() -> Poly1305Key {
-        // 非ゼロ鍵を使用（Poly1305 では全ゼロ鍵だと MAC も全ゼロになる）
+        // An all-zero key gives an all-zero tag
         let mut key = [0u8; 32];
         for (i, byte) in key.iter_mut().enumerate() {
             *byte = (i + 1) as u8;

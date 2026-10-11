@@ -6,9 +6,8 @@ use aes::{Aes128, Aes256};
 use cmac::{Cmac, Mac as CmacMac};
 use suzunari_error::ResultExt;
 
-// CMAC 出力サイズ（AES ブロックサイズ = 16 bytes）
+// CMAC output size = AES block size
 const CMAC_OUTPUT_SIZE: usize = 16;
-// CMAC 鍵サイズ
 const CMAC_AES128_KEY_SIZE: usize = 16;
 const CMAC_AES256_KEY_SIZE: usize = 32;
 
@@ -43,7 +42,7 @@ impl MacGenerator for CmacAes128 {
     type Error = MacError;
 
     fn generate(&self, message: &[u8], key: &Self::Key) -> Result<MacTag, Self::Error> {
-        // CmacAes128Key は常に 16 バイト
+        // Cannot fail: CmacAes128Key is always 16 bytes
         let mut mac = CmacAes128Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::CmacAes128 })?;
         mac.update(message);
@@ -60,7 +59,7 @@ impl MacVerifier for CmacAes128 {
         let mut mac = CmacAes128Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::CmacAes128 })?;
         mac.update(message);
-        // verify_slice は constant-time 比較を行う
+        // verify_slice compares in constant time
         mac.verify_slice(tag.as_bytes())
             .context(VerificationFailedError { algorithm: MacAlgorithms::CmacAes128 })
     }
@@ -107,7 +106,7 @@ impl MacGenerator for CmacAes256 {
     type Error = MacError;
 
     fn generate(&self, message: &[u8], key: &Self::Key) -> Result<MacTag, Self::Error> {
-        // CmacAes256Key は常に 32 バイト
+        // Cannot fail: CmacAes256Key is always 32 bytes
         let mut mac = CmacAes256Impl::new_from_slice(key.as_bytes())
             .context(KeyInitFailedError { algorithm: MacAlgorithms::CmacAes256 })?;
         mac.update(message);
@@ -137,7 +136,7 @@ impl Mac for CmacAes256 {
 impl CmacAesCipher for CmacAes256 {}
 
 // ========================================
-// CmacAes Enum (ランタイム選択)
+// CmacAes enum
 // ========================================
 
 /// CMAC-AES algorithm variants for runtime selection.

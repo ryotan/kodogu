@@ -448,7 +448,7 @@ mod tests {
     #[test]
     fn test_xchacha20poly1305_invalid_nonce_length() {
         let key = ChaCha20Poly1305Key::from([0u8; 32]);
-        let nonce = Nonce::from(vec![0u8; 12]); // 12 は XChaCha には短い
+        let nonce = Nonce::from(vec![0u8; 12]); // Too short for XChaCha (24 bytes)
         let aad = AdditionalData::empty();
         let plaintext = Plaintext::from("Hello");
 
