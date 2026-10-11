@@ -8,7 +8,7 @@ use serde::de::DeserializeOwned;
 /// A redb [`Value`] adapter that serializes `T` as MessagePack using [`rmp_serde`].
 ///
 /// The map format (`to_vec_named`) is used so that [`serde(default)`] works correctly
-/// when fields are added or removed — see ADR-0004.
+/// when fields are added or removed.
 #[derive(Debug)]
 pub(crate) struct MessagePack<T>(PhantomData<T>);
 
