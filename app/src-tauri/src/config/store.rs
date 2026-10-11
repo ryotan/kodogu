@@ -55,6 +55,7 @@ pub enum ConfigError {
 /// Manages a shared redb database handle and a cached in-memory copy of `AppConfig`.
 pub(crate) struct AppConfigStore {
     db: Database,
+    /// Holds a whole `AppConfig` even after a panic: `set()` can only panic before it replaces the value.
     cached: RwLock<AppConfig>,
 }
 
@@ -62,11 +63,9 @@ impl AppConfigStore {
     /// Creates a new store from a database handle and loads the stored config.
     /// On first launch when no config exists, writes and caches `AppConfig::default()`.
     pub(crate) fn new(db: Database) -> Result<Self, ConfigError> {
-        let store = Self { db, cached: RwLock::new(AppConfig::default()) };
+        let mut store = Self { db, cached: RwLock::new(AppConfig::default()) };
         let config = store.load_from_db()?;
-        // Poison recovery: if a panicking thread held the lock, we still want the latest value.
-        // AppConfig is independently validated, so a poisoned cache is safe to overwrite.
-        *store.cached.write().unwrap_or_else(|e| e.into_inner()) = config;
+        store.cached = RwLock::new(config);
         Ok(store)
     }
 
@@ -113,15 +112,14 @@ impl AppConfigStore {
     }
 
     pub(crate) fn get(&self) -> AppConfig {
-        // Poison recovery: reading a potentially stale cache is acceptable — the value
-        // is always a valid AppConfig, and the next set() will overwrite it.
+        // Safe to recover from poisoning; see `cached`.
         self.cached.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     pub(crate) fn set(&self, config: AppConfig) -> Result<(), ConfigError> {
         // Hold the write lock across DB write + cache update so readers never see a stale cache
         // after a successful DB commit.
-        // Poison recovery: same rationale as new() — overwriting with a freshly persisted value.
+        // Safe to recover from poisoning; see `cached`.
         let mut cache = self.cached.write().unwrap_or_else(|e| e.into_inner());
         self.write_to_db(&config)?;
         *cache = config;
