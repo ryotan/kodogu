@@ -80,8 +80,7 @@
         "noVoid": "error"
       },
       "style": {
-        // Next.jsやExpo Routerの規約上、default exportが必要
-        "noDefaultExport": "off",
+        "noDefaultExport": "error",
         "noNamespace": "error",
         "noNegationElse": "error",
         "useBlockStatements": "error",
@@ -167,5 +166,18 @@
   "files": {
     "includes": ["**", "!**/.idea", "!**/.github", "!**/patches", "!**/src-tauri", "!app/gen", "!kernel", "!**/*.svg"],
     "ignoreUnknown": true
-  }
+  },
+  "overrides": [
+    {
+      // Storybook meta and these tool configs must be default exports.
+      "includes": [
+        "**/*.stories.*",
+        "**/.storybook/main.ts",
+        "**/.storybook/preview.tsx",
+        "**/vite.config.ts",
+        "**/eslint.config.mjs"
+      ],
+      "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
+    }
+  ]
 }
