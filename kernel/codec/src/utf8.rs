@@ -87,8 +87,7 @@ use suzunari_error::ResultExt;
 ///
 /// # Usage
 ///
-/// Use the [`Utf8`] for trait object access, or methods like
-/// [`Utf8.encode()`], [`Utf8.decode()`], [`Utf8.decode_strict()`] for convenience.
+/// Use it through the [`TextCodec`] trait.
 ///
 /// # Examples
 ///

@@ -12,7 +12,7 @@
 //! ## Choosing a Variant
 //!
 //! - **Standard**: Default choice for general purpose encoding
-//! - **Hex**: When you need case-insensitive encoding with natural sorting
+//! - **Hex**: When the encoded text must sort in the same order as the data
 //! - **Crockford**: When encoding IDs/tokens that humans will read/type (confusion-resistant)
 //! - **Custom**: When you need specific alphabet requirements
 //!
@@ -287,9 +287,8 @@ impl Base32Custom {
     ///
     /// # Errors
     ///
-    /// Returns `BinaryCodecError::InvalidCharacterSet` if:
-    /// - Alphabet length is not exactly 32 characters
-    /// - Alphabet contains duplicate characters
+    /// - `BinaryCodecError::InvalidCharacterSet` if the alphabet is not 32 characters
+    /// - `BinaryCodecError::DataEncodingSpec` if a character repeats
     ///
     /// # Examples
     ///
@@ -313,9 +312,8 @@ impl Base32Custom {
     ///
     /// # Errors
     ///
-    /// Returns `BinaryCodecError::InvalidCharacterSet` if:
-    /// - Alphabet length is not exactly 32 characters
-    /// - Alphabet contains duplicate characters
+    /// - `BinaryCodecError::InvalidCharacterSet` if the alphabet is not 32 characters
+    /// - `BinaryCodecError::DataEncodingSpec` if a character repeats or is the padding
     ///
     /// # Examples
     ///
@@ -896,7 +894,7 @@ mod tests {
         assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
 
         // Character not in alphabet
-        let result = codec.decode("Z1234567"); // '1' is in alphabet, but '0' is not
+        let result = codec.decode("Z1234567"); // '1' is not in this alphabet
         assert!(matches!(result, Err(BinaryCodecError::DataEncodingDecode { .. })));
     }
 

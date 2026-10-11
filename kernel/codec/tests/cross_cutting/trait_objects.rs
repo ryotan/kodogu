@@ -10,7 +10,7 @@ use codec::{
 
 #[test]
 fn test_binary_codec_trait_object() {
-    // Z85はinputが4の倍数である必要があるため、24バイトのデータを使用
+    // Z85 needs a multiple of 4 bytes
     let data = b"Test data for polymorphi";
 
     // All binary codecs work through BinaryCodec trait
@@ -33,7 +33,7 @@ fn test_binary_codec_trait_object() {
 
 #[test]
 fn test_runtime_codec_selection() {
-    // Z85はinputが4の倍数である必要があるため、12バイトのデータを使用
+    // Z85 needs a multiple of 4 bytes
     let data = b"Runtime test";
 
     // Simulate runtime codec selection based on configuration
@@ -60,7 +60,7 @@ fn test_runtime_codec_selection() {
 
 #[test]
 fn test_codec_in_vec() {
-    // Z85はinputが4の倍数である必要があるため、16バイトのデータを使用
+    // Z85 needs a multiple of 4 bytes
     let data = b"Collection tests";
     let codecs: Vec<Box<dyn BinaryCodec>> = vec![
         Box::new(HexLower),

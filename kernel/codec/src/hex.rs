@@ -119,7 +119,7 @@ pub struct HexCustom {
 /// (e.g., from configuration files, user input, or environment variables).
 ///
 /// For compile-time known variants, prefer the zero-sized types
-/// ([`HexLower`], [`HexUpper`], [`HexCaseInsensitive`], [`HexCustom`])
+/// ([`HexLower`], [`HexUpper`], [`HexCaseInsensitive`]) or [`HexCustom`]
 /// for better performance.
 ///
 /// # Examples

@@ -6,6 +6,7 @@
 //! - Base32 (RFC 4648, Crockford) with custom alphabets
 //! - Base58 (Bitcoin, Flickr) with custom alphabets
 //! - Base64 (Standard, URL-safe, MIME) with custom alphabets
+//! - Base85 (Ascii85, Z85, RFC 1924, btoa)
 //! - Quoted-Printable (MIME)
 //! - URL Encoding (RFC 3986, Form URL Encoded, Component)
 
