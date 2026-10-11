@@ -1,7 +1,6 @@
 // =============================================================================
-// Value types — mirrors newtype definitions in app/src-tauri/src/config.rs.
+// Value types — mirrors newtype definitions in app/src-tauri/src/config/domain.rs.
 // Branded at compile time only; runtime values are plain primitives.
-// No runtime validation — Rust is the single source of truth for valid values.
 // =============================================================================
 
 declare const _brand: unique symbol;
@@ -24,11 +23,8 @@ export const CssLength = (s: string): CssLength => s as CssLength;
 export const CssPadding = (s: string): CssPadding => s as CssPadding;
 
 // =============================================================================
-// Config types — mirrors struct definitions in app/src-tauri/src/config.rs.
+// Config types — mirrors struct definitions in app/src-tauri/src/config/domain.rs.
 // Fields are camelCase (Rust side uses #[serde(rename_all = "camelCase")]).
-//
-// No runtime validation on invoke<AppConfig> — the type parameter is
-// compile-time only. Rust's serde serialization is the source of truth.
 // =============================================================================
 
 export type PopoverBehaviorConfig = {

@@ -3,7 +3,6 @@ import {useLayoutEffect} from 'react';
 import type {AppConfig} from '#config';
 import {useAppConfig} from '#hooks/useAppConfig';
 
-// Inject design tokens from AppConfig as CSS custom properties on the document root.
 function applyDesignTokens(config: AppConfig, root: HTMLElement): void {
   const {appearance, layout} = config.popover;
   root.style.setProperty('--kodogu-surface-color', appearance.surfaceColor);
@@ -14,9 +13,6 @@ function applyDesignTokens(config: AppConfig, root: HTMLElement): void {
   root.style.setProperty('--kodogu-card-list-padding', layout.cardListPadding);
 }
 
-// Syncs AppConfig design tokens to CSS custom properties.
-// Placed in __root.tsx so tokens are applied before any route renders.
-// beforeLoad guarantees AppConfig is cached before this component mounts.
 export const useConfiguredDesignTokens = () => {
   const config = useAppConfig();
   useLayoutEffect(() => {

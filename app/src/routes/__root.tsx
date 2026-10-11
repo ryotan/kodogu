@@ -3,7 +3,7 @@ import {createRootRouteWithContext, Outlet} from '@tanstack/react-router';
 
 import {TanStackTools} from '#(dev)/TanStackTools';
 import {PopoverPendingLayout} from '#components/PopoverPendingLayout';
-import {useConfiguredDesignTokens} from '#components/useDesignTokenSync.tsx';
+import {useConfiguredDesignTokens} from '#components/useConfiguredDesignTokens';
 import {appConfigQuery} from '#hooks/useAppConfig';
 
 export type RouterContext = {
