@@ -1,6 +1,6 @@
 [package]
 name = "codec"
-description = "Encoding and decoding library for KoDoGu - supports UTF-8, Hex, Base32/58/64, URL encoding, and Quoted-Printable"
+description = "Encoding and decoding library for KoDoGu - supports UTF-8, Hex, Base32/58/64/85, URL encoding, and Quoted-Printable"
 version = { workspace = true }
 edition = { workspace = true }
 repository = { workspace = true }

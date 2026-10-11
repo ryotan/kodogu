@@ -20,10 +20,10 @@
 //! ## Encoding Rules
 //!
 //! 1. Bytes 33-60, 62-126 are represented as-is (except `=`)
-//! 2. `=` is encoded as `=3D`
-//! 3. All other bytes are encoded as `=XX` where XX is uppercase hexadecimal
-//! 4. Lines longer than 76 characters are broken with soft line breaks (`=\r\n` or `=\n`)
-//! 5. Trailing whitespace on lines must be encoded
+//! 2. Space and tab are represented as-is, except at the end of a line (`=20`, `=09`)
+//! 3. `=` is encoded as `=3D`
+//! 4. All other bytes are encoded as `=XX` where XX is uppercase hexadecimal
+//! 5. Lines longer than 76 characters are broken with soft line breaks (`=\r\n` or `=\n`)
 //!
 //! ## References
 //!
@@ -278,8 +278,8 @@ impl QuotedPrintable {
     /// Returns [`BinaryCodecError::QuotedPrintableDecode`] if the input is malformed:
     ///
     /// - Invalid hex sequences (e.g., `=ZZ`, `=GG`)
-    /// - Incomplete encodings (e.g., `=3`, `=`)
-    /// - `=` not followed by valid hex digits or newline
+    /// - Incomplete encodings (e.g., `=3`)
+    /// - `=` followed by something other than two hex digits or a line break
     ///
     /// # Examples
     ///

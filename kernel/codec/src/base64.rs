@@ -13,7 +13,7 @@
 //!
 //! - **Standard**: Default choice for general purpose encoding (API tokens, data serialization)
 //! - **URL-safe**: When encoding data for URLs, query parameters, or filenames (replaces +/ with -_)
-//! - **MIME**: When encoding for email (MIME) or PEM certificates (requires line breaks)
+//! - **MIME**: When encoding for email (MIME), which requires line breaks
 //! - **Custom**: When you need specific alphabet requirements or compatibility with legacy systems
 //!
 //! ## Examples
@@ -85,7 +85,7 @@ pub struct Base64UrlSafe;
 ///
 /// This is a zero-sized type (ZST) with no runtime overhead.
 /// Standard Base64 with line wrapping at 76 characters using CRLF (`\r\n`).
-/// Used in email (MIME) and PEM certificate formats.
+/// Used in email (MIME).
 ///
 /// # Example
 /// ```
@@ -242,9 +242,9 @@ impl Base64Custom {
     ///
     /// - [`BinaryCodecError::InvalidCharacterSet`]
     ///   - Alphabet length is not 64 characters
-    ///   - Padding character conflicts with alphabet
     /// - [`BinaryCodecError::DataEncodingSpec`]
     ///   - Alphabet contains duplicate characters
+    ///   - Padding character conflicts with alphabet
     ///
     /// # Examples
     /// ```
@@ -332,9 +332,9 @@ impl Base64 {
     ///
     /// - [`BinaryCodecError::InvalidCharacterSet`]
     ///   - Alphabet length is not 64 characters
-    ///   - Padding character conflicts with alphabet
     /// - [`BinaryCodecError::DataEncodingSpec`]
     ///   - Alphabet contains duplicate characters
+    ///   - Padding character conflicts with alphabet
     pub fn new_with_padding(
         alphabet: &str,
         padding: Option<char>,

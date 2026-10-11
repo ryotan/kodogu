@@ -402,9 +402,8 @@ proptest! {
 
     /// Property: Ascii85 differs from Z85 (different alphabet structure)
     ///
-    /// Note: Z85 と RFC1924 は 0-9 が同じ位置にあるため、
-    /// 特定の入力では同じ出力になる可能性がある。
-    /// Ascii85 は '!' から始まる連続 ASCII を使うため、常に異なる。
+    /// Note: Z85 and RFC 1924 share 0-9, so they can collide.
+    /// Ascii85 and Z85 never map a value to the same character.
     #[test]
     fn prop_base85_ascii85_differs_from_z85(data in prop::collection::vec(any::<u8>(), 4..20).prop_filter("multiple of 4 and has non-zero", |v| v.len() % 4 == 0 && v.iter().any(|&b| b != 0))) {
         let ascii85 = Base85Ascii85.encode(&data);

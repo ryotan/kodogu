@@ -187,10 +187,10 @@ const ALPHABET_RFC1924: &[u8; 85] =
     b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
 
 // ============================================================================
-// Decode tables (lazy static)
+// Decode tables (computed at compile time)
 // ============================================================================
 
-/// 逆引きテーブルを生成する
+/// Builds the reverse lookup table.
 const fn build_decode_table(alphabet: &[u8; 85]) -> [u8; 256] {
     let mut table = [255u8; 256];
     let mut i = 0;
@@ -991,7 +991,7 @@ mod tests {
 
     #[test]
     fn test_trait_object() {
-        // Z85はinputが4の倍数である必要があるため、8バイトのデータを使用
+        // Z85 needs a multiple of 4 bytes
         let data = b"TestData";
         let codecs: Vec<&dyn BinaryCodec> =
             vec![&Base85Ascii85, &Base85Z85, &Base85Rfc1924, &Base85Btoa];
@@ -1067,7 +1067,6 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
             0x3A, 0xEA, 0xD3, 0xB7,
         ];
 
-        // Verify a round-trip (we don't have the expected encoded value from RFC)
         let encoded = Base85Z85.encode(&input);
         assert_eq!(encoded.len(), 40); // 32 bytes -> 40 chars
         assert_eq!(encoded, "JTKVSB%%)wK0E.X)V>+}o?pNmC{O&4W4b!Ni{Lh6");
@@ -1405,12 +1404,12 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
     /// Ascii85 decode with single char partial block (triggers InvalidLength)
     #[test]
     fn test_ascii85_single_char_partial_block() {
-        // 6文字 = 5文字の完全ブロック + 1文字の不完全ブロック
-        // 不完全ブロックは最低2文字必要（1文字では1バイトも復元できない）
+        // 5-char block + 1-char partial block
+        // A partial block needs at least 2 chars to restore a byte
         let result = Base85Ascii85.decode("<~!!!!!!~>");
         assert!(matches!(result, Err(BinaryCodecError::InvalidLength { .. })));
 
-        // 2文字の不完全ブロックは有効（1バイトを復元）
+        // A 2-char partial block restores 1 byte
         let result = Base85Ascii85.decode("<~!!!!!00~>");
         assert!(result.is_ok());
     }
@@ -1418,12 +1417,12 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
     /// RFC1924 partial block with single char (triggers InvalidLength)
     #[test]
     fn test_rfc1924_single_char_partial_block() {
-        // 21文字 = 20文字の完全ブロック + 1文字の不完全ブロック
-        // 不完全ブロックは最低2文字必要
+        // 20 chars of full blocks + 1-char partial block
+        // A partial block needs at least 2 chars
         let result = Base85Rfc1924.decode("00000000000000000000A");
         assert!(matches!(result, Err(BinaryCodecError::InvalidLength { .. })));
 
-        // 2文字の不完全ブロックは有効
+        // A 2-char partial block is valid
         let result = Base85Rfc1924.decode("0000000000000000000000");
         assert!(result.is_ok());
     }
@@ -1431,64 +1430,64 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
     /// Invalid char in partial block (triggers InvalidCharacterError in pad_with_highest_value)
     #[test]
     fn test_ascii85_invalid_char_in_partial_block() {
-        // 5文字の完全ブロック + 2文字の不完全ブロック（無効な文字を含む）
-        // Ascii85は '!' (33) から 'u' (117) を使用、'|' (124) は無効
+        // 5-char block + 2-char partial block with an invalid char
+        // Ascii85 uses '!' (33) to 'u' (117), so '|' (124) is invalid
         let result = Base85Ascii85.decode("<~!!!!!|x~>");
         assert!(matches!(result, Err(BinaryCodecError::InvalidCharacter { char: '|', .. })));
     }
 
-    /// decode_u128 with invalid length (triggers InvalidLength at line 573)
+    /// decode_u128 with invalid length (triggers InvalidLength)
     #[test]
     fn test_rfc1924_u128_invalid_length() {
-        // 短すぎる（5文字）
+        // Too short (5 chars)
         let result = Base85Rfc1924::decode_u128("short");
         assert!(matches!(result, Err(BinaryCodecError::InvalidLength { length: 5, .. })));
 
-        // 長すぎる（21文字）
+        // Too long (21 chars)
         let result = Base85Rfc1924::decode_u128("000000000000000000000");
         assert!(matches!(result, Err(BinaryCodecError::InvalidLength { length: 21, .. })));
 
-        // 空文字列
+        // Empty string
         let result = Base85Rfc1924::decode_u128("");
         assert!(matches!(result, Err(BinaryCodecError::InvalidLength { length: 0, .. })));
     }
 
-    /// decode_u128 with invalid character (triggers InvalidCharacter at lines 582-586)
+    /// decode_u128 with invalid character (triggers InvalidCharacter)
     #[test]
     fn test_rfc1924_u128_invalid_char() {
-        // RFC1924アルファベットに含まれない文字（スペース）を含む20文字
-        // RFC1924アルファベット: 0-9 A-Z a-z !#$%&()*+-;<=>?@^_`{|}~
-        let result = Base85Rfc1924::decode_u128("0000000000000000000 "); // 19個の0 + スペース
+        // 20 chars including one outside the RFC 1924 alphabet (a space)
+        // RFC 1924 alphabet: 0-9 A-Z a-z !#$%&()*+-;<=>?@^_`{|}~
+        let result = Base85Rfc1924::decode_u128("0000000000000000000 "); // 19 zeros + a space
         assert!(matches!(
             result,
             Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 19, .. })
         ));
 
-        // 先頭に無効文字（20文字）
-        let result = Base85Rfc1924::decode_u128(" 0000000000000000000"); // スペース + 19個の0
+        // Invalid char at the start (20 chars)
+        let result = Base85Rfc1924::decode_u128(" 0000000000000000000"); // A space + 19 zeros
         assert!(matches!(
             result,
             Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 0, .. })
         ));
 
-        // 中間に無効文字
-        let result = Base85Rfc1924::decode_u128("0000000000 000000000"); // 10個の0 + スペース + 9個の0
+        // Invalid char in the middle
+        let result = Base85Rfc1924::decode_u128("0000000000 000000000"); // 10 zeros + a space + 9 zeros
         assert!(matches!(
             result,
             Err(BinaryCodecError::InvalidCharacter { char: ' ', position: 10, .. })
         ));
     }
 
-    /// btoa decode with malformed footer (triggers line 674 path)
+    /// btoa decode with malformed footer
     #[test]
     fn test_btoa_malformed_footer() {
-        // N の後にスペースがない（解析失敗パス）
+        // No space after N (the footer parse fails)
         let malformed = "xbtoa Begin\n87cURD_*#4DfTZ)+T\nxbtoa End N13 d E d S 469 R 87912";
         let result = Base85Btoa.decode(malformed);
-        // デコード自体は成功するが、truncateは行われない
+        // Decoding still succeeds, but the output is not truncated
         assert!(result.is_ok());
 
-        // N が存在しない
+        // No N at all
         let no_n = "xbtoa Begin\n87cURD_*#4DfTZ)+T\nxbtoa End";
         let result = Base85Btoa.decode(no_n);
         assert!(result.is_ok());
