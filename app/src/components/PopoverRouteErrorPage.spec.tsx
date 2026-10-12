@@ -24,6 +24,7 @@ const renderRouter = async (routeTree: AnyRoute) => {
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
+  return router;
 };
 
 describe('PopoverRouteErrorPage', () => {
@@ -61,5 +62,17 @@ describe('PopoverRouteErrorPage', () => {
 
     await expect.element(page.getByText('loaded')).toBeVisible();
     expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('logs the error when reloading the routes fails on Try Again', async () => {
+    const router = await renderRouter(createRootRoute({loader: () => Promise.reject(new Error('loader failed'))}));
+    const reloadError = new Error('reload failed');
+    vi.spyOn(router, 'invalidate').mockRejectedValue(reloadError);
+
+    await page.getByRole('button', {name: 'Try Again'}).click();
+
+    await vi.waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith('Failed to reload the routes', reloadError);
+    });
   });
 });
