@@ -1,36 +1,16 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
 import {invoke} from '@tauri-apps/api/core';
+import {create} from 'mutative';
 
-import type {AppConfig} from '#config';
-import {CssColor, CssFilter, CssFontFamily, CssLength, CssPadding, LogicalPixel, Milliseconds} from '#config';
+import {Milliseconds} from '#config';
 
 import {getConfig, setConfig} from './appConfig';
+import {appConfigFixture} from './appConfig.fixture';
 
 vi.mock('@tauri-apps/api/core', () => ({invoke: vi.fn()}));
 
 const mockInvoke = vi.mocked(invoke);
-
-const defaultConfig: AppConfig = {
-  popover: {
-    behavior: {toggleDebounceMs: Milliseconds(300)},
-    layout: {
-      initialWidth: LogicalPixel(480),
-      bottomMargin: LogicalPixel(8),
-      trayGap: LogicalPixel(4),
-      fallbackMaxHeight: LogicalPixel(600),
-      minMaxHeight: LogicalPixel(200),
-      headerHeight: CssLength('40px'),
-      cardListPadding: CssPadding('6px 0'),
-    },
-    appearance: {
-      surfaceColor: CssColor('rgba(28, 28, 30, 0.92)'),
-      borderColor: CssColor('rgba(255, 255, 255, 0.08)'),
-      backdropFilter: CssFilter('blur(24px) saturate(180%)'),
-      fontFamily: CssFontFamily("-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"),
-    },
-  },
-};
 
 // =============================================================================
 // getConfig
@@ -40,19 +20,18 @@ describe('getConfig', () => {
   beforeEach(() => mockInvoke.mockReset());
 
   it('invokes get_config and resolves with AppConfig', async () => {
-    mockInvoke.mockResolvedValue(defaultConfig);
+    mockInvoke.mockResolvedValue(appConfigFixture);
 
     const result = await getConfig();
 
     expect(mockInvoke).toHaveBeenCalledWith('get_config');
-    expect(result).toEqual(defaultConfig);
+    expect(result).toEqual(appConfigFixture);
   });
 
   it('invokes get_config and resolves with custom toggleDebounceMs', async () => {
-    const custom: AppConfig = {
-      ...defaultConfig,
-      popover: {...defaultConfig.popover, behavior: {toggleDebounceMs: Milliseconds(750)}},
-    };
+    const custom = create(appConfigFixture, draft => {
+      draft.popover.behavior.toggleDebounceMs = Milliseconds(750);
+    });
     mockInvoke.mockResolvedValue(custom);
 
     const result = await getConfig();
@@ -77,17 +56,16 @@ describe('setConfig', () => {
   it('invokes set_config with config wrapped in object', async () => {
     mockInvoke.mockResolvedValue(undefined);
 
-    await setConfig(defaultConfig);
+    await setConfig(appConfigFixture);
 
-    expect(mockInvoke).toHaveBeenCalledWith('set_config', {config: defaultConfig});
+    expect(mockInvoke).toHaveBeenCalledWith('set_config', {config: appConfigFixture});
   });
 
   it('invokes set_config with modified toggleDebounceMs', async () => {
     mockInvoke.mockResolvedValue(undefined);
-    const config: AppConfig = {
-      ...defaultConfig,
-      popover: {...defaultConfig.popover, behavior: {toggleDebounceMs: Milliseconds(500)}},
-    };
+    const config = create(appConfigFixture, draft => {
+      draft.popover.behavior.toggleDebounceMs = Milliseconds(500);
+    });
 
     await setConfig(config);
 
@@ -97,6 +75,6 @@ describe('setConfig', () => {
   it('propagates rejection from invoke', async () => {
     mockInvoke.mockRejectedValueOnce(new Error('DB write failed'));
 
-    await expect(setConfig(defaultConfig)).rejects.toThrow('DB write failed');
+    await expect(setConfig(appConfigFixture)).rejects.toThrow('DB write failed');
   });
 });
