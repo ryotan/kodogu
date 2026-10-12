@@ -111,7 +111,13 @@ describe('useAppConfigCommands', () => {
   });
 
   it('rolls back cache on mutation error', async () => {
-    mockInvoke.mockRejectedValueOnce(new Error('DB write failed'));
+    const setConfigCall: {reject?: (reason: Error) => void} = {};
+    mockInvoke.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          setConfigCall.reject = reject;
+        }),
+    );
     const qc = createQueryClient();
     await render(
       <QueryClientProvider client={qc}>
@@ -122,6 +128,14 @@ describe('useAppConfigCommands', () => {
     captured.update?.(draft => {
       draft.popover.behavior.toggleDebounceMs = Milliseconds(999);
     });
+
+    // Fails `set_config` only after the optimistic value is in the cache, so the old value can only come back from
+    // the rollback.
+    await vi.waitFor(() => {
+      expect(setConfigCall.reject).toBeDefined();
+    });
+    expect(qc.getQueryData(appConfigQuery.queryKey)?.popover.behavior.toggleDebounceMs).toBe(999);
+    setConfigCall.reject?.(new Error('DB write failed'));
 
     await vi.waitFor(() => {
       const cached = qc.getQueryData(appConfigQuery.queryKey);
