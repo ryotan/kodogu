@@ -60,6 +60,7 @@ export default defineConfig(() => ({
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
         '**/*.stories.{ts,tsx}',
+        '**/*.fixture.{ts,tsx}',
         '**/*.mock.{ts,tsx}',
         '**/[(]dev[)]/**',
         '**/[(]prototype[)]/**',

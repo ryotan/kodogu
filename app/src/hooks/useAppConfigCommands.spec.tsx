@@ -4,9 +4,11 @@ import {render} from 'vitest-browser-react';
 import {useEffect} from 'react';
 
 import type {Draft} from 'mutative';
+import {create} from 'mutative';
 
+import {appConfigFixture} from '#commands/appConfig.fixture';
 import type {AppConfig} from '#config';
-import {CssColor, CssFilter, CssFontFamily, CssLength, CssPadding, LogicalPixel, Milliseconds} from '#config';
+import {Milliseconds} from '#config';
 
 const mockInvoke = vi.fn().mockResolvedValue(undefined);
 
@@ -22,32 +24,11 @@ const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query')
 const {appConfigQuery} = await import('#hooks/useAppConfig');
 const {useAppConfigCommands} = await import('#hooks/useAppConfigCommands');
 
-const defaultConfig: AppConfig = {
-  popover: {
-    behavior: {toggleDebounceMs: Milliseconds(300)},
-    layout: {
-      initialWidth: LogicalPixel(480),
-      bottomMargin: LogicalPixel(8),
-      trayGap: LogicalPixel(4),
-      fallbackMaxHeight: LogicalPixel(600),
-      minMaxHeight: LogicalPixel(200),
-      headerHeight: CssLength('40px'),
-      cardListPadding: CssPadding('6px 0'),
-    },
-    appearance: {
-      surfaceColor: CssColor('rgba(28, 28, 30, 0.92)'),
-      borderColor: CssColor('rgba(255, 255, 255, 0.08)'),
-      backdropFilter: CssFilter('blur(24px) saturate(180%)'),
-      fontFamily: CssFontFamily("-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif"),
-    },
-  },
-};
-
 function createQueryClient() {
   const qc = new QueryClient({
     defaultOptions: {queries: {retry: false}, mutations: {retry: false}},
   });
-  qc.setQueryData(appConfigQuery.queryKey, defaultConfig);
+  qc.setQueryData(appConfigQuery.queryKey, appConfigFixture);
   return qc;
 }
 
@@ -99,13 +80,9 @@ describe('useAppConfigCommands', () => {
 
     await vi.waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('set_config', {
-        config: {
-          ...defaultConfig,
-          popover: {
-            ...defaultConfig.popover,
-            behavior: {toggleDebounceMs: 999},
-          },
-        },
+        config: create(appConfigFixture, draft => {
+          draft.popover.behavior.toggleDebounceMs = Milliseconds(999);
+        }),
       });
     });
   });
@@ -139,7 +116,7 @@ describe('useAppConfigCommands', () => {
 
     await vi.waitFor(() => {
       const cached = qc.getQueryData(appConfigQuery.queryKey);
-      expect(cached?.popover.behavior.toggleDebounceMs).toBe(300);
+      expect(cached?.popover.behavior.toggleDebounceMs).toBe(appConfigFixture.popover.behavior.toggleDebounceMs);
     });
   });
 
