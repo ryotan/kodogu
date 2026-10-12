@@ -22,5 +22,5 @@
       "!#*": ["./gen/*"]
     }
   },
-  "include": ["src", "gen", ".storybook/preview.tsx"]
+  "include": ["src", "gen", ".storybook/preview.tsx", ".storybook/vitest.setup.ts", ".storybook/tauri-api-stub.ts"]
 }
