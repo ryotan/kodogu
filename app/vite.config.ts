@@ -105,7 +105,6 @@ export default defineConfig(() => ({
             provider: playwright(),
             instances: [{browser: 'chromium' as const}],
           },
-          setupFiles: ['.storybook/vitest.setup.ts'],
         },
       },
     ],

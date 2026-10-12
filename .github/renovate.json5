@@ -271,8 +271,9 @@
       ],
     },
     {
-      // Storybook packages must share the same version, otherwise Storybook can fail to start.
-      // Update them together.
+      // `storybook`, `@storybook/*`, and `eslint-plugin-storybook` are released under one version, and
+      // `@chromatic-com/storybook` accepts only the Storybook minor versions it lists. Storybook can fail to start when
+      // they are out of step, so update them together.
       groupName: 'Storybook',
       matchPackageNames: [
         '@chromatic-com/storybook',
