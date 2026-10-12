@@ -297,10 +297,12 @@ fn create_window<R: Runtime>(app: &AppHandle<R>) -> Result<WebviewWindow<R>, Pop
     Ok(WebviewWindowBuilder::from_config(app, config)?.build()?)
 }
 
+// Showing, hiding, and resizing are not tested: `MockRuntime` windows always report visible and ignore `show`, `hide`,
+// and `set_size`.
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tauri::{Manager, WebviewUrl};
+    use tauri::Manager;
 
     fn dummy_rect() -> Rect {
         Rect {
@@ -316,34 +318,11 @@ mod tests {
             .unwrap()
     }
 
-    fn create_popover_window(
-        app: &tauri::App<tauri::test::MockRuntime>,
-    ) -> WebviewWindow<tauri::test::MockRuntime> {
-        WebviewWindowBuilder::new(app.handle(), POPOVER_LABEL, WebviewUrl::App("/popover".into()))
-            .build()
-            .unwrap()
-    }
-
     #[test]
     fn create_window_returns_config_not_found_when_no_popover_config() {
         let app = mock_app();
         let result = create_window(app.handle());
         assert!(matches!(result, Err(PopoverError::ConfigNotFound { .. })));
-    }
-
-    #[test]
-    fn toggle_inner_hides_visible_window() {
-        let app = mock_app();
-        let _ = create_popover_window(&app);
-        toggle_inner(app.handle(), dummy_rect()).unwrap();
-    }
-
-    #[test]
-    fn toggle_inner_shows_hidden_window() {
-        let app = mock_app();
-        let _ = create_popover_window(&app);
-        toggle_inner(app.handle(), dummy_rect()).unwrap();
-        let _ = toggle_inner(app.handle(), dummy_rect());
     }
 
     #[test]
@@ -354,71 +333,17 @@ mod tests {
         assert!(matches!(result, Err(PopoverError::ConfigNotFound { .. })));
     }
 
-    // -------------------------------------------------------------------------
-    // resize_popover
-    // -------------------------------------------------------------------------
-
-    #[test]
-    fn resize_popover_skips_invalid_nan() {
-        let app = mock_app();
-        let _ = create_popover_window(&app);
-        // NaN dimensions — should not panic or resize
-        resize_popover(app.handle().clone(), f64::NAN, 100.0);
-        resize_popover(app.handle().clone(), 100.0, f64::NAN);
-    }
-
-    #[test]
-    fn resize_popover_skips_zero_dimensions() {
-        let app = mock_app();
-        let _ = create_popover_window(&app);
-        resize_popover(app.handle().clone(), 0.0, 100.0);
-        resize_popover(app.handle().clone(), 100.0, 0.0);
-    }
-
-    #[test]
-    fn resize_popover_skips_negative_dimensions() {
-        let app = mock_app();
-        let _ = create_popover_window(&app);
-        resize_popover(app.handle().clone(), -10.0, 100.0);
-        resize_popover(app.handle().clone(), 100.0, -10.0);
-    }
-
-    #[test]
-    fn resize_popover_skips_infinite() {
-        let app = mock_app();
-        let _ = create_popover_window(&app);
-        resize_popover(app.handle().clone(), f64::INFINITY, 100.0);
-        resize_popover(app.handle().clone(), 100.0, f64::NEG_INFINITY);
-    }
-
-    #[test]
-    fn resize_popover_accepts_valid_dimensions() {
-        let app = mock_app();
-        let _ = create_popover_window(&app);
-        // Valid dimensions — should not panic
-        resize_popover(app.handle().clone(), 480.0, 300.0);
-    }
-
-    #[test]
-    fn resize_popover_skips_when_no_window() {
-        let app = mock_app();
-        // No popover window — should not panic
-        resize_popover(app.handle().clone(), 480.0, 300.0);
-    }
-
-    // -------------------------------------------------------------------------
-    // toggle debounce
-    // -------------------------------------------------------------------------
-
     #[test]
     fn toggle_debounces_rapid_calls() {
         let app = mock_app();
-        let _ = create_popover_window(&app);
-        // First toggle should succeed
+        let state = app.state::<PopoverState>();
+        let last_toggle = || *state.last_toggle.lock().unwrap();
+
+        toggle(app.handle(), dummy_rect());
+        let accepted = last_toggle();
         toggle(app.handle(), dummy_rect());
 
-        // Immediate second toggle should be debounced
-        // (no visible state change, but it should not panic)
-        toggle(app.handle(), dummy_rect());
+        assert!(accepted.is_some());
+        assert_eq!(last_toggle(), accepted);
     }
 }
