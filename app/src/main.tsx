@@ -4,26 +4,19 @@ import './main.css';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 
-import {QueryClient, QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
+import {QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
 import {createRouter, RouterProvider} from '@tanstack/react-router';
 
 import {ErrorBoundary} from 'react-error-boundary';
 
 import {AppErrorPage} from '#components/AppErrorPage';
 import {PopoverRouteErrorPage} from '#components/PopoverRouteErrorPage';
+import {createQueryClient} from '#createQueryClient';
 
 // Import the generated route tree
 import {routeTree} from '!#router/routes';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Tauri IPC is local — browser online/offline events are irrelevant.
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-    },
-  },
-});
+const queryClient = createQueryClient();
 
 // Create a new router instance with queryClient context for route-level data loading.
 const router = createRouter({
