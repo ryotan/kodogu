@@ -51,7 +51,6 @@ export const BasicError: Story = {
   play: async ({canvasElement, args}) => {
     const canvas = within(canvasElement);
 
-    // Try Again resets queries and calls the reset prop
     await userEvent.click(canvas.getByRole('button', {name: /try again/i}));
     await expect(args.reset).toHaveBeenCalled();
   },

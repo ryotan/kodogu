@@ -10,6 +10,7 @@ import {createRouter, RouterProvider} from '@tanstack/react-router';
 import {ErrorBoundary} from 'react-error-boundary';
 
 import {AppErrorPage} from '#components/AppErrorPage';
+import {PopoverRouteErrorPage} from '#components/PopoverRouteErrorPage';
 
 // Import the generated route tree
 import {routeTree} from '!#router/routes';
@@ -28,7 +29,7 @@ const queryClient = new QueryClient({
 const router = createRouter({
   routeTree,
   context: {queryClient},
-  defaultErrorComponent: AppErrorPage,
+  defaultErrorComponent: PopoverRouteErrorPage,
 });
 
 // Register the router instance for type safety
