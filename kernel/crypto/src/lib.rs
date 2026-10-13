@@ -54,7 +54,26 @@
 //! assert_eq!(plaintext, decrypted);
 //! ```
 
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
+
+/// Implements `Debug` that hides the bytes, and constant-time `PartialEq` and `Eq`, for a secret type with `as_bytes`.
+macro_rules! impl_secret_traits {
+    ($type:ident) => {
+        impl core::fmt::Debug for $type {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                f.debug_tuple(stringify!($type)).field(&"***").finish()
+            }
+        }
+
+        impl PartialEq for $type {
+            fn eq(&self, other: &Self) -> bool {
+                subtle::ConstantTimeEq::ct_eq(self.as_bytes(), other.as_bytes()).into()
+            }
+        }
+
+        impl Eq for $type {}
+    };
+}
 
 mod aead;
 mod kdf;
@@ -91,10 +110,11 @@ pub use symmetric::{
 ///
 /// # Security
 ///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
 /// Limit scope to ensure early cleanup when handling sensitive data.
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Plaintext(Vec<u8>);
+
+impl_secret_traits!(Plaintext);
 
 impl Plaintext {
     /// Returns the data as a byte slice.
@@ -105,8 +125,8 @@ impl Plaintext {
     /// Consumes self and returns the underlying bytes.
     ///
     /// The returned [`Zeroizing`] wrapper ensures the bytes are cleared on drop.
-    pub fn into_bytes(self) -> Zeroizing<Vec<u8>> {
-        Zeroizing::new(self.0)
+    pub fn into_bytes(mut self) -> Zeroizing<Vec<u8>> {
+        Zeroizing::new(std::mem::take(&mut self.0))
     }
 }
 
@@ -257,6 +277,57 @@ impl From<&[u8]> for Nonce {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ========================================
+    // Secret Type Tests
+    // ========================================
+
+    #[test]
+    fn test_secret_types_zeroize_on_drop() {
+        use core::mem::needs_drop;
+        assert!(needs_drop::<Plaintext>());
+        assert!(needs_drop::<DerivedKey>());
+        assert!(needs_drop::<Aes128GcmKey>());
+        assert!(needs_drop::<Aes256GcmKey>());
+        assert!(needs_drop::<ChaCha20Poly1305Key>());
+        assert!(needs_drop::<HmacSha256Key>());
+        assert!(needs_drop::<HmacSha384Key>());
+        assert!(needs_drop::<HmacSha512Key>());
+        assert!(needs_drop::<CmacAes128Key>());
+        assert!(needs_drop::<CmacAes256Key>());
+        assert!(needs_drop::<Poly1305Key>());
+    }
+
+    #[test]
+    fn test_secret_types_debug_hides_bytes() {
+        assert_eq!(format!("{:?}", Plaintext::from("secret")), r#"Plaintext("***")"#);
+        assert_eq!(format!("{:?}", Aes128GcmKey::from([1; 16])), r#"Aes128GcmKey("***")"#);
+        assert_eq!(format!("{:?}", Aes256GcmKey::from([1; 32])), r#"Aes256GcmKey("***")"#);
+        assert_eq!(
+            format!("{:?}", ChaCha20Poly1305Key::from([1; 32])),
+            r#"ChaCha20Poly1305Key("***")"#
+        );
+        assert_eq!(format!("{:?}", HmacSha256Key::from([1; 32])), r#"HmacSha256Key("***")"#);
+        assert_eq!(format!("{:?}", HmacSha384Key::from([1; 48])), r#"HmacSha384Key("***")"#);
+        assert_eq!(format!("{:?}", HmacSha512Key::from([1; 64])), r#"HmacSha512Key("***")"#);
+        assert_eq!(format!("{:?}", CmacAes128Key::from([1; 16])), r#"CmacAes128Key("***")"#);
+        assert_eq!(format!("{:?}", CmacAes256Key::from([1; 32])), r#"CmacAes256Key("***")"#);
+        assert_eq!(format!("{:?}", Poly1305Key::from([1; 32])), r#"Poly1305Key("***")"#);
+    }
+
+    #[test]
+    fn test_secret_types_eq_compares_bytes() {
+        assert_eq!(Plaintext::from("secret"), Plaintext::from("secret"));
+        assert_ne!(Plaintext::from("secret"), Plaintext::from("secreT"));
+        assert_ne!(Plaintext::from("secret"), Plaintext::from("secret!"));
+        assert_eq!(Aes256GcmKey::from([1; 32]), Aes256GcmKey::from([1; 32]));
+        assert_ne!(Aes256GcmKey::from([1; 32]), Aes256GcmKey::from([2; 32]));
+    }
+
+    #[test]
+    fn test_plaintext_into_bytes() {
+        assert_eq!(*Plaintext::from("secret").into_bytes(), b"secret".to_vec());
+    }
 
     // ========================================
     // Nonce Tests

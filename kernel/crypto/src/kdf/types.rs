@@ -43,27 +43,10 @@ impl OutputLength {
 }
 
 /// Derived key material.
-///
-/// # Security
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct DerivedKey(Vec<u8>);
 
-impl Debug for DerivedKey {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        f.debug_tuple("DerivedKey").field(&"***").finish()
-    }
-}
-
-impl PartialEq for DerivedKey {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.ct_eq(&other.0).into()
-    }
-}
-
-impl Eq for DerivedKey {}
+impl_secret_traits!(DerivedKey);
 
 impl DerivedKey {
     /// Creates key material from a KDF implementation.

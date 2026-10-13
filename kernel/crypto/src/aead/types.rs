@@ -1,4 +1,4 @@
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Authentication tag for AEAD ciphers.
 ///
@@ -142,12 +142,10 @@ impl AeadCiphertext {
 }
 
 /// 128-bit key for AES-128-GCM.
-///
-/// # Security
-///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct Aes128GcmKey(pub [u8; 16]);
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct Aes128GcmKey(pub(crate) [u8; 16]);
+
+impl_secret_traits!(Aes128GcmKey);
 
 impl Aes128GcmKey {
     /// Returns the key as a byte slice.
@@ -163,12 +161,10 @@ impl From<[u8; 16]> for Aes128GcmKey {
 }
 
 /// 256-bit key for AES-256-GCM and AES-256-GCM-SIV.
-///
-/// # Security
-///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct Aes256GcmKey(pub [u8; 32]);
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct Aes256GcmKey(pub(crate) [u8; 32]);
+
+impl_secret_traits!(Aes256GcmKey);
 
 impl Aes256GcmKey {
     /// Returns the key as a byte slice.
@@ -184,12 +180,10 @@ impl From<[u8; 32]> for Aes256GcmKey {
 }
 
 /// 256-bit key for ChaCha20-Poly1305 and XChaCha20-Poly1305.
-///
-/// # Security
-///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct ChaCha20Poly1305Key(pub [u8; 32]);
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct ChaCha20Poly1305Key(pub(crate) [u8; 32]);
+
+impl_secret_traits!(ChaCha20Poly1305Key);
 
 impl ChaCha20Poly1305Key {
     /// Returns the key as a byte slice.
