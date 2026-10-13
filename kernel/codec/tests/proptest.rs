@@ -8,8 +8,9 @@ use codec::{
     Base58Bitcoin, Base58Flickr, Base64, Base64Standard, Base64UrlSafe, Base85, Base85Ascii85,
     Base85Btoa, Base85Rfc1924, Base85Z85, BinaryCodec, Hex, HexLower, HexUpper, QuotedPrintable,
     QuotedPrintableRobust, QuotedPrintableStrict, TextCodec, UrlEncoding, UrlEncodingComponent,
-    UrlEncodingForm, UrlEncodingRfc3986, Utf8,
+    UrlEncodingCustom, UrlEncodingForm, UrlEncodingRfc3986, Utf8,
 };
+use percent_encoding::AsciiSet;
 use proptest::prelude::*;
 
 // ========================================
@@ -868,6 +869,17 @@ proptest! {
     fn prop_url_roundtrip_component(data: Vec<u8>) {
         let encoded = UrlEncodingComponent.encode(&data);
         let decoded = UrlEncodingComponent.decode(&encoded).unwrap();
+        prop_assert_eq!(decoded, data);
+    }
+
+    /// Property: Encoding and then decoding returns the original data (Custom, with the smallest allowed set). The
+    /// bytes are drawn from `%`, hex digits, and others so that `%` followed by two hex digits occurs.
+    #[test]
+    fn prop_url_roundtrip_custom(data in prop::collection::vec(prop::sample::select(b"%4aG \xFF".to_vec()), 0..32)) {
+        const SET: &AsciiSet = &AsciiSet::EMPTY.add(b'%');
+        let codec = UrlEncodingCustom::new(SET).unwrap();
+        let encoded = codec.encode(&data);
+        let decoded = codec.decode(&encoded).unwrap();
         prop_assert_eq!(decoded, data);
     }
 
