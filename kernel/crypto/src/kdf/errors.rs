@@ -1,7 +1,5 @@
 use core::fmt;
-use scrypt::errors::{
-    InvalidOutputLen as ScryptInvalidOutputLen, InvalidParams as ScryptInvalidParams,
-};
+use scrypt::errors::InvalidOutputLen as ScryptInvalidOutputLen;
 use suzunari_error::suzunari_error;
 
 /// KDF algorithm identifier (for error messages).
@@ -79,10 +77,6 @@ pub enum KdfError {
         #[suzu(from)]
         source: argon2::Error,
     },
-
-    /// Scrypt invalid parameters (invalid log_n / r / p combination, etc.).
-    #[suzu(display("Scrypt: invalid parameters: {source}"))]
-    ScryptInvalidParams { source: ScryptInvalidParams },
 
     /// Scrypt key derivation failed (output length exceeded).
     #[suzu(display("Scrypt: key derivation failed: {source}"))]
