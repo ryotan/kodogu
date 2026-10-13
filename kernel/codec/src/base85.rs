@@ -38,9 +38,10 @@
 //! - [RFC 1924 - A Compact Representation of IPv6 Addresses](https://tools.ietf.org/html/rfc1924)
 
 use crate::{
-    Base85OverflowError, BinaryCodec, BinaryCodecError, BinaryCodecs, InvalidCharacterError,
-    InvalidLengthError, InvalidWrapperError,
+    Base85FooterMismatchError, Base85OverflowError, BinaryCodec, BinaryCodecError, BinaryCodecs,
+    InvalidCharacterError, InvalidLengthError, InvalidPaddingError, InvalidWrapperError,
 };
+use core::ops::Range;
 use suzunari_error::{OptionExt, ensure};
 
 // ============================================================================
@@ -101,8 +102,9 @@ pub struct Base85Rfc1924;
 /// Btoa (Unix) variant - original Base85 implementation
 ///
 /// This is a zero-sized type (ZST) with no runtime overhead.
-/// Wraps output in `xbtoa Begin` and `xbtoa End` with checksum in the footer.
-/// Uses the same character set as Ascii85.
+/// Reads and writes the format of `btoa -o` (btoa 5.2's old format): lines of 78 characters between `xbtoa Begin` and
+/// `xbtoa End`, with the length and checksums in the `xbtoa End` line. The last group is padded with zero bytes, and
+/// the length removes them on decoding. Uses the same character set as Ascii85.
 ///
 /// # Example
 /// ```
@@ -242,91 +244,72 @@ fn encode_partial(bytes: &[u8], alphabet: &[u8; 85], out: &mut Vec<u8>) {
     out.extend_from_slice(&buf[..bytes.len() + 1]);
 }
 
-/// Decode 5 Base85 characters to 4 bytes
-#[inline]
-fn decode_chunk(chars: &[u8], table: &[u8; 256], pos: usize) -> Result<u32, BinaryCodecError> {
-    let mut value: u64 = 0;
-    for (i, &c) in chars.iter().enumerate() {
-        let digit = table[c as usize];
-        ensure!(
-            digit != 255,
-            InvalidCharacterError {
-                encoding: BinaryCodecs::Base85,
-                char: c as char,
-                position: pos + i,
-            }
-        );
-        value = value * 85 + digit as u64;
-    }
-    ensure!(value <= u32::MAX as u64, Base85OverflowError { position: pos });
-    Ok(value as u32)
+/// A character of the encoded text with its position in that text, counted in characters.
+///
+/// Decoders build these only after checking that the character is ASCII, so `byte` is the whole character.
+#[derive(Clone, Copy)]
+struct Symbol {
+    position: usize,
+    byte: u8,
 }
 
-/// Decode partial block for Ascii85/btoa (pads with 'u' = 84)
-fn decode_partial_ascii85(
-    chars: &[u8],
-    table: &[u8; 256],
-    pos: usize,
-) -> Result<Vec<u8>, BinaryCodecError> {
+/// Collects the characters of `text` whose byte offsets fall in `range`, skipping whitespace if `skip_whitespace`.
+fn collect_symbols(
+    text: &str,
+    range: Range<usize>,
+    skip_whitespace: bool,
+) -> Result<Vec<Symbol>, BinaryCodecError> {
+    text.char_indices()
+        .enumerate()
+        .filter(|(_, (offset, c))| {
+            range.contains(offset) && !(skip_whitespace && c.is_ascii_whitespace())
+        })
+        .map(|(position, (_, c))| {
+            ensure!(
+                c.is_ascii(),
+                InvalidCharacterError { encoding: BinaryCodecs::Base85, char: c, position }
+            );
+            Ok(Symbol { position, byte: c as u8 })
+        })
+        .collect()
+}
+
+/// Looks up the digit value of a character.
+fn digit(symbol: Symbol, table: &[u8; 256]) -> Result<u8, BinaryCodecError> {
+    let digit = table[symbol.byte as usize];
     ensure!(
-        chars.len() >= 2,
-        InvalidLengthError { encoding: BinaryCodecs::Base85, length: chars.len() }
+        digit != 255,
+        InvalidCharacterError {
+            encoding: BinaryCodecs::Base85,
+            char: symbol.byte as char,
+            position: symbol.position,
+        }
     );
-
-    let values = pad_with_highest_value(chars, table, pos)?;
-
-    let mut value: u64 = 0;
-    for &digit in &values {
-        value = value * 85 + digit as u64;
-    }
-
-    let bytes = (value as u32).to_be_bytes();
-    Ok(bytes[..chars.len() - 1].to_vec())
+    Ok(digit)
 }
 
-/// Decode partial block for RFC 1924 (pads with '~' = 84)
-fn decode_partial_rfc1924(
-    chars: &[u8],
-    table: &[u8; 256],
-    pos: usize,
-) -> Result<Vec<u8>, BinaryCodecError> {
+/// Decodes a group of 2 to 5 characters into 4 bytes, padding a short group with the highest digit (84).
+fn decode_group(symbols: &[Symbol], table: &[u8; 256]) -> Result<[u8; 4], BinaryCodecError> {
+    let mut value: u64 = 0;
+    for i in 0..5 {
+        let digit = match symbols.get(i) {
+            Some(&symbol) => digit(symbol, table)?,
+            None => 84,
+        };
+        value = value * 85 + digit as u64;
+    }
+    let position = symbols.first().map_or(0, |symbol| symbol.position);
+    let value = u32::try_from(value).ok().context(Base85OverflowError { position })?;
+    Ok(value.to_be_bytes())
+}
+
+/// Decodes the final group of 2 to 4 characters into one byte fewer than its length.
+fn decode_partial(symbols: &[Symbol], table: &[u8; 256]) -> Result<Vec<u8>, BinaryCodecError> {
     ensure!(
-        chars.len() >= 2,
-        InvalidLengthError { encoding: BinaryCodecs::Base85, length: chars.len() }
+        symbols.len() >= 2,
+        InvalidLengthError { encoding: BinaryCodecs::Base85, length: symbols.len() }
     );
-
-    let values = pad_with_highest_value(chars, table, pos)?;
-
-    let mut value: u64 = 0;
-    for &digit in &values {
-        value = value * 85 + digit as u64;
-    }
-
-    let bytes = (value as u32).to_be_bytes();
-    Ok(bytes[..chars.len() - 1].to_vec())
-}
-
-/// Pad with the highest value in the table
-#[inline]
-fn pad_with_highest_value(
-    chars: &[u8],
-    table: &[u8; 256],
-    pos: usize,
-) -> Result<[u8; 5], BinaryCodecError> {
-    let mut values = [84u8; 5];
-    for (i, &c) in chars.iter().enumerate() {
-        let digit = table[c as usize];
-        ensure!(
-            digit != 255,
-            InvalidCharacterError {
-                encoding: BinaryCodecs::Base85,
-                char: c as char,
-                position: pos + i,
-            }
-        );
-        values[i] = digit;
-    }
-    Ok(values)
+    Ok(decode_group(symbols, table)?[..symbols.len() - 1].to_vec())
 }
 
 /// Encode ASCII85-style chunks (handles 'z' compression for all-zero blocks)
@@ -342,29 +325,25 @@ fn encode_chunks_ascii85(out: &mut Vec<u8>, chunks: &[[u8; 4]]) {
     }
 }
 
-/// Decode ASCII85-style chunks (handles 'z' compression and partial blocks)
-#[inline]
-fn decode_ascii85_chunks(chars: &[u8]) -> Result<Vec<u8>, BinaryCodecError> {
-    let mut out = Vec::with_capacity(chars.len() * 4 / 5);
-    let mut i = 0;
-
-    while i < chars.len() {
-        if chars[i] == b'z' {
-            out.extend_from_slice(&[0, 0, 0, 0]);
-            i += 1;
-        } else if i + 5 <= chars.len() {
-            let value = decode_chunk(&chars[i..i + 5], &DECODE_TABLE_ASCII85, i)?;
-            out.extend_from_slice(&value.to_be_bytes());
-            i += 5;
-        } else {
-            // Partial block at the end
-            let partial = &chars[i..];
-            out.extend(decode_partial_ascii85(partial, &DECODE_TABLE_ASCII85, i)?);
-            break;
+/// Decodes the Ascii85 alphabet's 5-character groups and `z` (four zero bytes) up to a final group shorter than
+/// 5 characters, and returns the decoded bytes and that final group.
+fn decode_groups_ascii85(symbols: &[Symbol]) -> Result<(Vec<u8>, &[Symbol]), BinaryCodecError> {
+    let mut out = Vec::with_capacity(symbols.len() * 4 / 5);
+    let mut rest = symbols;
+    loop {
+        match rest {
+            [first, tail @ ..] if first.byte == b'z' => {
+                out.extend_from_slice(&[0, 0, 0, 0]);
+                rest = tail;
+            }
+            _ if rest.len() >= 5 => {
+                let (group, tail) = rest.split_at(5);
+                out.extend_from_slice(&decode_group(group, &DECODE_TABLE_ASCII85)?);
+                rest = tail;
+            }
+            _ => return Ok((out, rest)),
         }
     }
-
-    Ok(out)
 }
 
 // ============================================================================
@@ -388,18 +367,19 @@ impl BinaryCodec for Base85Ascii85 {
     }
 
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        let input = text.trim();
-
-        // Check and strip wrapper
-        let inner = input
+        let inner = text
+            .trim()
             .strip_prefix("<~")
             .and_then(|s| s.strip_suffix("~>"))
             .context(InvalidWrapperError)?;
+        let inner_start = text.len() - text.trim_start().len() + "<~".len();
+        let symbols = collect_symbols(text, inner_start..inner_start + inner.len(), true)?;
 
-        // Filter whitespace and collect characters
-        let chars: Vec<u8> = inner.bytes().filter(|&c| !c.is_ascii_whitespace()).collect();
-
-        decode_ascii85_chunks(&chars)
+        let (mut out, partial) = decode_groups_ascii85(&symbols)?;
+        if !partial.is_empty() {
+            out.extend(decode_partial(partial, &DECODE_TABLE_ASCII85)?);
+        }
+        Ok(out)
     }
 }
 
@@ -422,21 +402,18 @@ impl BinaryCodec for Base85Z85 {
     }
 
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        let chars: Vec<u8> = text.bytes().collect();
+        let symbols = collect_symbols(text, 0..text.len(), false)?;
 
-        let (chunks, remainder) = chars.as_chunks::<5>();
+        let (groups, remainder) = symbols.as_chunks::<5>();
         ensure!(
             remainder.is_empty(),
-            InvalidLengthError { encoding: BinaryCodecs::Base85, length: chars.len() }
+            InvalidLengthError { encoding: BinaryCodecs::Base85, length: symbols.len() }
         );
 
-        let mut out = Vec::with_capacity(chars.len() * 4 / 5);
-
-        for (i, chunk) in chunks.iter().enumerate() {
-            let value = decode_chunk(chunk, &DECODE_TABLE_Z85, i * 5)?;
-            out.extend_from_slice(&value.to_be_bytes());
+        let mut out = Vec::with_capacity(symbols.len() * 4 / 5);
+        for group in groups {
+            out.extend_from_slice(&decode_group(group, &DECODE_TABLE_Z85)?);
         }
-
         Ok(out)
     }
 }
@@ -470,7 +447,12 @@ impl Base85Z85 {
         padding: usize,
     ) -> Result<Vec<u8>, BinaryCodecError> {
         let mut decoded = self.decode(input)?;
-        decoded.truncate(decoded.len() - padding);
+        let length = decoded
+            .len()
+            .checked_sub(padding)
+            .filter(|_| padding < 4)
+            .context(InvalidPaddingError { encoding: BinaryCodecs::Base85 })?;
+        decoded.truncate(length);
         Ok(decoded)
     }
 }
@@ -497,24 +479,16 @@ impl BinaryCodec for Base85Rfc1924 {
     }
 
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        let chars: Vec<u8> = text.bytes().collect();
-        let mut out = Vec::with_capacity(chars.len() * 4 / 5);
+        let symbols = collect_symbols(text, 0..text.len(), false)?;
 
-        let (chunks, remainder) = chars.as_chunks::<5>();
-
-        for (i, chunk) in chunks.iter().enumerate() {
-            let value = decode_chunk(chunk, &DECODE_TABLE_RFC1924, i * 5)?;
-            out.extend_from_slice(&value.to_be_bytes());
+        let (groups, remainder) = symbols.as_chunks::<5>();
+        let mut out = Vec::with_capacity(symbols.len() * 4 / 5);
+        for group in groups {
+            out.extend_from_slice(&decode_group(group, &DECODE_TABLE_RFC1924)?);
         }
-
         if !remainder.is_empty() {
-            out.extend(decode_partial_rfc1924(
-                remainder,
-                &DECODE_TABLE_RFC1924,
-                chars.len() - remainder.len(),
-            )?);
+            out.extend(decode_partial(remainder, &DECODE_TABLE_RFC1924)?);
         }
-
         Ok(out)
     }
 }
@@ -563,30 +537,21 @@ impl Base85Rfc1924 {
     /// assert_eq!(decoded, 0x108000000000000000080800200C417A);
     /// ```
     pub fn decode_u128(input: &str) -> Result<u128, BinaryCodecError> {
-        let bytes: Vec<u8> = input.bytes().collect();
+        let symbols = collect_symbols(input, 0..input.len(), false)?;
 
         ensure!(
-            bytes.len() == 20,
-            InvalidLengthError { encoding: BinaryCodecs::Base85, length: bytes.len() }
+            symbols.len() == 20,
+            InvalidLengthError { encoding: BinaryCodecs::Base85, length: symbols.len() }
         );
 
         let mut value: u128 = 0;
 
-        for (i, &c) in bytes.iter().enumerate() {
-            let digit = DECODE_TABLE_RFC1924[c as usize];
-            ensure!(
-                digit != 255,
-                InvalidCharacterError {
-                    encoding: BinaryCodecs::Base85,
-                    char: c as char,
-                    position: i,
-                }
-            );
-            // Check for overflow before multiplication
+        for symbol in symbols {
+            let digit = digit(symbol, &DECODE_TABLE_RFC1924)?;
             value = value
                 .checked_mul(85)
                 .and_then(|v| v.checked_add(digit as u128))
-                .context(Base85OverflowError { position: i })?;
+                .context(Base85OverflowError { position: symbol.position })?;
         }
 
         Ok(value)
@@ -599,77 +564,117 @@ impl Base85Rfc1924 {
 impl Base85Codec for Base85Btoa {}
 impl BinaryCodec for Base85Btoa {
     fn encode(&self, bytes: &[u8]) -> String {
-        let mut out = Vec::with_capacity(bytes.len() * 5 / 4 + 64);
-        out.extend_from_slice(b"xbtoa Begin\n");
+        let groups: Vec<[u8; 4]> = bytes
+            .chunks(4)
+            .map(|chunk| {
+                let mut group = [0u8; 4];
+                group[..chunk.len()].copy_from_slice(chunk);
+                group
+            })
+            .collect();
 
-        let (chunks, remainder) = bytes.as_chunks::<4>();
+        let mut data = Vec::with_capacity(groups.len() * 5);
+        encode_chunks_ascii85(&mut data, &groups);
 
-        encode_chunks_ascii85(&mut out, chunks);
-
-        encode_partial(remainder, ALPHABET_ASCII85, &mut out);
-
-        // Calculate checksum (simple sum of all bytes)
-        let checksum: u32 = bytes.iter().map(|&b| b as u32).sum();
-
-        out.push(b'\n');
-        // btoa format: N <decimal len> <hex len> E <checksum> S <checksum> R <rotation checksum>
-        let rot_checksum = bytes
-            .iter()
-            .enumerate()
-            .fold(0u32, |acc, (i, &b)| acc.wrapping_add((b as u32).rotate_left(i as u32 & 31)));
-        out.extend_from_slice(
-            format!(
-                "xbtoa End N {} {:x} E {:x} S {:x} R {:x}",
-                bytes.len(),
-                bytes.len(),
-                bytes.len(),
-                checksum,
-                rot_checksum
-            )
-            .as_bytes(),
-        );
-
-        // SAFETY: btoa uses only ASCII characters
-        String::from_utf8(out).unwrap()
+        let mut out = String::from("xbtoa Begin\n");
+        for line in data.chunks(BTOA_LINE_LENGTH) {
+            out.extend(line.iter().map(|&b| char::from(b)));
+            out.push('\n');
+        }
+        let checksums = BtoaChecksums::of(groups.as_flattened());
+        out.push_str(&format!(
+            "xbtoa End N {length} {length:x} E {:x} S {:x} R {:x}\n",
+            checksums.xor,
+            checksums.sum,
+            checksums.rotation,
+            length = bytes.len(),
+        ));
+        out
     }
 
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
-        let lines: Vec<&str> = text.lines().collect();
-
-        // Find begin/end markers
-        let begin_idx = lines
-            .iter()
-            .position(|l| l.trim().starts_with("xbtoa Begin"))
+        let mut lines = text.split_inclusive('\n').scan(0, |offset, line| {
+            let start = *offset;
+            *offset += line.len();
+            Some((start, line))
+        });
+        let (begin_start, begin_line) = lines
+            .find(|(_, line)| line.trim().starts_with("xbtoa Begin"))
             .context(InvalidWrapperError)?;
-
-        let end_idx = lines
-            .iter()
-            .position(|l| l.trim().starts_with("xbtoa End"))
+        let (end_start, end_line) = lines
+            .find(|(_, line)| line.trim().starts_with("xbtoa End"))
             .context(InvalidWrapperError)?;
+        let footer = BtoaFooter::parse(end_line).context(InvalidWrapperError)?;
 
-        // Extract data lines
-        let data: String = lines[begin_idx + 1..end_idx]
-            .iter()
-            .flat_map(|l| l.chars())
-            .filter(|c| !c.is_ascii_whitespace())
-            .collect();
+        let symbols = collect_symbols(text, begin_start + begin_line.len()..end_start, true)?;
+        let (mut out, partial) = decode_groups_ascii85(&symbols)?;
+        ensure!(
+            partial.is_empty(),
+            InvalidLengthError { encoding: BinaryCodecs::Base85, length: symbols.len() }
+        );
 
-        let chars: Vec<u8> = data.bytes().collect();
-        let mut out = decode_ascii85_chunks(&chars)?;
-
-        // Parse footer for length info and truncate
-        if let Some(end_line) = lines.get(end_idx)
-            && let Some(n_pos) = end_line.find("N ")
-        {
-            let rest = &end_line[n_pos + 2..];
-            if let Some(space_pos) = rest.find(' ')
-                && let Ok(len) = rest[..space_pos].parse::<usize>()
-            {
-                out.truncate(len);
-            }
-        }
-
+        ensure!(
+            footer.length == footer.length_hex
+                && footer.length.div_ceil(4) * 4 == out.len()
+                && BtoaChecksums::of(&out).matches(&footer),
+            Base85FooterMismatchError
+        );
+        out.truncate(footer.length);
         Ok(out)
+    }
+}
+
+/// The number of characters btoa writes on each line.
+const BTOA_LINE_LENGTH: usize = 78;
+
+/// btoa's checksums over the bytes of every group, including the zero bytes that pad the last group. They are 32-bit
+/// values, as btoa computed them in the 32-bit `long` of the machines it was written for.
+struct BtoaChecksums {
+    xor: u32,
+    sum: u32,
+    rotation: u32,
+}
+
+impl BtoaChecksums {
+    fn of(bytes: &[u8]) -> Self {
+        bytes.iter().fold(Self { xor: 0, sum: 0, rotation: 0 }, |acc, &b| Self {
+            xor: acc.xor ^ u32::from(b),
+            sum: acc.sum.wrapping_add(u32::from(b) + 1),
+            rotation: acc.rotation.rotate_left(1).wrapping_add(u32::from(b)),
+        })
+    }
+
+    fn matches(&self, footer: &BtoaFooter) -> bool {
+        u64::from(self.xor) == footer.xor
+            && u64::from(self.sum) == footer.sum
+            && u64::from(self.rotation) == footer.rotation
+    }
+}
+
+/// The values in btoa's `xbtoa End N <length> <length in hex> E <xor> S <sum> R <rotation>` line.
+struct BtoaFooter {
+    length: usize,
+    length_hex: usize,
+    xor: u64,
+    sum: u64,
+    rotation: u64,
+}
+
+impl BtoaFooter {
+    fn parse(line: &str) -> Option<Self> {
+        let fields: Vec<&str> = line.split_whitespace().collect();
+        let ["xbtoa", "End", "N", length, length_hex, "E", xor, "S", sum, "R", rotation] =
+            fields[..]
+        else {
+            return None;
+        };
+        Some(Self {
+            length: length.parse().ok()?,
+            length_hex: usize::from_str_radix(length_hex, 16).ok()?,
+            xor: u64::from_str_radix(xor, 16).ok()?,
+            sum: u64::from_str_radix(sum, 16).ok()?,
+            rotation: u64::from_str_radix(rotation, 16).ok()?,
+        })
     }
 }
 
@@ -1427,7 +1432,7 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
         assert!(result.is_ok());
     }
 
-    /// Invalid char in partial block (triggers InvalidCharacterError in pad_with_highest_value)
+    /// Invalid char in partial block (triggers InvalidCharacter)
     #[test]
     fn test_ascii85_invalid_char_in_partial_block() {
         // 5-char block + 2-char partial block with an invalid char
@@ -1478,18 +1483,120 @@ l(DId<j@<?3r@:F%a+D58'ATD4$Bl@l3De:,-DJs`8ARoFb/0JMK@qB4^F!,R<AKZ&-DfTqBG%G\
         ));
     }
 
-    /// btoa decode with malformed footer
+    /// Inputs and outputs of btoa 5.2 (`btoa -o`) built with a 32-bit `long`
+    const BTOA_VECTORS: [(&[u8], &str); 6] = [
+        (b"", "xbtoa Begin\nxbtoa End N 0 0 E 0 S 0 R 0\n"),
+        (b"a", "xbtoa Begin\n@/p9-\nxbtoa End N 1 1 E 61 S 65 R 308\n"),
+        (b"Hello", "xbtoa Begin\n87cURDZBb;\nxbtoa End N 5 5 E 42 S 1fc R 54f8\n"),
+        (
+            b"Hello, World!",
+            "xbtoa Begin\n87cURD_*#4DfTZ)+TMKB\nxbtoa End N 13 d E 2d S 479 R 56a7c8\n",
+        ),
+        (
+            b"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+            "xbtoa Begin\n0JP==1c70M3&tDV@q9._B4u!oCM[j*DfB]:F*)PJGBeCZ5sdq,77Kd<8P2WL9hnJ\\;,U=l<E<1'=^!\n\
+             L61,CaE2E*TU\nxbtoa End N 72 48 E 0 S 1760 R bfff812e\n",
+        ),
+        (b"\0\0\0\0\0", "xbtoa Begin\nzz\nxbtoa End N 5 5 E 0 S 8 R 0\n"),
+    ];
+
+    #[test]
+    fn test_btoa_matches_btoa_5_2() {
+        for (input, expected) in BTOA_VECTORS {
+            assert_eq!(Base85Btoa.encode(input), expected);
+            assert_eq!(Base85Btoa.decode(expected).unwrap(), input);
+        }
+    }
+
+    #[test]
+    fn test_btoa_end_before_begin() {
+        let result = Base85Btoa.decode("xbtoa End N 0 0 E 0 S 0 R 0\nxbtoa Begin\n");
+        assert!(matches!(result, Err(BinaryCodecError::InvalidWrapper { .. })));
+    }
+
     #[test]
     fn test_btoa_malformed_footer() {
-        // No space after N (the footer parse fails)
-        let malformed = "xbtoa Begin\n87cURD_*#4DfTZ)+T\nxbtoa End N13 d E d S 469 R 87912";
-        let result = Base85Btoa.decode(malformed);
-        // Decoding still succeeds, but the output is not truncated
-        assert!(result.is_ok());
+        // No space after N
+        let result =
+            Base85Btoa.decode("xbtoa Begin\n87cURDZBb;\nxbtoa End N5 5 E 42 S 1fc R 54f8\n");
+        assert!(matches!(result, Err(BinaryCodecError::InvalidWrapper { .. })));
 
         // No N at all
-        let no_n = "xbtoa Begin\n87cURD_*#4DfTZ)+T\nxbtoa End";
-        let result = Base85Btoa.decode(no_n);
-        assert!(result.is_ok());
+        let result = Base85Btoa.decode("xbtoa Begin\n87cURDZBb;\nxbtoa End\n");
+        assert!(matches!(result, Err(BinaryCodecError::InvalidWrapper { .. })));
+    }
+
+    #[test]
+    fn test_btoa_footer_mismatch() {
+        let mismatches = [
+            // The data was changed
+            "xbtoa Begin\n87cURDZBc;\nxbtoa End N 5 5 E 42 S 1fc R 54f8\n",
+            // The two lengths differ
+            "xbtoa Begin\n87cURDZBb;\nxbtoa End N 5 6 E 42 S 1fc R 54f8\n",
+            // The length does not fit the number of groups
+            "xbtoa Begin\n87cURDZBb;\nxbtoa End N 9 9 E 42 S 1fc R 54f8\n",
+            // Wrong E, S, and R
+            "xbtoa Begin\n87cURDZBb;\nxbtoa End N 5 5 E 43 S 1fc R 54f8\n",
+            "xbtoa Begin\n87cURDZBb;\nxbtoa End N 5 5 E 42 S 1fd R 54f8\n",
+            "xbtoa Begin\n87cURDZBb;\nxbtoa End N 5 5 E 42 S 1fc R 54f9\n",
+            // R from btoa built with a 64-bit `long`
+            "xbtoa Begin\n0JP==1c70M3&tDV@q9._B4u!oCM[j*DfB]:F*)PJGBeCZ5sdq,77Kd<8P2WL9hnJ\\;,U=l<E<1'=^!\n\
+             L61,CaE2E*TU\nxbtoa End N 72 48 E 0 S 1760 R c0002d69bfff812e\n",
+        ];
+        for text in mismatches {
+            let result = Base85Btoa.decode(text);
+            assert!(matches!(result, Err(BinaryCodecError::Base85FooterMismatch { .. })), "{text}");
+        }
+    }
+
+    #[test]
+    fn test_btoa_partial_group() {
+        let result = Base85Btoa.decode("xbtoa Begin\n87cURDZ\nxbtoa End N 5 5 E 42 S 1fc R 54f8\n");
+        assert!(matches!(result, Err(BinaryCodecError::InvalidLength { length: 7, .. })));
+    }
+
+    #[test]
+    fn test_z85_decode_with_padding_longer_than_data() {
+        let result = Base85Z85.decode_with_padding("", 1);
+        assert!(matches!(result, Err(BinaryCodecError::InvalidPadding { .. })));
+    }
+
+    #[test]
+    fn test_z85_decode_with_padding_of_a_whole_group() {
+        let result = Base85Z85.decode_with_padding("HelloWorld", 4);
+        assert!(matches!(result, Err(BinaryCodecError::InvalidPadding { .. })));
+    }
+
+    #[test]
+    fn test_partial_group_overflow() {
+        let result = Base85Ascii85.decode("<~uu~>");
+        assert!(matches!(result, Err(BinaryCodecError::Base85Overflow { position: 2, .. })));
+
+        let result = Base85Rfc1924.decode("~~");
+        assert!(matches!(result, Err(BinaryCodecError::Base85Overflow { position: 0, .. })));
+    }
+
+    #[test]
+    fn test_invalid_character_position_counts_wrapper_and_whitespace() {
+        let result = Base85Ascii85.decode("<~ !!!!! v!!!!~>");
+        assert!(matches!(
+            result,
+            Err(BinaryCodecError::InvalidCharacter { char: 'v', position: 9, .. })
+        ));
+    }
+
+    #[test]
+    fn test_invalid_character_non_ascii() {
+        let result = Base85Ascii85.decode("<~!!é!!~>");
+        assert!(matches!(
+            result,
+            Err(BinaryCodecError::InvalidCharacter { char: 'é', position: 4, .. })
+        ));
+
+        let result = Base85Z85.decode("é0000");
+        assert!(matches!(
+            result,
+            Err(BinaryCodecError::InvalidCharacter { char: 'é', position: 0, .. })
+        ));
     }
 }
