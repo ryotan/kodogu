@@ -142,11 +142,6 @@ impl AeadCiphertext {
 }
 
 /// 128-bit key for AES-128-GCM.
-///
-/// # Security
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Aes128GcmKey(pub(crate) [u8; 16]);
 
@@ -166,11 +161,6 @@ impl From<[u8; 16]> for Aes128GcmKey {
 }
 
 /// 256-bit key for AES-256-GCM and AES-256-GCM-SIV.
-///
-/// # Security
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Aes256GcmKey(pub(crate) [u8; 32]);
 
@@ -190,11 +180,6 @@ impl From<[u8; 32]> for Aes256GcmKey {
 }
 
 /// 256-bit key for ChaCha20-Poly1305 and XChaCha20-Poly1305.
-///
-/// # Security
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct ChaCha20Poly1305Key(pub(crate) [u8; 32]);
 

@@ -43,11 +43,6 @@ impl OutputLength {
 }
 
 /// Derived key material.
-///
-/// # Security
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct DerivedKey(Vec<u8>);
 

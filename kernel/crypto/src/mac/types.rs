@@ -49,9 +49,6 @@ impl From<&[u8]> for MacTag {
 ///
 /// HMAC accepts variable-length keys, but 256-bit (32 bytes) is recommended
 /// for HMAC-SHA256 to match the hash output size.
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct HmacSha256Key(pub(crate) [u8; 32]);
 
@@ -76,9 +73,6 @@ impl From<[u8; 32]> for HmacSha256Key {
 ///
 /// HMAC accepts variable-length keys, but 384-bit (48 bytes) is recommended
 /// for HMAC-SHA384 to match the hash output size.
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct HmacSha384Key(pub(crate) [u8; 48]);
 
@@ -103,9 +97,6 @@ impl From<[u8; 48]> for HmacSha384Key {
 ///
 /// HMAC accepts variable-length keys, but 512-bit (64 bytes) is recommended
 /// for HMAC-SHA512 to match the hash output size.
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct HmacSha512Key(pub(crate) [u8; 64]);
 
@@ -125,11 +116,6 @@ impl From<[u8; 64]> for HmacSha512Key {
 }
 
 /// 128-bit key for CMAC-AES-128.
-///
-/// # Security
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct CmacAes128Key(pub(crate) [u8; 16]);
 
@@ -149,11 +135,6 @@ impl From<[u8; 16]> for CmacAes128Key {
 }
 
 /// 256-bit key for CMAC-AES-256.
-///
-/// # Security
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct CmacAes256Key(pub(crate) [u8; 32]);
 
@@ -178,9 +159,6 @@ impl From<[u8; 32]> for CmacAes256Key {
 ///
 /// **This key MUST be used only once.** Poly1305 is a one-time authenticator.
 /// Reusing the same key for different messages completely breaks security.
-///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Poly1305Key(pub(crate) [u8; 32]);
 

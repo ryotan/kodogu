@@ -110,8 +110,6 @@ pub use symmetric::{
 ///
 /// # Security
 ///
-/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
-/// Equality comparison is constant-time to prevent timing attacks.
 /// Limit scope to ensure early cleanup when handling sensitive data.
 #[derive(Clone, Zeroize, ZeroizeOnDrop)]
 pub struct Plaintext(Vec<u8>);
