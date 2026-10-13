@@ -55,8 +55,9 @@
 //! - [RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax](https://tools.ietf.org/html/rfc3986)
 //! - [WHATWG URL Standard - application/x-www-form-urlencoded](https://url.spec.whatwg.org/#application/x-www-form-urlencoded)
 
-use crate::{BinaryCodec, BinaryCodecError};
+use crate::{BinaryCodec, BinaryCodecError, BinaryCodecs, InvalidCharacterSetError};
 use percent_encoding::{AsciiSet, CONTROLS, NON_ALPHANUMERIC, percent_decode_str, percent_encode};
+use suzunari_error::ensure;
 
 /// RFC 3986 URL encoding codec (space → %20).
 ///
@@ -121,7 +122,8 @@ pub struct UrlEncodingComponent;
 
 /// Custom URL encoding codec with user-defined ASCII set.
 ///
-/// Allows specifying a custom set of characters to be percent-encoded.
+/// Allows specifying a custom set of characters to be percent-encoded. The set must contain `%`, because decoding reads
+/// `%` as the start of a percent-encoded byte.
 ///
 /// # Examples
 ///
@@ -129,8 +131,8 @@ pub struct UrlEncodingComponent;
 /// use codec::{BinaryCodec, UrlEncodingCustom};
 /// use percent_encoding::{CONTROLS, AsciiSet};
 ///
-/// const CUSTOM_SET: &AsciiSet = &CONTROLS.add(b' ');
-/// let codec = UrlEncodingCustom::new(CUSTOM_SET);
+/// const CUSTOM_SET: &AsciiSet = &CONTROLS.add(b' ').add(b'%');
+/// let codec = UrlEncodingCustom::new(CUSTOM_SET).unwrap();
 ///
 /// let encoded = codec.encode(b"Hello World");
 /// let decoded = codec.decode(&encoded).unwrap();
@@ -298,8 +300,20 @@ impl BinaryCodec for UrlEncodingCustom {
     }
 }
 impl UrlEncodingCustom {
-    pub fn new(ascii_set: &'static AsciiSet) -> UrlEncodingCustom {
-        UrlEncodingCustom { ascii_set }
+    /// Creates a codec that percent-encodes the characters in `ascii_set` and all non-ASCII bytes.
+    ///
+    /// # Errors
+    /// - [`BinaryCodecError::InvalidCharacterSet`] if `ascii_set` does not contain `%`
+    pub fn new(ascii_set: &'static AsciiSet) -> Result<UrlEncodingCustom, BinaryCodecError> {
+        ensure!(
+            // AsciiSet has no public `contains`.
+            *ascii_set == ascii_set.add(b'%'),
+            InvalidCharacterSetError {
+                encoding: BinaryCodecs::Url,
+                message: "URL encoding set must contain '%'",
+            }
+        );
+        Ok(UrlEncodingCustom { ascii_set })
     }
 }
 
@@ -435,8 +449,9 @@ impl UrlEncoding {
         UrlEncodingComponent.decode(text)
     }
 
-    pub fn new(ascii_set: &'static AsciiSet) -> UrlEncoding {
-        UrlEncoding::Custom(UrlEncodingCustom::new(ascii_set))
+    /// Creates the custom variant. See [`UrlEncodingCustom::new`].
+    pub fn new(ascii_set: &'static AsciiSet) -> Result<UrlEncoding, BinaryCodecError> {
+        UrlEncodingCustom::new(ascii_set).map(UrlEncoding::Custom)
     }
 }
 
@@ -639,16 +654,26 @@ mod tests {
 
     #[test]
     fn test_url_encoding_custom() {
-        // Custom encoding with only space encoded
-        const CUSTOM_SET: &AsciiSet = &CONTROLS.add(b' ');
-        let custom = UrlEncodingCustom::new(CUSTOM_SET);
+        // Controls, space, and `%`
+        const CUSTOM_SET: &AsciiSet = &CONTROLS.add(b' ').add(b'%');
+        let custom = UrlEncodingCustom::new(CUSTOM_SET).unwrap();
 
         assert_eq!(custom.encode(b"Hello World!"), "Hello%20World!");
         assert_eq!(custom.decode("Hello%20World!").unwrap(), b"Hello World!");
 
         // Via enum
-        let custom_enum = UrlEncoding::new(CUSTOM_SET);
+        let custom_enum = UrlEncoding::new(CUSTOM_SET).unwrap();
         assert_eq!(custom_enum.encode(b"Hello World!"), "Hello%20World!");
+    }
+
+    #[test]
+    fn test_url_encoding_custom_rejects_set_without_percent() {
+        let result = UrlEncodingCustom::new(CONTROLS);
+        assert!(matches!(
+            result,
+            Err(BinaryCodecError::InvalidCharacterSet { encoding: BinaryCodecs::Url, .. })
+        ));
+        assert!(UrlEncoding::new(CONTROLS).is_err());
     }
 
     #[test]
