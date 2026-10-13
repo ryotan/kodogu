@@ -1,7 +1,7 @@
-use super::errors::{KdfError, ScryptDerivationFailedError, ScryptInvalidParamsError};
+use super::errors::{KdfError, ScryptDerivationFailedError};
 use super::traits::PasswordDeriver;
 use super::types::{DerivedKey, OutputLength, ScryptParams};
-use scrypt::{Params as ScryptInternalParams, scrypt as scrypt_fn};
+use scrypt::scrypt as scrypt_fn;
 use suzunari_error::ResultExt;
 use zeroize::Zeroizing;
 
@@ -16,7 +16,7 @@ use zeroize::Zeroizing;
 /// use crypto::{Scrypt, PasswordDeriver, ScryptParams, OutputLength};
 ///
 /// let deriver = Scrypt;
-/// // Low-cost parameters for testing (use RECOMMENDED in production)
+/// // Low-cost parameters for testing (use `ScryptParams::recommended()` in production)
 /// let params = ScryptParams::new(4, 1, 1);
 /// let key = deriver.derive(b"password", b"salt", &params, OutputLength::new(32)).unwrap();
 /// assert_eq!(key.len(), 32);
@@ -35,13 +35,8 @@ impl PasswordDeriver for Scrypt {
         params: &Self::Params,
         length: OutputLength,
     ) -> Result<DerivedKey, Self::Error> {
-        let length = length.get();
-        let internal_params =
-            ScryptInternalParams::new(params.log_n(), params.r(), params.p(), length)
-                .context(ScryptInvalidParamsError {})?;
-
-        let mut output = Zeroizing::new(vec![0u8; length]);
-        scrypt_fn(password, salt, &internal_params, &mut output)
+        let mut output = Zeroizing::new(vec![0u8; length.get()]);
+        scrypt_fn(password, salt, params.inner(), &mut output)
             .context(ScryptDerivationFailedError {})?;
 
         Ok(DerivedKey::new(std::mem::take(&mut output)))
@@ -98,7 +93,7 @@ mod tests {
     #[test]
     fn test_scrypt_variable_output_lengths() {
         let deriver = Scrypt;
-        for length in [16, 32, 48, 64] {
+        for length in [1, 9, 16, 32, 48, 64, 65, 128] {
             let ol = OutputLength::new(length);
             let key = deriver.derive(b"password", b"salt", &fast_params(), ol).unwrap();
             assert_key_length(&key, length);
@@ -110,17 +105,5 @@ mod tests {
         let deriver = Scrypt;
         let key = deriver.derive(b"", b"salt", &fast_params(), LEN32).unwrap();
         assert_key_length(&key, 32);
-    }
-
-    #[test]
-    #[should_panic(expected = "r must be greater than 0")]
-    fn test_scrypt_params_zero_r_panics() {
-        ScryptParams::new(4, 0, 1);
-    }
-
-    #[test]
-    #[should_panic(expected = "p must be greater than 0")]
-    fn test_scrypt_params_zero_p_panics() {
-        ScryptParams::new(4, 1, 0);
     }
 }

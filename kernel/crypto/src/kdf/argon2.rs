@@ -1,7 +1,7 @@
 use super::errors::{Argon2InvalidParamsError, KdfError};
 use super::traits::PasswordDeriver;
 use super::types::{Argon2Params, DerivedKey, OutputLength};
-use argon2::{Algorithm, Argon2 as Argon2Impl, Params as Argon2InternalParams, Version};
+use argon2::{Algorithm, Argon2 as Argon2Impl, Version};
 use suzunari_error::ResultExt;
 use zeroize::Zeroizing;
 
@@ -36,17 +36,8 @@ impl PasswordDeriver for Argon2id {
         params: &Self::Params,
         length: OutputLength,
     ) -> Result<DerivedKey, Self::Error> {
-        let length = length.get();
-        let internal_params = Argon2InternalParams::new(
-            params.memory_kib(),
-            params.time(),
-            params.parallelism(),
-            Some(length),
-        )
-        .context(Argon2InvalidParamsError {})?;
-
-        let argon2 = Argon2Impl::new(Algorithm::Argon2id, Version::V0x13, internal_params);
-        let mut output = Zeroizing::new(vec![0u8; length]);
+        let argon2 = Argon2Impl::new(Algorithm::Argon2id, Version::V0x13, params.inner().clone());
+        let mut output = Zeroizing::new(vec![0u8; length.get()]);
         // argon2::Error variants are all input validation errors (salt too short/long,
         // password too long, output size, etc.), not runtime derivation failures.
         argon2
@@ -116,24 +107,6 @@ mod tests {
             let key = deriver.derive(b"password", b"saltsaltsaltsalt", &fast_params(), ol).unwrap();
             assert_key_length(&key, length);
         }
-    }
-
-    #[test]
-    #[should_panic(expected = "memory_kib must be greater than 0")]
-    fn test_argon2_params_zero_memory_panics() {
-        Argon2Params::new(0, 1, 1);
-    }
-
-    #[test]
-    #[should_panic(expected = "time must be greater than 0")]
-    fn test_argon2_params_zero_time_panics() {
-        Argon2Params::new(8, 0, 1);
-    }
-
-    #[test]
-    #[should_panic(expected = "parallelism must be greater than 0")]
-    fn test_argon2_params_zero_parallelism_panics() {
-        Argon2Params::new(8, 1, 0);
     }
 
     #[test]
