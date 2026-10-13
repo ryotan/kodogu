@@ -306,6 +306,7 @@ impl UrlEncodingCustom {
     /// - [`BinaryCodecError::InvalidCharacterSet`] if `ascii_set` does not contain `%`
     pub fn new(ascii_set: &'static AsciiSet) -> Result<UrlEncodingCustom, BinaryCodecError> {
         ensure!(
+            // AsciiSet has no public `contains`.
             *ascii_set == ascii_set.add(b'%'),
             InvalidCharacterSetError {
                 encoding: BinaryCodecs::Url,
