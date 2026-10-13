@@ -1,4 +1,4 @@
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// MAC tag (Message Authentication Code).
 ///
@@ -50,9 +50,12 @@ impl From<&[u8]> for MacTag {
 /// HMAC accepts variable-length keys, but 256-bit (32 bytes) is recommended
 /// for HMAC-SHA256 to match the hash output size.
 ///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct HmacSha256Key(pub [u8; 32]);
+/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
+/// Equality comparison is constant-time to prevent timing attacks.
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct HmacSha256Key(pub(crate) [u8; 32]);
+
+impl_secret_traits!(HmacSha256Key);
 
 impl HmacSha256Key {
     /// Returns the key as a byte slice.
@@ -74,9 +77,12 @@ impl From<[u8; 32]> for HmacSha256Key {
 /// HMAC accepts variable-length keys, but 384-bit (48 bytes) is recommended
 /// for HMAC-SHA384 to match the hash output size.
 ///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct HmacSha384Key(pub [u8; 48]);
+/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
+/// Equality comparison is constant-time to prevent timing attacks.
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct HmacSha384Key(pub(crate) [u8; 48]);
+
+impl_secret_traits!(HmacSha384Key);
 
 impl HmacSha384Key {
     /// Returns the key as a byte slice.
@@ -98,9 +104,12 @@ impl From<[u8; 48]> for HmacSha384Key {
 /// HMAC accepts variable-length keys, but 512-bit (64 bytes) is recommended
 /// for HMAC-SHA512 to match the hash output size.
 ///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct HmacSha512Key(pub [u8; 64]);
+/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
+/// Equality comparison is constant-time to prevent timing attacks.
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct HmacSha512Key(pub(crate) [u8; 64]);
+
+impl_secret_traits!(HmacSha512Key);
 
 impl HmacSha512Key {
     /// Returns the key as a byte slice.
@@ -119,9 +128,12 @@ impl From<[u8; 64]> for HmacSha512Key {
 ///
 /// # Security
 ///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct CmacAes128Key(pub [u8; 16]);
+/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
+/// Equality comparison is constant-time to prevent timing attacks.
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct CmacAes128Key(pub(crate) [u8; 16]);
+
+impl_secret_traits!(CmacAes128Key);
 
 impl CmacAes128Key {
     /// Returns the key as a byte slice.
@@ -140,9 +152,12 @@ impl From<[u8; 16]> for CmacAes128Key {
 ///
 /// # Security
 ///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct CmacAes256Key(pub [u8; 32]);
+/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
+/// Equality comparison is constant-time to prevent timing attacks.
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct CmacAes256Key(pub(crate) [u8; 32]);
+
+impl_secret_traits!(CmacAes256Key);
 
 impl CmacAes256Key {
     /// Returns the key as a byte slice.
@@ -164,9 +179,12 @@ impl From<[u8; 32]> for CmacAes256Key {
 /// **This key MUST be used only once.** Poly1305 is a one-time authenticator.
 /// Reusing the same key for different messages completely breaks security.
 ///
-/// Implements [`Zeroize`] to clear memory on [`Drop`].
-#[derive(Debug, Clone, PartialEq, Eq, Zeroize)]
-pub struct Poly1305Key(pub [u8; 32]);
+/// Automatically zeroized on drop ([`ZeroizeOnDrop`]).
+/// Equality comparison is constant-time to prevent timing attacks.
+#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+pub struct Poly1305Key(pub(crate) [u8; 32]);
+
+impl_secret_traits!(Poly1305Key);
 
 impl Poly1305Key {
     /// Returns the key as a byte slice.
