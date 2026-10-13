@@ -1,24 +1,24 @@
-# KoDoGu アプリケーション
+# KoDoGu App
 
-KoDoGuのデスクトップアプリです。macOSのメニューバーに常駐します。
+The KoDoGu desktop app. It lives in the macOS menu bar.
 
-## 技術スタック
+## Tech Stack
 
-- フロントエンド: React + TypeScript（TanStack Router、TanStack Query）
-- バックエンド: Rust（Tauri v2）
-- パッケージマネージャ: Bun
+- Frontend: React + TypeScript (TanStack Router, TanStack Query)
+- Backend: Rust (Tauri v2)
+- Package manager: Bun
 
-## 開発
+## Development
 
-[Tauriの前提条件](https://tauri.app/start/prerequisites/)を満たした上で、このディレクトリで実行します。
+With the [Tauri prerequisites](https://tauri.app/start/prerequisites/) installed, run these in this directory:
 
 ```bash
 bun install
-bun run tauri dev     # アプリを起動
-bun run storybook     # Storybookを起動
-bun run lint          # 静的解析
-bun run test          # フロントエンドとRustのテスト
-bun run tauri:build   # 配布用にビルド
+bun run tauri dev     # Start the app
+bun run storybook     # Start Storybook
+bun run lint          # Run static analysis
+bun run test          # Run the frontend and Rust tests
+bun run tauri:build   # Build for distribution
 ```
 
-開発の決まりごとは[CONTRIBUTING.md](../CONTRIBUTING.md)を参照してください。
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for the project's conventions.

@@ -1,51 +1,26 @@
 # KoDoGu
 
-KoDoGu ("props" in Japanese) is an app that collects tools I want to use. Built with Tauri (React, TypeScript + Rust)
-for GUI apps and Rust for CLI apps, it provides lightweight and fast operation.
+KoDoGu (小道具, "props" in Japanese) is a toolbox of small tools I want to use. The desktop app is built with Tauri
+(React + TypeScript, Rust), and the command-line tools are written in Rust.
 
-## Main Features
+## Tools
 
-- Creation of key pairs, encryption with public keys, signing with private keys (planned)
-- Creation of CA certificates for localhost, server certificates (planned)
-- Creation of resume and work history documents (planned)
+- Tsunagi: manages port-forwarding processes (cloud-sql-proxy, `ssh -L`, `aws ssm`, ...) in one place (in development)
+- Key pairs: creation, encryption with public keys, signing with private keys (planned)
+- Certificates: CA and server certificates for localhost (planned)
+- Resume and work history documents (planned)
 
-## インストール
+## Repository Layout
 
-## Installation
+- `app/`: the desktop app ([README](./app/README.md))
+- `kernel/`: Rust libraries shared by the tools
+- `cli-app/`: command-line tools
+- `docs/`: ADRs and development guides
 
-```bash
-# Clone the repository
-git clone https://github.com/ryotan/kodogu.git
-cd kodogu/app
+## Development
 
-# Install dependencies
-bun install
-
-# Run the application
-bun run tauri:dev
-```
-
-## System Requirements
-
-- System that meets [Tauri requirements](https://tauri.app/start/prerequisites/)
-- Windows 10/11, macOS 11 or later, or Linux
-
-## Information for Developers
-
-For information on how to develop in this project, please see [CONTRIBUTING.md](./CONTRIBUTING.md).
-
-## Project Structure
-
-```
-kodogu/
-├── app/               # Tauri application
-│   ├── src/           # Frontend source code
-│   ├── src-tauri/     # Rust backend source code
-│   └── dist/          # Built frontend
-├── cli-app/           # Tauri application
-└── docs/              # Project documentation
-```
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-[Apache-2.0](./LICENSE)
+Licensed under either of [Apache License, Version 2.0](./LICENSE-APACHE) or [MIT License](./LICENSE-MIT) at your option.
