@@ -185,16 +185,12 @@ impl Pbkdf2Params {
     }
 }
 
-/// Error for [`Argon2Params::try_new`].
+/// Error for [`Argon2Params::try_new`]: the `argon2` crate rejects the parameters.
 #[suzunari_error]
-#[suzu(visibility(pub(crate)), context(suffix(Error)))]
-pub enum Argon2ParamsError {
-    /// The `argon2` crate rejects the parameters.
-    #[suzu(display("invalid Argon2 parameters: {source}"))]
-    Argon2Rejected {
-        #[suzu(from)]
-        source: argon2::Error,
-    },
+#[suzu(visibility(pub(crate)), display("invalid Argon2 parameters"))]
+pub struct Argon2ParamsError {
+    #[suzu(from)]
+    source: argon2::Error,
 }
 
 /// Argon2id parameters, validated by the `argon2` crate.
@@ -202,8 +198,14 @@ pub enum Argon2ParamsError {
 pub struct Argon2Params(argon2::Params);
 
 impl Argon2Params {
-    /// OWASP 2023 recommended values (memory=64MiB, time=3, parallelism=4).
-    pub const OWASP_RECOMMENDED: Self = Self::new(65536, 3, 4);
+    /// RFC 9106 §4's FIRST RECOMMENDED option: 2 GiB, t=1, p=4.
+    pub const RFC9106_FIRST_RECOMMENDED: Self = Self::new(2_097_152, 1, 4);
+
+    /// RFC 9106 §4's SECOND RECOMMENDED option, for much less memory: 64 MiB, t=3, p=4.
+    pub const RFC9106_SECOND_RECOMMENDED: Self = Self::new(65_536, 3, 4);
+
+    /// OWASP Password Storage Cheat Sheet's minimum configuration as of 2026-10: 19 MiB, t=2, p=1.
+    pub const OWASP_MINIMUM: Self = Self::new(19_456, 2, 1);
 
     /// Creates parameters.
     ///
@@ -211,7 +213,7 @@ impl Argon2Params {
     ///
     /// Panics if the `argon2` crate rejects the parameters (see [`Self::try_new`]).
     pub const fn new(memory_kib: u32, time: u32, parallelism: u32) -> Self {
-        match Self::validate(memory_kib, time, parallelism) {
+        match argon2::Params::new(memory_kib, time, parallelism, None) {
             Ok(params) => Self(params),
             Err(_) => panic!("invalid Argon2 parameters"),
         }
@@ -220,47 +222,29 @@ impl Argon2Params {
     /// Creates parameters with validation. For runtime input.
     ///
     /// # Errors
-    /// - [`Argon2ParamsError::Argon2Rejected`] if the `argon2` crate rejects the parameters, e.g. `memory_kib` below
+    /// - [`Argon2ParamsError`] if the `argon2` crate rejects the parameters, e.g. `memory_kib` below
     ///   8 × `parallelism` (RFC 9106)
     pub fn try_new(
         memory_kib: u32,
         time: u32,
         parallelism: u32,
     ) -> Result<Self, Argon2ParamsError> {
-        Self::validate(memory_kib, time, parallelism)
-            .map(Self)
-            .context(Argon2RejectedError)
-    }
-
-    const fn validate(
-        memory_kib: u32,
-        time: u32,
-        parallelism: u32,
-    ) -> Result<argon2::Params, argon2::Error> {
-        // `argon2::Params::new` multiplies the parallelism by 8 before checking its maximum.
-        if parallelism > argon2::Params::MAX_P_COST {
-            return Err(argon2::Error::ThreadsTooMany);
-        }
         argon2::Params::new(memory_kib, time, parallelism, None)
+            .map(Self)
+            .context(Argon2ParamsSnafu)
     }
 
     /// Returns the memory cost in KiB.
-    ///
-    /// OWASP 2023 recommendation: 65,536 (64 MiB). Minimum: 19,456 (19 MiB).
     pub const fn memory_kib(&self) -> u32 {
         self.0.m_cost()
     }
 
     /// Returns the time cost (number of passes).
-    ///
-    /// OWASP 2023 recommendation: 3.
     pub const fn time(&self) -> u32 {
         self.0.t_cost()
     }
 
-    /// Returns the parallelism (thread count).
-    ///
-    /// OWASP 2023 recommendation: 4.
+    /// Returns the parallelism.
     pub const fn parallelism(&self) -> u32 {
         self.0.p_cost()
     }
@@ -270,13 +254,11 @@ impl Argon2Params {
     }
 }
 
-/// Error for [`ScryptParams::try_new`].
+/// Error for [`ScryptParams::try_new`]: the `scrypt` crate rejects the parameters.
 #[suzunari_error]
-#[suzu(visibility(pub(crate)), context(suffix(Error)))]
-pub enum ScryptParamsError {
-    /// The `scrypt` crate rejects the parameters.
-    #[suzu(display("invalid scrypt parameters"))]
-    ScryptRejected { source: scrypt::errors::InvalidParams },
+#[suzu(visibility(pub(crate)), display("invalid scrypt parameters"))]
+pub struct ScryptParamsError {
+    source: scrypt::errors::InvalidParams,
 }
 
 /// Scrypt parameters, validated by the `scrypt` crate.
@@ -284,7 +266,7 @@ pub enum ScryptParamsError {
 pub struct ScryptParams(scrypt::Params);
 
 impl ScryptParams {
-    /// Colin Percival recommended values (log_n=17, r=8, p=1).
+    /// The `scrypt` crate's recommended parameters ([`scrypt::Params::recommended`]).
     pub fn recommended() -> Self {
         Self(scrypt::Params::recommended())
     }
@@ -304,29 +286,27 @@ impl ScryptParams {
     /// Creates parameters with validation. For runtime input.
     ///
     /// # Errors
-    /// - [`ScryptParamsError::ScryptRejected`] if the `scrypt` crate rejects the parameters, e.g. `log_n` not below
+    /// - [`ScryptParamsError`] if the `scrypt` crate rejects the parameters, e.g. `log_n` not below
     ///   16 × `r` or `r` × `p` not below 2^30 (RFC 7914)
     pub fn try_new(log_n: u8, r: u32, p: u32) -> Result<Self, ScryptParamsError> {
         // scrypt 0.11 requires an output length, but only its password-hash API uses it; `scrypt::scrypt` takes the
         // length from the output buffer.
         scrypt::Params::new(log_n, r, p, scrypt::Params::RECOMMENDED_LEN)
             .map(Self)
-            .context(ScryptRejectedError)
+            .context(ScryptParamsSnafu)
     }
 
-    /// Returns the logarithm of the CPU/memory cost parameter N (N = 2^log_n).
-    ///
-    /// Colin Percival recommendation: 17 (N = 131072).
+    /// Returns log_n, the base-2 logarithm of the CPU/memory cost N.
     pub fn log_n(&self) -> u8 {
         self.0.log_n()
     }
 
-    /// Returns the block size r. Recommended: 8.
+    /// Returns the block size r.
     pub fn r(&self) -> u32 {
         self.0.r()
     }
 
-    /// Returns the parallelization p. Recommended: 1.
+    /// Returns the parallelization p.
     pub fn p(&self) -> u32 {
         self.0.p()
     }
@@ -482,11 +462,15 @@ mod tests {
     }
 
     #[test]
-    fn test_argon2_params_owasp_recommended() {
-        let p = Argon2Params::OWASP_RECOMMENDED;
-        assert_eq!(p.memory_kib(), 65536);
-        assert_eq!(p.time(), 3);
-        assert_eq!(p.parallelism(), 4);
+    fn test_argon2_params_presets() {
+        let presets = [
+            (Argon2Params::RFC9106_FIRST_RECOMMENDED, (2_097_152, 1, 4)),
+            (Argon2Params::RFC9106_SECOND_RECOMMENDED, (65_536, 3, 4)),
+            (Argon2Params::OWASP_MINIMUM, (19_456, 2, 1)),
+        ];
+        for (params, expected) in presets {
+            assert_eq!((params.memory_kib(), params.time(), params.parallelism()), expected);
+        }
     }
 
     #[test]
@@ -518,9 +502,9 @@ mod tests {
     #[test]
     fn test_scrypt_params_recommended() {
         let p = ScryptParams::recommended();
-        assert_eq!(p.log_n(), 17);
-        assert_eq!(p.r(), 8);
-        assert_eq!(p.p(), 1);
+        assert_eq!(p.log_n(), scrypt::Params::RECOMMENDED_LOG_N);
+        assert_eq!(p.r(), scrypt::Params::RECOMMENDED_R);
+        assert_eq!(p.p(), scrypt::Params::RECOMMENDED_P);
     }
 
     // ========================================
@@ -559,15 +543,10 @@ mod tests {
 
     #[test]
     fn test_argon2_params_try_new_rejects() {
-        // Zero memory, time, and parallelism; memory below 8 × parallelism; parallelism above the maximum
-        for (memory_kib, time, parallelism) in
-            [(0, 1, 1), (8, 0, 1), (8, 1, 0), (8, 1, 4), (8, 1, u32::MAX)]
-        {
+        // Zero memory, time, and parallelism; memory below 8 × parallelism
+        for (memory_kib, time, parallelism) in [(0, 1, 1), (8, 0, 1), (8, 1, 0), (8, 1, 4)] {
             assert!(
-                matches!(
-                    Argon2Params::try_new(memory_kib, time, parallelism),
-                    Err(Argon2ParamsError::Argon2Rejected { .. })
-                ),
+                Argon2Params::try_new(memory_kib, time, parallelism).is_err(),
                 "{memory_kib}, {time}, {parallelism}"
             );
         }
@@ -577,13 +556,7 @@ mod tests {
     fn test_scrypt_params_try_new_rejects() {
         // Zero r and p; log_n not below 16 × r; r × p not below 2^30
         for (log_n, r, p) in [(4, 0, 1), (4, 1, 0), (16, 1, 1), (4, 1 << 15, 1 << 15)] {
-            assert!(
-                matches!(
-                    ScryptParams::try_new(log_n, r, p),
-                    Err(ScryptParamsError::ScryptRejected { .. })
-                ),
-                "{log_n}, {r}, {p}"
-            );
+            assert!(ScryptParams::try_new(log_n, r, p).is_err(), "{log_n}, {r}, {p}");
         }
     }
 
@@ -622,7 +595,7 @@ mod tests {
     fn test_argon2_params_error_display() {
         assert_eq!(
             Argon2Params::try_new(8, 1, 4).unwrap_err().to_string(),
-            "invalid Argon2 parameters: memory cost is too small"
+            "invalid Argon2 parameters"
         );
     }
 

@@ -8,7 +8,6 @@ use zeroize::Zeroizing;
 /// Argon2id key derivation function (RFC 9106).
 ///
 /// Recommended Argon2 variant combining side-channel resistance and time-memory trade-off resistance.
-/// OWASP 2023 recommendation: memory=64MiB, time=3, parallelism=4.
 /// Zero-sized type (ZST) with no runtime overhead.
 ///
 /// # Example
@@ -17,7 +16,7 @@ use zeroize::Zeroizing;
 /// use crypto::{Argon2id, PasswordDeriver, Argon2Params, OutputLength};
 ///
 /// let deriver = Argon2id;
-/// // Low-cost parameters for testing (use OWASP_RECOMMENDED in production)
+/// // Low-cost parameters for testing (use a preset such as `Argon2Params::RFC9106_SECOND_RECOMMENDED` in production)
 /// let params = Argon2Params::new(8, 1, 1);
 /// let key = deriver.derive(b"password", b"saltsaltsaltsalt", &params, OutputLength::new(32)).unwrap();
 /// assert_eq!(key.len(), 32);

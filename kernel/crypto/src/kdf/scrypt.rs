@@ -7,7 +7,7 @@ use zeroize::Zeroizing;
 
 /// Scrypt key derivation function (RFC 7914).
 ///
-/// Memory-hard KDF. Colin Percival recommendation: log_n=17, r=8, p=1.
+/// Memory-hard KDF.
 /// Zero-sized type (ZST) with no runtime overhead.
 ///
 /// # Example
