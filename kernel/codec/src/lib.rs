@@ -197,8 +197,11 @@ pub enum BinaryCodecError {
     #[suzu(display("Base85 overflow at position {position}"))]
     Base85Overflow { position: usize },
 
-    #[suzu(display("Invalid Base85 wrapper (missing <~...~> or xbtoa Begin/End)"))]
+    #[suzu(display("Invalid Base85 wrapper (<~...~>, or xbtoa Begin and End lines)"))]
     InvalidWrapper,
+
+    #[suzu(display("Base85 btoa footer does not match the decoded data"))]
+    Base85FooterMismatch,
 
     // URL encoding specific (for future url_encoding module)
     #[suzu(display("Invalid percent encoding at position {position}"))]

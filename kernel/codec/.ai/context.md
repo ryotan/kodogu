@@ -101,6 +101,7 @@
 - `HexOddLength` - Hex文字列の奇数長
 - `Base85Overflow` - Base85デコード時のu32オーバーフロー
 - `InvalidWrapper` - Base85の不正なラッパー（<~...~>、xbtoa Begin/End）
+- `Base85FooterMismatch` - btoaのフッターの長さ・チェックサムがデータと一致しない
 - `UrlInvalidPercent` - 不正なパーセントエンコーディング（将来のurl_encoding用）
 - `UrlInvalidUtf8` - URLデコード後の無効なUTF-8
 - `DataEncodingSpec` - data-encodingライブラリの仕様エラー
