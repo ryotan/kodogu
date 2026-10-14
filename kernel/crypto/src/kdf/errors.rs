@@ -72,18 +72,18 @@ pub enum KdfError {
     },
 
     /// Argon2id invalid parameters (includes salt/password/output validation).
-    #[suzu(display("Argon2id: invalid parameters: {source}"))]
+    #[suzu(display("Argon2id: invalid parameters"))]
     Argon2InvalidParams {
         #[suzu(from)]
         source: argon2::Error,
     },
 
     /// Scrypt key derivation failed (output length exceeded).
-    #[suzu(display("Scrypt: key derivation failed: {source}"))]
+    #[suzu(display("Scrypt: key derivation failed"))]
     ScryptDerivationFailed { source: ScryptInvalidOutputLen },
 
     /// ConcatKDF derivation failed (empty input or output length exceeded).
-    #[suzu(display("{algorithm}: ConcatKDF derivation failed: {source}"))]
+    #[suzu(display("{algorithm}: ConcatKDF derivation failed"))]
     ConcatKdfDerivationFailed {
         algorithm: KdfAlgorithm,
         #[suzu(from)]
@@ -91,11 +91,11 @@ pub enum KdfError {
     },
 
     /// X963KDF derivation failed (empty input or output length exceeded).
-    #[suzu(display("{algorithm}: X963KDF derivation failed: {source}"))]
+    #[suzu(display("{algorithm}: X963KDF derivation failed"))]
     X963KdfDerivationFailed { algorithm: KdfAlgorithm, source: X963KdfError },
 
     /// bcrypt-pbkdf derivation failed (invalid parameters or output length exceeded).
-    #[suzu(display("bcrypt-pbkdf: derivation failed: {source}"))]
+    #[suzu(display("bcrypt-pbkdf: derivation failed"))]
     BcryptPbkdfDerivationFailed {
         #[suzu(from)]
         source: bcrypt_pbkdf::Error,

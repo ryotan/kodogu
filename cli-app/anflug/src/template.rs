@@ -4,11 +4,8 @@ use suzunari_error::*;
 use crate::config::{Config, DateFormats};
 
 #[suzunari_error]
-#[suzu(context(suffix(Error)))]
-pub enum TemplateError {
-    #[suzu(display("Failed to format datetime"))]
-    DateTimeFormat,
-}
+#[suzu(display("Failed to format datetime"))]
+pub struct TemplateError {}
 
 pub struct TemplateProcessor {
     date_formats: DateFormats,
