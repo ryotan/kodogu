@@ -68,16 +68,16 @@ use suzunari_error::*;
 
 #[suzunari_error]
 pub enum RootError {
-    #[snafu(display("User not found: {id}"))]
+    #[suzu(display("User not found: {id}"))]
     UserNotFound { id: String },
 
-    #[snafu(display("User already exists: {email}"))]
+    #[suzu(display("User already exists: {email}"))]
     UserAlreadyExists { email: String },
 
-    #[snafu(display("Authentication failed"))]
+    #[suzu(display("Authentication failed"))]
     AuthUnauthorized,
 
-    #[snafu(display("Database connection failed"))]
+    #[suzu(display("Database connection failed"))]
     DbConnectionFailed,
 }
 
@@ -173,10 +173,10 @@ use suzunari_error::*;
 
 #[suzunari_error]
 pub enum UserError {
-    #[snafu(display("User not found: {id}"))]
+    #[suzu(display("User not found: {id}"))]
     NotFound { id: String },
 
-    #[snafu(display("User already exists: {email}"))]
+    #[suzu(display("User already exists: {email}"))]
     AlreadyExists { email: String },
 }
 // std::error::Errorのみ実装。HTTPを知らない
@@ -263,10 +263,10 @@ use suzunari_error::*;
 
 #[suzunari_error]
 pub enum UserError {
-    #[snafu(display("User not found: {id}"))]
+    #[suzu(display("User not found: {id}"))]
     NotFound { id: String },
 
-    #[snafu(display("User already exists: {email}"))]
+    #[suzu(display("User already exists: {email}"))]
     AlreadyExists { email: String },
 }
 
@@ -448,16 +448,16 @@ use suzunari_error::*;
 
 #[suzunari_error]
 pub enum RootError {
-    #[snafu(display("User not found: {id}"))]
+    #[suzu(display("User not found: {id}"))]
     UserNotFound { id: String },
 
-    #[snafu(display("User already exists: {email}"))]
+    #[suzu(display("User already exists: {email}"))]
     UserAlreadyExists { email: String },
 
-    #[snafu(display("Authentication failed"))]
+    #[suzu(display("Authentication failed"))]
     AuthUnauthorized,
 
-    #[snafu(display("Database connection failed"))]
+    #[suzu(display("Database connection failed"))]
     DbConnectionFailed,
 }
 
@@ -504,10 +504,10 @@ use suzunari_error::*;
 
 #[suzunari_error]
 pub enum UserError {
-    #[snafu(display("User not found: {id}"))]
+    #[suzu(display("User not found: {id}"))]
     NotFound { id: String },
 
-    #[snafu(display("User already exists: {email}"))]
+    #[suzu(display("User already exists: {email}"))]
     AlreadyExists { email: String },
 }
 
@@ -522,10 +522,10 @@ use suzunari_error::*;
 
 #[suzunari_error]
 pub enum AuthError {
-    #[snafu(display("Authentication failed"))]
+    #[suzu(display("Authentication failed"))]
     Unauthorized,
 
-    #[snafu(display("Token expired"))]
+    #[suzu(display("Token expired"))]
     TokenExpired,
 }
 
@@ -533,17 +533,16 @@ pub enum AuthError {
 // アプリ層: error.rs
 // ============================================
 use suzunari_error::*;
-use snafu::ResultExt;
 use user_domain::UserError;
 use auth_domain::AuthError;
 
 // ドメインエラーをまとめるenum
 #[suzunari_error]
 pub enum RootError {
-    #[snafu(display("User error: {source}"))]
+    #[suzu(display("User error"))]
     User { source: UserError },
 
-    #[snafu(display("Auth error: {source}"))]
+    #[suzu(display("Auth error"))]
     Auth { source: AuthError },
 }
 
@@ -630,7 +629,7 @@ pub fn global_error_handler(error: RootError) -> HttpResponse {
 // ============================================
 // エントリポイント: main.rs
 // ============================================
-use snafu::ResultExt;
+use suzunari_error::ResultExt;
 
 fn handle_request(user_id: &str) -> Result<String, RootError> {
     let user = user_domain::find_user(user_id).context(error::UserSnafu)?;
@@ -667,16 +666,16 @@ use suzunari_error::*;
 
 #[suzunari_error]
 pub enum InfraError {
-    #[snafu(display("Database connection failed"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("Database connection failed"))]
+    #[suzu(visibility(pub))]
     DatabaseConnection { source: std::io::Error },
 
-    #[snafu(display("Network timeout"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("Network timeout"))]
+    #[suzu(visibility(pub))]
     NetworkTimeout { source: std::io::Error },
 
-    #[snafu(display("Cache error"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("Cache error"))]
+    #[suzu(visibility(pub))]
     CacheError { source: std::io::Error },
 }
 
@@ -684,18 +683,17 @@ pub enum InfraError {
 // ドメイン層: user_domain.rs
 // ============================================
 use suzunari_error::*;
-use snafu::ResultExt;
 use crate::shared_kernel::InfraError;
 
 // ドメインエラー（ビジネスルール違反）
 #[suzunari_error]
 pub enum UserError {
-    #[snafu(display("User not found: {id}"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("User not found: {id}"))]
+    #[suzu(visibility(pub))]
     NotFound { id: String },
 
-    #[snafu(display("User already exists: {email}"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("User already exists: {email}"))]
+    #[suzu(visibility(pub))]
     AlreadyExists { email: String },
 }
 
@@ -703,13 +701,13 @@ pub enum UserError {
 #[suzunari_error]
 pub enum UserDomainError {
     /// アプリケーションエラー（ビジネスルール違反）
-    #[snafu(display("Application error: {source}"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("Application error"))]
+    #[suzu(visibility(pub))]
     Application { source: UserError },
 
     /// プラットフォームエラー（外部システム障害）
     /// transparent: 追加コンテキスト不要、そのまま伝播
-    #[snafu(transparent)]
+    #[suzu(transparent)]
     Platform { source: InfraError },
 }
 
@@ -724,30 +722,29 @@ pub fn find_user(id: &str) -> Result<User, UserDomainError> {
 // ドメイン層: auth_domain.rs
 // ============================================
 use suzunari_error::*;
-use snafu::ResultExt;
 use crate::shared_kernel::InfraError;
 
 #[suzunari_error]
 pub enum AuthError {
-    #[snafu(display("Authentication failed"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("Authentication failed"))]
+    #[suzu(visibility(pub))]
     Unauthorized,
 
-    #[snafu(display("Token expired"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("Token expired"))]
+    #[suzu(visibility(pub))]
     TokenExpired,
 }
 
 #[suzunari_error]
 pub enum AuthDomainError {
     /// アプリケーションエラー（ビジネスルール違反）
-    #[snafu(display("Application error: {source}"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("Application error"))]
+    #[suzu(visibility(pub))]
     Application { source: AuthError },
 
     /// プラットフォームエラー（外部システム障害）
     /// transparent: 追加コンテキスト不要、そのまま伝播
-    #[snafu(transparent)]
+    #[suzu(transparent)]
     Platform { source: InfraError },
 }
 
@@ -764,19 +761,18 @@ pub fn authenticate(token: &str) -> Result<(), AuthDomainError> {
 // アプリ層: app_error.rs
 // ============================================
 use suzunari_error::*;
-use snafu::ResultExt;
 use user_domain::{UserError, UserDomainError};
 use auth_domain::{AuthError, AuthDomainError};
 use shared_kernel::InfraError;
 
 #[suzunari_error]
 pub enum RootError {
-    #[snafu(display("User domain error: {source}"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("User domain error"))]
+    #[suzu(visibility(pub))]
     UserDomain { source: UserDomainError },
 
-    #[snafu(display("Auth domain error: {source}"))]
-    #[snafu(visibility(pub))]
+    #[suzu(display("Auth domain error"))]
+    #[suzu(visibility(pub))]
     AuthDomain { source: AuthDomainError },
 }
 
