@@ -4,14 +4,10 @@ use suzunari_error::suzunari_error;
 use suzunari_error::{ResultExt, ensure};
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
-/// Error for [`OutputLength::try_new`].
+/// Error for [`OutputLength::try_new`]: the length is zero.
 #[suzunari_error]
-#[suzu(visibility(pub(crate)), context(suffix(Error)))]
-pub enum OutputLengthError {
-    /// Length is zero.
-    #[suzu(display("output length must be greater than 0"))]
-    Zero,
-}
+#[suzu(visibility(pub(crate)), display("output length must be greater than 0"))]
+pub struct OutputLengthError {}
 
 /// Output key length in bytes. Guaranteed to be > 0.
 ///
@@ -32,7 +28,7 @@ impl OutputLength {
 
     /// Creates an output length with validation. For runtime input.
     pub fn try_new(length: usize) -> Result<Self, OutputLengthError> {
-        ensure!(length > 0, ZeroError);
+        ensure!(length > 0, OutputLengthSnafu);
         Ok(Self(length))
     }
 
@@ -141,14 +137,10 @@ impl HkdfInput {
     }
 }
 
-/// Error for [`Pbkdf2Params::try_new`].
+/// Error for [`Pbkdf2Params::try_new`]: `iterations` is zero.
 #[suzunari_error]
-#[suzu(visibility(pub(crate)), context(suffix(Error)))]
-pub enum Pbkdf2ParamsError {
-    /// `iterations` is zero.
-    #[suzu(display("iterations must be greater than 0"))]
-    IterationsZero,
-}
+#[suzu(visibility(pub(crate)), display("iterations must be greater than 0"))]
+pub struct Pbkdf2ParamsError {}
 
 /// PBKDF2 parameters.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -175,7 +167,7 @@ impl Pbkdf2Params {
 
     /// Creates parameters with validation. For runtime input.
     pub fn try_new(iterations: u32) -> Result<Self, Pbkdf2ParamsError> {
-        ensure!(iterations > 0, IterationsZeroError);
+        ensure!(iterations > 0, Pbkdf2ParamsSnafu);
         Ok(Self { iterations })
     }
 
@@ -324,14 +316,10 @@ impl PartialEq for ScryptParams {
 
 impl Eq for ScryptParams {}
 
-/// Error for [`BcryptPbkdfParams::try_new`].
+/// Error for [`BcryptPbkdfParams::try_new`]: `rounds` is zero.
 #[suzunari_error]
-#[suzu(visibility(pub(crate)), context(suffix(Error)))]
-pub enum BcryptPbkdfParamsError {
-    /// `rounds` is zero.
-    #[suzu(display("rounds must be greater than 0"))]
-    RoundsZero,
-}
+#[suzu(visibility(pub(crate)), display("rounds must be greater than 0"))]
+pub struct BcryptPbkdfParamsError {}
 
 /// bcrypt-pbkdf parameters.
 ///
@@ -360,7 +348,7 @@ impl BcryptPbkdfParams {
 
     /// Creates parameters with validation. For runtime input.
     pub fn try_new(rounds: u32) -> Result<Self, BcryptPbkdfParamsError> {
-        ensure!(rounds > 0, RoundsZeroError);
+        ensure!(rounds > 0, BcryptPbkdfParamsSnafu);
         Ok(Self { rounds })
     }
 
@@ -392,7 +380,7 @@ mod tests {
 
     #[test]
     fn test_output_length_try_new_zero() {
-        assert!(matches!(OutputLength::try_new(0), Err(OutputLengthError::Zero { .. })));
+        assert!(OutputLength::try_new(0).is_err());
     }
 
     #[test]
@@ -519,10 +507,7 @@ mod tests {
 
     #[test]
     fn test_pbkdf2_params_try_new_zero() {
-        assert!(matches!(
-            Pbkdf2Params::try_new(0),
-            Err(Pbkdf2ParamsError::IterationsZero { .. })
-        ));
+        assert!(Pbkdf2Params::try_new(0).is_err());
     }
 
     #[test]
@@ -568,10 +553,7 @@ mod tests {
 
     #[test]
     fn test_bcrypt_pbkdf_params_try_new_zero() {
-        assert!(matches!(
-            BcryptPbkdfParams::try_new(0),
-            Err(BcryptPbkdfParamsError::RoundsZero { .. })
-        ));
+        assert!(BcryptPbkdfParams::try_new(0).is_err());
     }
 
     #[test]

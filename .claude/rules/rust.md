@@ -47,7 +47,7 @@ For the architectural rationale behind Rust's error handling strategy (Visitor P
 > suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
 > ```
 
-- Apply `#[suzunari_error]` macro to error enums
+- Apply `#[suzunari_error]` macro to error types: a struct for a single reason, an enum for several
 - Provides automatic stack trace propagation through error chains
 - Implement the error hierarchy pattern:
 
@@ -59,9 +59,9 @@ For the architectural rationale behind Rust's error handling strategy (Visitor P
 
 #[suzunari_error]
 pub enum RootError {
-    #[suzu(display("Application error: {source}"))]
+    #[suzu(display("Application error"))]
     Application { source: ApplicationError },
-    #[suzu(display("Platform error: {source}"))]
+    #[suzu(display("Platform error"))]
     Platform { source: PlatformError },
 }
 
@@ -69,9 +69,9 @@ pub enum RootError {
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
 pub enum ApplicationError {
-    #[suzu(display("Domain error: {source}"))]
+    #[suzu(display("Domain error"))]
     Domain { source: DomainError },
-    #[suzu(display("Use case error: {source}"))]
+    #[suzu(display("Use case error"))]
     UseCase { source: UseCaseError },
     // AdapterError, FrameworkError, etc. can be added as needed
 }
@@ -87,7 +87,7 @@ pub enum DomainError {
 // Platform errors (external systems)
 #[suzunari_error]
 pub enum PlatformError {
-    #[suzu(display("Database error: {source}"))]
+    #[suzu(display("Database error"))]
     Database { source: DatabaseError },
     // KeyValueStore, PubSub, etc. can be added as needed
 }

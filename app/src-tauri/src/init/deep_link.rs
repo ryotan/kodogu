@@ -2,11 +2,9 @@ use suzunari_error::*;
 use tauri::{AppHandle, Runtime};
 
 #[suzunari_error]
-#[suzu(context(suffix(Error)))]
-pub enum DeepLinkSetupError {
-    #[cfg_attr(target_os = "macos", allow(dead_code))]
-    #[suzu(display("Failed to initialize deep-link plugin"))]
-    PluginInitialization { source: tauri_plugin_deep_link::Error },
+#[suzu(display("Failed to initialize deep-link plugin"))]
+pub struct DeepLinkSetupError {
+    source: tauri_plugin_deep_link::Error,
 }
 
 pub(crate) fn setup<R: Runtime>(
@@ -18,7 +16,7 @@ pub(crate) fn setup<R: Runtime>(
         use tracing::info;
 
         info!("Registering deep link handler");
-        app.deep_link().register_all().context(PluginInitializationError)?;
+        app.deep_link().register_all().context(DeepLinkSetupSnafu)?;
     }
     Ok(())
 }

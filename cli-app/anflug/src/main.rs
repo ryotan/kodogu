@@ -21,13 +21,13 @@ const DEFAULT_TEMPLATE: &str = "{message}";
 pub enum MainError {
     #[suzu(transparent)]
     Cli { source: cli::CliError },
-    #[suzu(display("Failed to load configuration: {source}"))]
+    #[suzu(display("Failed to load configuration"))]
     Config { source: confy::ConfyError },
-    #[suzu(display("Failed to read input file: {source}"))]
+    #[suzu(display("Failed to read input file"))]
     InputFile { source: file::FileError },
-    #[suzu(display("Failed to process template: {source}"))]
+    #[suzu(display("Failed to process template"))]
     Template { source: template::TemplateError },
-    #[suzu(display("Failed to process file: {source}"))]
+    #[suzu(display("Failed to process file"))]
     File { source: file::FileError },
 }
 
