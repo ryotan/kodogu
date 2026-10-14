@@ -111,7 +111,7 @@ Use explicit suffixes to indicate responsibility. The file's role should be clea
 ```typescript
 export const buildAppConfigQuery = <T = AppConfig>(opts?: AppConfigQueryOptions<T>) =>
   queryOptions({
-    queryKey: ['appConfig'],
+    queryKey: ['app-config'] as const,
     queryFn: getConfig,
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
@@ -129,6 +129,7 @@ Mutations with optimistic updates must follow this 3-step lifecycle:
 1. `onMutate`: Cancel queries → save previous → set optimistic data → return `{previous}`
 2. `onError`: Log error + rollback with `context?.previous`
 3. `onSettled`: Invalidate queries (covers both success and error)
+   - **Exception**: Skip `onSettled` invalidation when `staleTime: Infinity` — `invalidateQueries` triggers a refetch on active observers regardless of staleTime, causing an unnecessary round-trip. The optimistic data from `onMutate` is already correct.
 
 Additional requirements:
 - Set `scope: {id: 'xxx'}` to serialize parallel mutations on the same resource
@@ -206,25 +207,12 @@ const TanStackTools = import.meta.env.DEV
 
 ## Error Boundaries
 
-### QueryErrorResetBoundary + ErrorBoundary
+### Route Errors
 
-Wrap `RouterProvider` (or top-level async UI) with both:
-
-```typescript
-<QueryErrorResetBoundary>
-  {({reset}) => (
-    <ErrorBoundary onReset={reset} fallbackRender={({error, resetErrorBoundary}) => (
-      <AppErrorPage error={error} reset={resetErrorBoundary} />
-    )}>
-      <RouterProvider router={router} />
-    </ErrorBoundary>
-  )}
-</QueryErrorResetBoundary>
-```
-
-- `QueryErrorResetBoundary` resets failed queries on retry so the user gets a fresh fetch
-- Use `fallbackRender` (not `FallbackComponent`) for inline error normalization
-- **Why**: Prevents stale error state after retry
+- Route errors go to the router's `defaultErrorComponent`; an `ErrorBoundary` outside `RouterProvider` never receives them
+- Route error components reset with `useRouteErrorReset`: it resets failed queries on mount and retries with
+  `router.invalidate()`, as TanStack Router's guide for TanStack Query does
+- **Why**: The router's own `reset` only clears its error boundary, and a failed loader throws the same error again
 
 ### Error Component Design
 
@@ -237,5 +225,5 @@ Wrap `RouterProvider` (or top-level async UI) with both:
 
 - React hooks (`useState`, `useReducer`) for component-level state
 - TanStack Store for application-wide state
-- `immer` for complex immutable state updates
+- `mutative` for complex immutable state updates
 - **Why**: Keeps state management predictable and type-safe

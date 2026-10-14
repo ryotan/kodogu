@@ -38,13 +38,12 @@ For the architectural rationale behind Rust's error handling strategy (Visitor P
 
 ### Use suzunari-error for Error Hierarchy
 
-> **Note**: `suzunari-error` is a custom error handling crate developed specifically
-> for this project. It is **not available on crates.io** and must be added from the
-> GitHub repository:
+> **Note**: The root `Cargo.toml` declares `suzunari-error` (from crates.io) as a workspace dependency. Crates add it
+> with:
 >
 > ```toml
 > [dependencies]
-> suzunari-error = { git = "https://github.com/ryotan/suzunari-error.git", version = "0.1.0" }
+> suzunari-error = { workspace = true }
 > ```
 
 - Apply `#[suzunari_error]` macro to error types: a struct for a single reason, an enum for several

@@ -396,7 +396,7 @@ For error classification philosophy, invoke the `coding-practices` skill.
 
 - React hooks (`useState`, `useReducer`) for component-level state
 - TanStack Store for application-wide state
-- `immer` for complex immutable state updates
+- `mutative` for complex immutable state updates
 - **Why**: Keeps state management predictable and type-safe
 
 ### Data Fetching
@@ -513,25 +513,12 @@ const TanStackTools = import.meta.env.DEV
 
 ### Error Boundaries
 
-#### QueryErrorResetBoundary + ErrorBoundary
+#### Route Errors
 
-Wrap `RouterProvider` (or top-level async UI) with both:
-
-```typescript
-<QueryErrorResetBoundary>
-  {({reset}) => (
-    <ErrorBoundary onReset={reset} fallbackRender={({error, resetErrorBoundary}) => (
-      <AppErrorPage error={error} reset={resetErrorBoundary} />
-    )}>
-      <RouterProvider router={router} />
-    </ErrorBoundary>
-  )}
-</QueryErrorResetBoundary>
-```
-
-- `QueryErrorResetBoundary` resets failed queries on retry so the user gets a fresh fetch
-- Use `fallbackRender` (not `FallbackComponent`) for inline error normalization
-- **Why**: Prevents stale error state after retry
+- Route errors go to the router's `defaultErrorComponent`; an `ErrorBoundary` outside `RouterProvider` never receives them
+- Route error components reset with `useRouteErrorReset`: it resets failed queries on mount and retries with
+  `router.invalidate()`, as TanStack Router's guide for TanStack Query does
+- **Why**: The router's own `reset` only clears its error boundary, and a failed loader throws the same error again
 
 #### Error Component Design
 
