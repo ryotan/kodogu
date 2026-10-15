@@ -46,9 +46,12 @@ jobs:
         # action's `pre` step, which has no `pre-if` and therefore cannot be skipped with a step-level `if:`.
         # Re-enabling the macOS/Windows matrix entries would otherwise fail them against this Linux-only
         # allowlist; keeping those platforms on audit lets their first runs produce their own baseline.
+        # `disable-telemetry` follows the same split: harden-runner allows it only with the block policy, and
+        # the audit runs need telemetry to produce that baseline.
         uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
         with:
           egress-policy: ${{ runner.os == 'Linux' && 'block' || 'audit' }}
+          disable-telemetry: ${{ runner.os == 'Linux' }}
           allowed-endpoints: >
             aka.ms:443
             azure.archive.ubuntu.com:80
@@ -62,7 +65,6 @@ jobs:
             index.crates.io:443
             mise.jdx.dev:443
             mise-java.jdx.dev:443
-            mise-versions.jdx.dev:443
             motd.ubuntu.com:443
             _https._tcp.motd.ubuntu.com:443
             nodejs.org:443
