@@ -41,33 +41,31 @@ jobs:
         # Block unexpected egress and process activity on the runner. Endpoints below were baselined from
         # the audit-mode log observed across recent successful runs — on Linux only, since that is the sole
         # platform currently enabled in the matrix above.
+        # SRV names are left out: the agent stops if an entry does not resolve.
         #
         # Since v2.20.0 the block policy is enforced on macOS and Windows too, and it is applied by the
         # action's `pre` step, which has no `pre-if` and therefore cannot be skipped with a step-level `if:`.
         # Re-enabling the macOS/Windows matrix entries would otherwise fail them against this Linux-only
         # allowlist; keeping those platforms on audit lets their first runs produce their own baseline.
+        # `disable-telemetry` follows the same split: harden-runner allows it only with the block policy, and
+        # the audit runs need telemetry to produce that baseline.
         uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
         with:
           egress-policy: ${{ runner.os == 'Linux' && 'block' || 'audit' }}
+          disable-telemetry: ${{ runner.os == 'Linux' }}
           allowed-endpoints: >
             aka.ms:443
             azure.archive.ubuntu.com:80
-            _http._tcp.azure.archive.ubuntu.com:80
             dl.google.com:443
-            _https._tcp.dl.google.com:443
             download.visualstudio.microsoft.com:443
             esm.ubuntu.com:443
-            _https._tcp.esm.ubuntu.com:443
             github.com:443
             index.crates.io:443
             mise.jdx.dev:443
             mise-java.jdx.dev:443
-            mise-versions.jdx.dev:443
             motd.ubuntu.com:443
-            _https._tcp.motd.ubuntu.com:443
             nodejs.org:443
             packages.microsoft.com:443
-            _https._tcp.packages.microsoft.com:443
             raw.githubusercontent.com:443
             registry.npmjs.org:443
             release-assets.githubusercontent.com:443
