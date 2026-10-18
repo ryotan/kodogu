@@ -836,6 +836,12 @@ mod poly1305_rfc8439 {
         assert_eq!(tag.as_bytes(), expected_tag);
     }
 
+    #[test]
+    fn test_code_scanning_gate() {
+        let key = Poly1305Key::from([1u8; 32]);
+        assert!(Poly1305Mac.generate(b"x", &key).is_ok());
+    }
+
     /// RFC 8439 Appendix A.3 - Poly1305 Test Vector #2
     /// "Any submission to the IETF intended..."
     #[test]
