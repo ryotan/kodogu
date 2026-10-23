@@ -21,7 +21,7 @@ env:
 jobs:
   lint:
     name: 'Lint'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Harden Runner
         # Block unexpected egress and process activity on the runner. Endpoints below were baselined from
