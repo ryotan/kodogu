@@ -47,7 +47,7 @@ jobs:
         # allowlist; keeping those platforms on audit lets their first runs produce their own baseline.
         # `disable-telemetry` follows the same split: harden-runner allows it only with the block policy, and
         # the audit runs need telemetry to produce that baseline.
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: ${{ runner.os == 'Linux' && 'block' || 'audit' }}
           disable-telemetry: ${{ runner.os == 'Linux' }}
