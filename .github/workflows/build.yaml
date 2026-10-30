@@ -127,7 +127,7 @@ jobs:
             0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-
 
       - name: Install frontend dependencies
-        run: bun install --frozen-lock-file
+        run: bun install --frozen-lockfile
 
       - name: Build app
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
