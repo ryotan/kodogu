@@ -2,20 +2,19 @@
 
 [lint]
 description = "Lint the repository"
-run = "mise run --continue-on-error lint:biome ::: app:lint:tsc ::: app:lint:es ::: cargo:lint"
+depends = ["lint:biome", "app:lint:tsc", "app:lint:es", "cargo:lint"]
 
 [test]
 description = "Test the repository"
-run = "mise run --continue-on-error app:test ::: cargo:test"
+depends = ["app:test", "cargo:test"]
 
 ["test:coverage"]
 description = "Collect frontend and Rust test coverage"
-run = "mise run --continue-on-error app:test:coverage ::: cargo:coverage"
+depends = ["app:test:coverage", "cargo:coverage"]
 
 [fix]
 description = "Apply automatic fixes across the repository"
-# Independent fixes must finish even when another fix fails.
-run = "mise run --continue-on-error fix:biome ::: app:fix:es ::: cargo:fix"
+depends = ["fix:biome", "app:fix:es", "cargo:fix"]
 
 ["lint:biome"]
 description = "Check repository formatting and Biome rules"

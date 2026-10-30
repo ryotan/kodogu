@@ -21,13 +21,15 @@ mise run app:storybook      # Start Storybook
 mise run app:tauri:build    # Build for distribution
 ```
 
-Run checks and automatic fixes for the entire repository from the repository root:
+Run checks and automatic fixes for the entire repository from the repository root.
+Use `--continue-on-error` to finish all selected tasks and report failure if any task fails.
+Without it, execution stops on failure:
 
 ```bash
-mise run lint
-mise run test
-mise run test:coverage
-mise run fix
+mise run --continue-on-error lint
+mise run --continue-on-error test
+mise run --continue-on-error test:coverage
+mise run --continue-on-error fix
 ```
 
 Run only frontend tests, either once or in watch mode:
