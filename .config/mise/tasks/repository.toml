@@ -2,11 +2,15 @@
 
 [lint]
 description = "Lint the repository"
-depends = ["lint:biome", "app:lint:tsc", "app:lint:es", "cargo:lint"]
+run = "mise run --continue-on-error lint:biome ::: app:lint:tsc ::: app:lint:es ::: cargo:lint"
 
 [test]
 description = "Test the repository"
-depends = ["app:test", "cargo:test"]
+run = "mise run --continue-on-error app:test ::: cargo:test"
+
+["test:coverage"]
+description = "Collect frontend and Rust test coverage"
+run = "mise run --continue-on-error app:test:coverage ::: cargo:coverage"
 
 [fix]
 description = "Apply automatic fixes across the repository"

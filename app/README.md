@@ -26,6 +26,7 @@ Run checks and automatic fixes for the entire repository from the repository roo
 ```bash
 mise run lint
 mise run test
+mise run test:coverage
 mise run fix
 ```
 
