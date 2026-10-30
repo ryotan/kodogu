@@ -110,7 +110,7 @@ jobs:
             0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-
 
       - name: Install frontend dependencies
-        run: bun install --frozen-lock-file
+        run: bun install --frozen-lockfile
 
       - name: Get Playwright version
         id: playwright-version
