@@ -52,6 +52,7 @@ run = "bun x --no-install eslint ."
 
 ["app:fix:es"]
 description = "Apply frontend ESLint fixes"
+wait_for = ["fix:biome"]
 dir = "app"
 run = "bun x --no-install eslint --fix ."
 

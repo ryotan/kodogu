@@ -15,7 +15,7 @@ run = "mise run --continue-on-error app:test:coverage ::: cargo:coverage"
 [fix]
 description = "Apply automatic fixes across the repository"
 # Independent fixes must finish even when another fix fails.
-run = "mise run --continue-on-error app:fix:es ::: fix:biome ::: cargo:fix"
+run = "mise run --continue-on-error fix:biome ::: app:fix:es ::: cargo:fix"
 
 ["lint:biome"]
 description = "Check repository formatting and Biome rules"
@@ -23,5 +23,4 @@ run = "bun x --no-install biome ci --error-on-warnings ."
 
 ["fix:biome"]
 description = "Apply Biome fixes across the repository"
-wait_for = ["app:fix:es"]
 run = "bun x --no-install biome check --write --unsafe ."
