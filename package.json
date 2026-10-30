@@ -7,10 +7,6 @@
     "type": "git",
     "url": "ssh://git@github.com/ryotan/kodogu.git"
   },
-  "scripts": {
-    "lint:biome": "biome ci --error-on-warnings .",
-    "fix:biome": "biome check --write --unsafe ."
-  },
   "workspaces": {
     "packages": [
       "app",
@@ -52,7 +48,6 @@
         "@vitest/coverage-v8": "^4.0.18",
         "@vitest/eslint-plugin": "^1.1.38",
         "arktype": "^2.1.10",
-        "concurrently": "^9.1.2",
         "eslint": "^10.0.2",
         "eslint-plugin-react": "^7.37.4",
         "eslint-plugin-react-hooks": "^7.0.1",

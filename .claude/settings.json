@@ -3,7 +3,7 @@
     "network": {
       "allowLocalBinding": true
     },
-    "excludedCommands": ["bun run test*", "bunx vitest*"]
+    "excludedCommands": ["mise run test*", "mise run app:test*", "bunx vitest*"]
   },
   "hooks": {
     "PostToolUse": [
