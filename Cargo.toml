@@ -14,6 +14,9 @@ members = [
   'app/src-tauri',
 ]
 
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
 [workspace.dependencies]
 # Workspace members
 codec = { path = './kernel/codec' }
