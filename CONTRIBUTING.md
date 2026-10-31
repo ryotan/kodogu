@@ -11,4 +11,4 @@
 - Implementation practices: [docs/.ai/coding-practices.md](./docs/.ai/coding-practices.md)
 - Language and framework practices: [.claude/rules/](./.claude/rules/)
 - Architecture decisions: [docs/adr/](./docs/adr/)
-- Branches, commits, and pull requests: [.claude/CLAUDE.md](./.claude/CLAUDE.md#git-conventions)
+- Branches, commits, and pull requests: [AGENTS.md](./AGENTS.md#git-conventions)
