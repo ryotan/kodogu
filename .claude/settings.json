@@ -3,7 +3,13 @@
     "network": {
       "allowLocalBinding": true
     },
-    "excludedCommands": ["bun run test*", "bunx vitest*"]
+    "excludedCommands": [
+      "mise run test*",
+      "mise run --continue-on-error test*",
+      "mise run -c test*",
+      "mise run app:test*",
+      "bunx vitest*"
+    ]
   },
   "hooks": {
     "PostToolUse": [

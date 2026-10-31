@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "pw.itr0.kodogu.app.dev",
   "build": {
-    "beforeDevCommand": "bun run dev",
+    "beforeDevCommand": "mise run app:dev",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "bun run build",
+    "beforeBuildCommand": "mise run app:build",
     "frontendDist": "../dist"
   },
   "app": {

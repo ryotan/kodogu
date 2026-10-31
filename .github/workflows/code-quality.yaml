@@ -44,7 +44,6 @@ jobs:
             ingest.codecov.io:443
             keybase.io:443
             mise.jdx.dev:443
-            mise-java.jdx.dev:443
             motd.ubuntu.com:443
             nodejs.org:443
             o26192.ingest.us.sentry.io:443
@@ -110,7 +109,7 @@ jobs:
             0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-
 
       - name: Install frontend dependencies
-        run: bun install --frozen-lockfile
+        run: mise exec -- bun install --frozen-lockfile
 
       - name: Get Playwright version
         id: playwright-version
@@ -132,25 +131,21 @@ jobs:
           key: 0-${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
 
       - name: Install Playwright Browsers
-        working-directory: app
-        run: bun run playwright:install
+        run: mise run app:playwright:install
 
       - id: tsc
         name: TypeScript
-        working-directory: app
-        run: bun run lint:tsc
+        run: mise run app:lint:tsc
         continue-on-error: true  # Run all checks, then fail at the end
 
       - id: biome
         name: Biome
-        working-directory: app
-        run: bun run lint:biome --reporter=github
+        run: mise run lint:biome -- --reporter=github
         continue-on-error: true  # Run all checks, then fail at the end
 
       - id: eslint
         name: ESLint
-        working-directory: app
-        run: bun run lint:es
+        run: mise run app:lint:es
         continue-on-error: true  # Run all checks, then fail at the end
 
       - id: rustfmt
@@ -165,8 +160,7 @@ jobs:
 
       - id: frontend-test
         name: Frontend Tests & Coverage
-        working-directory: app
-        run: bun run test:vitest:coverage
+        run: mise run app:test:coverage
         continue-on-error: true  # Run all checks, then fail at the end
 
       - id: backend-test

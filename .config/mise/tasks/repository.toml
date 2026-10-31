@@ -1,0 +1,25 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+[lint]
+description = "Lint the repository"
+depends = ["lint:biome", "app:lint:tsc", "app:lint:es", "cargo:lint"]
+
+[test]
+description = "Test the repository"
+depends = ["app:test", "cargo:test"]
+
+["test:coverage"]
+description = "Collect frontend and Rust test coverage"
+depends = ["app:test:coverage", "cargo:coverage"]
+
+[fix]
+description = "Apply automatic fixes across the repository"
+depends = ["fix:biome", "app:fix:es", "cargo:fix"]
+
+["lint:biome"]
+description = "Check repository formatting and Biome rules"
+run = "bun x --no-install biome ci --error-on-warnings ."
+
+["fix:biome"]
+description = "Apply Biome fixes across the repository"
+run = "bun x --no-install biome check --write --unsafe ."

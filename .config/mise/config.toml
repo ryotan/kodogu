@@ -61,36 +61,5 @@ lockfile_platforms = [
 [tools]
 node = "24.22.1"
 bun = "1.4.4"
-java = "microsoft-17.35.1"
 "github:taiki-e/cargo-llvm-cov" = "v0.9.1"
 prek = "0.5.7"
-
-[tasks."cargo:fix"]
-depends = [
-  "cargo:fix:fmt",
-  "cargo:fix:clippy",
-]
-
-[tasks."cargo:fix:fmt"]
-run = "cargo fmt --all"
-
-[tasks."cargo:fix:clippy"]
-run = "cargo clippy --locked --fix --all-features --all-targets --allow-dirty --allow-staged"
-
-[tasks."cargo:lint"]
-depends = [
-  "cargo:lint:fmt",
-  "cargo:lint:clippy",
-]
-
-[tasks."cargo:lint:fmt"]
-run = "cargo fmt --all --check"
-
-[tasks."cargo:lint:clippy"]
-run = "cargo clippy --locked --no-deps --all-features --all-targets --release"
-
-[tasks."cargo:test"]
-run = "cargo test --all-features --workspace"
-
-[tasks."cargo:coverage"]
-run = "cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info"

@@ -1,0 +1,72 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+["app:dev"]
+description = "Start the frontend development server"
+dir = "app"
+run = "bun x --no-install vite"
+
+["app:build"]
+description = "Build the frontend"
+dir = "app"
+run = "bun x --no-install vite build"
+
+["app:preview"]
+description = "Preview the frontend build"
+dir = "app"
+run = "bun x --no-install vite preview"
+
+["app:tauri"]
+description = "Run the Tauri CLI"
+dir = "app"
+run = "bun x --no-install tauri"
+
+["app:tauri:build"]
+description = "Build the production desktop app"
+dir = "app"
+run = "bun x --no-install tauri build --config src-tauri/tauri.prod.conf.json"
+
+["app:storybook"]
+description = "Start Storybook"
+dir = "app"
+run = "bun x --no-install storybook dev -p 6006"
+
+["app:storybook:build"]
+description = "Build Storybook"
+dir = "app"
+run = "bun x --no-install storybook build"
+
+["app:playwright:install"]
+description = "Install Chromium and its system dependencies"
+dir = "app"
+run = "bun x --no-install playwright install --with-deps chromium chromium-headless-shell"
+
+["app:lint:tsc"]
+description = "Check frontend TypeScript types"
+dir = "app"
+run = "bun x --no-install tsc -b"
+
+["app:lint:es"]
+description = "Check frontend ESLint rules"
+dir = "app"
+run = "bun x --no-install eslint ."
+
+["app:fix:es"]
+description = "Apply frontend ESLint fixes"
+wait_for = ["fix:biome"]
+dir = "app"
+run = "bun x --no-install eslint --fix ."
+
+["app:test"]
+description = "Run frontend tests"
+dir = "app"
+run = "bun x --no-install vitest run"
+
+["app:test:watch"]
+description = "Watch frontend tests"
+dir = "app"
+run = "bun x --no-install vitest --watch"
+
+["app:test:coverage"]
+description = "Run frontend tests with coverage"
+dir = "app"
+run = "bun x --no-install vitest run --coverage"
