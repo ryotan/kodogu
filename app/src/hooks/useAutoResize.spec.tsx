@@ -3,17 +3,15 @@ import {render} from 'vitest-browser-react';
 
 import type {ReactElement} from 'react';
 
-const mockInvoke = vi.fn().mockResolvedValue(undefined);
+import {useAutoResize} from '#hooks/useAutoResize';
+
+const {mockInvoke} = vi.hoisted(() => ({mockInvoke: vi.fn().mockResolvedValue(undefined)}));
 
 beforeEach(() => {
   mockInvoke.mockClear();
 });
 
-vi.mock('@tauri-apps/api/core', () => ({
-  invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
-}));
-
-const {useAutoResize} = await import('#hooks/useAutoResize');
+vi.mock('@tauri-apps/api/core', () => ({invoke: mockInvoke}));
 
 // Simulates the popover layout: outer (viewport) > scroll area > content (ref).
 function TestComponent({contentHeight}: {contentHeight: number}): ReactElement {

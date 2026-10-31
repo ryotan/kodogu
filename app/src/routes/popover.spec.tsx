@@ -2,13 +2,12 @@ import {describe, expect, it, vi} from 'vitest';
 import {page} from 'vitest/browser';
 import {render} from 'vitest-browser-react';
 
-const mockInvoke = vi.fn().mockResolvedValue(undefined);
+import {Route} from './popover';
 
-vi.mock('@tauri-apps/api/core', () => ({
-  invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
-}));
+const {mockInvoke} = vi.hoisted(() => ({mockInvoke: vi.fn().mockResolvedValue(undefined)}));
 
-const {Route} = await import('./popover');
+vi.mock('@tauri-apps/api/core', () => ({invoke: mockInvoke}));
+
 const PopoverLayout = Route.options.component;
 if (!PopoverLayout) {
   throw new Error('PopoverLayout component is not defined');

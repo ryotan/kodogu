@@ -4,26 +4,24 @@ import {render} from 'vitest-browser-react';
 import type {ReactElement} from 'react';
 import {useEffect} from 'react';
 
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+
 import type {Draft} from 'mutative';
 import {create} from 'mutative';
 
 import {appConfigFixture} from '#commands/appConfig.fixture';
 import type {AppConfig} from '#config';
 import {Milliseconds} from '#config';
+import {appConfigQuery} from '#hooks/useAppConfig';
+import {useAppConfigCommands} from '#hooks/useAppConfigCommands';
 
-const mockInvoke = vi.fn().mockResolvedValue(undefined);
+const {mockInvoke} = vi.hoisted(() => ({mockInvoke: vi.fn().mockResolvedValue(undefined)}));
 
 beforeEach(() => {
   mockInvoke.mockClear();
 });
 
-vi.mock('@tauri-apps/api/core', () => ({
-  invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
-}));
-
-const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query');
-const {appConfigQuery} = await import('#hooks/useAppConfig');
-const {useAppConfigCommands} = await import('#hooks/useAppConfigCommands');
+vi.mock('@tauri-apps/api/core', () => ({invoke: mockInvoke}));
 
 function createQueryClient() {
   const qc = new QueryClient({
