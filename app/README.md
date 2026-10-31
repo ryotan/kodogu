@@ -43,5 +43,3 @@ Task definitions are grouped by [repository](../.config/mise/tasks/repository.to
 [app](../.config/mise/tasks/app.toml), and [Cargo](../.config/mise/tasks/cargo.toml).
 
 The shared `Tauri Frontend dev server` run configuration requires the mise plugin in JetBrains IDEs.
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for the project's conventions.
