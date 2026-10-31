@@ -56,7 +56,7 @@
             "devDependencies": [
               "**/*.test.*",
               "**/*.spec.*",
-              "**/*.stories.*",
+              "**/*.story.*",
               "**/_dev/**",
               "**/(dev)/**",
               "**/eslint.config.mjs",
@@ -149,7 +149,7 @@
     {
       // Storybook meta and these tool configs must be default exports.
       "includes": [
-        "**/*.stories.*",
+        "**/*.story.*",
         "**/.storybook/main.ts",
         "**/.storybook/preview.tsx",
         "**/vite.config.ts",
