@@ -15,11 +15,11 @@ KoDoGu (小道具, "props" in Japanese) is a toolbox of small tools I want to us
 - `app/`: the desktop app ([README](./app/README.md))
 - `kernel/`: Rust libraries shared by the tools
 - `cli-app/`: command-line tools
-- `docs/`: ADRs and development guides
 
 ## Development
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
+- Desktop app: see [app/README.md](./app/README.md)
+- Command-line tools: see each tool's README under [cli-app/](./cli-app/)
 
 ## License
 
