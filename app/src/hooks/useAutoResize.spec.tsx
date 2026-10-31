@@ -1,6 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {render} from 'vitest-browser-react';
 
+import type {ReactElement} from 'react';
+
 const mockInvoke = vi.fn().mockResolvedValue(undefined);
 
 beforeEach(() => {
@@ -14,7 +16,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 const {useAutoResize} = await import('#hooks/useAutoResize');
 
 // Simulates the popover layout: outer (viewport) > scroll area > content (ref).
-const TestComponent = ({contentHeight}: {contentHeight: number}) => {
+function TestComponent({contentHeight}: {contentHeight: number}): ReactElement {
   const {resizeCallbackRef} = useAutoResize();
   return (
     <div style={{height: 500, display: 'flex', flexDirection: 'column'}}>
@@ -25,7 +27,7 @@ const TestComponent = ({contentHeight}: {contentHeight: number}) => {
       <div style={{height: 40, flexShrink: 0}}>footer</div>
     </div>
   );
-};
+}
 
 // Wait two animation frames — the hook schedules resize via requestAnimationFrame,
 // so two frames guarantees any pending observer→RAF cycle has completed.
@@ -180,10 +182,10 @@ describe('useAutoResize — no scroll area', () => {
     // A component that attaches the ref to a top-level div (no intermediate scroll area).
     // When the mock ResizeObserver fires the callback with a *detached* element,
     // entry.target.parentElement is null — matching the defensive branch in the hook.
-    const NoScrollAreaComponent = () => {
+    function NoScrollAreaComponent() {
       const {resizeCallbackRef} = useAutoResize();
       return <div data-testid='probe' ref={resizeCallbackRef} />;
-    };
+    }
 
     try {
       await render(<NoScrollAreaComponent />);

@@ -1,3 +1,5 @@
+import type {ReactElement} from 'react';
+
 import './index.css';
 
 import {useState} from 'react';
@@ -17,7 +19,7 @@ const formInput = type({
 });
 const initialValues = {name: ''} satisfies typeof formInput.infer;
 
-const App = () => {
+function App(): ReactElement {
   const [greetMsg, setGreetMsg] = useState('');
 
   const form = useAppForm({
@@ -61,7 +63,7 @@ const App = () => {
       <p>{greetMsg}</p>
     </main>
   );
-};
+}
 
 export const Route = createFileRoute('/_app/')({
   component: App,

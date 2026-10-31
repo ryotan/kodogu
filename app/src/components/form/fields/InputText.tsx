@@ -1,7 +1,7 @@
-import type {ComponentProps, FC} from 'react';
+import type {ComponentProps, ReactElement} from 'react';
 
 import {CheckCircledIcon, CrossCircledIcon} from '@radix-ui/react-icons';
-import {Flex, Popover, Text, TextField} from '@radix-ui/themes';
+import {Flex, IconButton, Popover, Text, TextField} from '@radix-ui/themes';
 
 import {ArkError} from 'arktype';
 
@@ -15,11 +15,13 @@ type ErrorPopoverProps = {
   errors: unknown[];
 };
 
-const ErrorPopover: FC<ErrorPopoverProps> = ({errors}) => {
+function ErrorPopover({errors}: ErrorPopoverProps): ReactElement {
   return (
     <Popover.Root>
-      <Popover.Trigger style={{cursor: 'pointer'}}>
-        <CrossCircledIcon color='red' />
+      <Popover.Trigger>
+        <IconButton aria-label='入力エラーを表示' color='red' size='1' type='button' variant='ghost'>
+          <CrossCircledIcon />
+        </IconButton>
       </Popover.Trigger>
       <Popover.Content>
         {errors.map((e, idx) => {
@@ -39,9 +41,9 @@ const ErrorPopover: FC<ErrorPopoverProps> = ({errors}) => {
       </Popover.Content>
     </Popover.Root>
   );
-};
+}
 
-export const InputText: FC<InputTextProps> = ({label, ...props}) => {
+export function InputText({label, ...props}: InputTextProps): ReactElement {
   const field = useFieldContext<string>();
   const errors = field.state.meta.errors;
   return (
@@ -65,4 +67,4 @@ export const InputText: FC<InputTextProps> = ({label, ...props}) => {
       </Flex>
     </label>
   );
-};
+}

@@ -14,10 +14,10 @@ import {createQueryClient} from '#createQueryClient';
 import {useStable} from '#hooks/useStable';
 
 // A client per story keeps one story's cached data and errors out of the others.
-const StoryQueryClientProvider = ({children}: {children: ReactNode}) => {
+function StoryQueryClientProvider({children}: {children: ReactNode}) {
   const queryClient = useStable(createQueryClient);
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-};
+}
 
 const preview: Preview = {
   parameters: {

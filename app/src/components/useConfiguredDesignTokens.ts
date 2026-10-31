@@ -13,9 +13,9 @@ function applyDesignTokens(config: AppConfig, root: HTMLElement): void {
   root.style.setProperty('--kodogu-card-list-padding', layout.cardListPadding);
 }
 
-export const useConfiguredDesignTokens = () => {
+export function useConfiguredDesignTokens(): void {
   const config = useAppConfig();
   useLayoutEffect(() => {
     applyDesignTokens(config, document.documentElement);
   }, [config]);
-};
+}
