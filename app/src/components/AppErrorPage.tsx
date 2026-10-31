@@ -1,3 +1,5 @@
+import type {ReactElement} from 'react';
+
 import type {ErrorComponentProps} from '@tanstack/react-router';
 
 import {AppErrorComponent} from '#components/AppErrorComponent';
@@ -10,7 +12,7 @@ import {useAutoResize} from '#hooks/useAutoResize';
  * Layout follows the same scroll-area structure as popover.tsx so that useAutoResize
  * computes chrome height correctly.
  */
-export const AppErrorPage = (props: ErrorComponentProps) => {
+export function AppErrorPage(props: ErrorComponentProps): ReactElement {
   const {resizeCallbackRef} = useAutoResize();
   return (
     <div style={{display: 'flex', flexDirection: 'column', height: '100dvh'}}>
@@ -21,4 +23,4 @@ export const AppErrorPage = (props: ErrorComponentProps) => {
       </div>
     </div>
   );
-};
+}

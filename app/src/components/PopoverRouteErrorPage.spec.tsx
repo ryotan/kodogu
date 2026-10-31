@@ -55,7 +55,9 @@ describe('PopoverRouteErrorPage', () => {
       .fn<() => Promise<string>>()
       .mockRejectedValueOnce(new Error('query failed'))
       .mockResolvedValue('loaded');
-    const Data = () => <p>{useSuspenseQuery({queryKey: ['data'], queryFn}).data}</p>;
+    function Data() {
+      return <p>{useSuspenseQuery({queryKey: ['data'], queryFn}).data}</p>;
+    }
     await renderRouter(createRootRoute({component: Data}));
 
     await page.getByRole('button', {name: 'Try Again'}).click();

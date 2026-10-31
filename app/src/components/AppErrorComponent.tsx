@@ -1,3 +1,4 @@
+import type {ReactElement} from 'react';
 import {useMemo, useState} from 'react';
 
 import type {ErrorComponentProps} from '@tanstack/react-router';
@@ -8,7 +9,7 @@ import styles from './AppErrorComponent.module.css';
 import type {StackFrame} from './stackTrace';
 import {formatOriginLocation, parseFrame} from './stackTrace';
 
-const StackFrameRow = ({frame}: {frame: StackFrame}) => {
+function StackFrameRow({frame}: {frame: StackFrame}): ReactElement {
   const className = frame.isExternal ? `${styles.frameRow} ${styles.frameExternal}` : styles.frameRow;
   return (
     <div className={className}>
@@ -17,13 +18,13 @@ const StackFrameRow = ({frame}: {frame: StackFrame}) => {
       <span className={styles.frameLocation}>{frame.location}</span>
     </div>
   );
-};
+}
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export const AppErrorComponent = ({error, reset}: ErrorComponentProps) => {
+export function AppErrorComponent({error, reset}: ErrorComponentProps): ReactElement {
   const [stackExpanded, setStackExpanded] = useState(false);
 
   const {frames, originFrame} = useMemo(() => {
@@ -79,4 +80,4 @@ export const AppErrorComponent = ({error, reset}: ErrorComponentProps) => {
       </div>
     </Theme>
   );
-};
+}

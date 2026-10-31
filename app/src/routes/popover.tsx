@@ -1,3 +1,5 @@
+import type {ReactElement} from 'react';
+
 import {createFileRoute} from '@tanstack/react-router';
 import './popover.css';
 
@@ -11,7 +13,7 @@ import {useAutoResize} from '#hooks/useAutoResize';
 // Popover shell — window management and layout skeleton
 // =============================================================================
 
-const PopoverLayout = () => {
+function PopoverLayout(): ReactElement {
   const {resizeCallbackRef} = useAutoResize();
 
   return (
@@ -33,7 +35,7 @@ const PopoverLayout = () => {
       </div>
     </Theme>
   );
-};
+}
 
 export const Route = createFileRoute('/popover')({
   component: PopoverLayout,

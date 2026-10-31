@@ -1,3 +1,5 @@
+import type {ReactElement} from 'react';
+
 import type {QueryClient} from '@tanstack/react-query';
 import {createRootRouteWithContext, Outlet} from '@tanstack/react-router';
 
@@ -10,7 +12,7 @@ export type RouterContext = {
   queryClient: QueryClient;
 };
 
-export const RootLayout = () => {
+export function RootLayout(): ReactElement {
   useConfiguredDesignTokens();
   return (
     <>
@@ -18,7 +20,7 @@ export const RootLayout = () => {
       <TanStackTools />
     </>
   );
-};
+}
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   // `staleTime: 'static'` is load-bearing: it is the only staleTime `isStaleByTime()` short-circuits on, so the

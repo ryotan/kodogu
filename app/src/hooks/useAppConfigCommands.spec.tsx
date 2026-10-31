@@ -1,6 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {render} from 'vitest-browser-react';
 
+import type {ReactElement} from 'react';
 import {useEffect} from 'react';
 
 import type {Draft} from 'mutative';
@@ -35,13 +36,13 @@ function createQueryClient() {
 type UpdateFn = (recipe: (draft: Draft<AppConfig>) => void) => void;
 const captured: {update: UpdateFn | null} = {update: null};
 
-const TestComponent = () => {
+function TestComponent(): ReactElement {
   const {update} = useAppConfigCommands();
   useEffect(() => {
     captured.update = update;
   }, [update]);
   return <div data-testid='ready' />;
-};
+}
 
 describe('useAppConfigCommands', () => {
   beforeEach(() => {

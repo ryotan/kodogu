@@ -1,7 +1,9 @@
+import type {ReactNode} from 'react';
+
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools';
 import {TanStackRouterDevtools} from '@tanstack/react-router-devtools';
 
-export const TanStackTools = () => {
+export function TanStackTools(): ReactNode {
   if (!import.meta.env.DEV) {
     return null;
   }
@@ -12,4 +14,4 @@ export const TanStackTools = () => {
       <ReactQueryDevtools />
     </>
   );
-};
+}

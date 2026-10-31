@@ -14,13 +14,27 @@ export type CssFontFamily = Brand<string, 'CssFontFamily'>;
 export type CssLength = Brand<string, 'CssLength'>;
 export type CssPadding = Brand<string, 'CssPadding'>;
 
-export const Milliseconds = (n: number): Milliseconds => n as Milliseconds;
-export const LogicalPixel = (n: number): LogicalPixel => n as LogicalPixel;
-export const CssColor = (s: string): CssColor => s as CssColor;
-export const CssFilter = (s: string): CssFilter => s as CssFilter;
-export const CssFontFamily = (s: string): CssFontFamily => s as CssFontFamily;
-export const CssLength = (s: string): CssLength => s as CssLength;
-export const CssPadding = (s: string): CssPadding => s as CssPadding;
+export function Milliseconds(n: number): Milliseconds {
+  return n as Milliseconds;
+}
+export function LogicalPixel(n: number): LogicalPixel {
+  return n as LogicalPixel;
+}
+export function CssColor(s: string): CssColor {
+  return s as CssColor;
+}
+export function CssFilter(s: string): CssFilter {
+  return s as CssFilter;
+}
+export function CssFontFamily(s: string): CssFontFamily {
+  return s as CssFontFamily;
+}
+export function CssLength(s: string): CssLength {
+  return s as CssLength;
+}
+export function CssPadding(s: string): CssPadding {
+  return s as CssPadding;
+}
 
 // =============================================================================
 // Config types — mirrors struct definitions in app/src-tauri/src/config/domain.rs.

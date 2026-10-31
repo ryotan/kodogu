@@ -1,6 +1,8 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {render} from 'vitest-browser-react';
 
+import type {ReactElement} from 'react';
+
 import {create} from 'mutative';
 
 import {appConfigFixture} from '#commands/appConfig.fixture';
@@ -16,10 +18,10 @@ const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query')
 const {appConfigQuery} = await import('#hooks/useAppConfig');
 const {useConfiguredDesignTokens} = await import('#components/useConfiguredDesignTokens');
 
-const DesignTokenConsumer = () => {
+function DesignTokenConsumer(): ReactElement {
   useConfiguredDesignTokens();
   return <div data-testid='synced' />;
-};
+}
 
 const cssVarNames = [
   '--kodogu-surface-color',

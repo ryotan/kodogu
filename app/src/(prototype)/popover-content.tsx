@@ -3,7 +3,7 @@
 /**
  * M1 layout verification prototype. Will be fully replaced with real components in M2.
  */
-import {type ReactNode, useCallback, useState} from 'react';
+import {type ReactElement, type ReactNode, useCallback, useState} from 'react';
 
 // Manages card expand/collapse state
 function useCardToggle(initialOpen: string[]) {
@@ -37,36 +37,40 @@ export const colors = {
 
 const fontMono = "'SF Mono', 'Fira Code', monospace";
 
-const SectionLabel = ({children}: {children: string}) => (
-  <div
-    style={{
-      fontSize: 10,
-      color: colors.textTertiary,
-      textTransform: 'uppercase',
-      letterSpacing: '0.06em',
-      padding: '6px 16px 2px',
-    }}
-  >
-    {children}
-  </div>
-);
+function SectionLabel({children}: {children: string}): ReactElement {
+  return (
+    <div
+      style={{
+        fontSize: 10,
+        color: colors.textTertiary,
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+        padding: '6px 16px 2px',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
-const Tag = ({children}: {children: string}) => (
-  <span
-    style={{
-      fontSize: 10,
-      padding: '1px 5px',
-      borderRadius: 4,
-      background: colors.tagBg,
-      color: colors.tagText,
-      flexShrink: 0,
-    }}
-  >
-    {children}
-  </span>
-);
+function Tag({children}: {children: string}): ReactElement {
+  return (
+    <span
+      style={{
+        fontSize: 10,
+        padding: '1px 5px',
+        borderRadius: 4,
+        background: colors.tagBg,
+        color: colors.tagText,
+        flexShrink: 0,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
 
-const RoleBadge = ({role}: {role: 'primary' | 'replica'}) => {
+function RoleBadge({role}: {role: 'primary' | 'replica'}): ReactElement {
   const isPrimary = role === 'primary';
   return (
     <span
@@ -85,87 +89,101 @@ const RoleBadge = ({role}: {role: 'primary' | 'replica'}) => {
       {isPrimary ? 'Primary' : 'Replica'}
     </span>
   );
-};
+}
 
-const DetailRow = ({label, value, mono}: {label: string; value: string; mono?: boolean}) => (
-  <div style={{display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0'}}>
-    <span style={{fontSize: 11, color: colors.textSecondary, whiteSpace: 'nowrap', flexShrink: 0}}>{label}</span>
-    <span
+function DetailRow({label, value, mono}: {label: string; value: string; mono?: boolean}): ReactElement {
+  return (
+    <div style={{display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0'}}>
+      <span style={{fontSize: 11, color: colors.textSecondary, whiteSpace: 'nowrap', flexShrink: 0}}>{label}</span>
+      <span
+        style={{
+          fontSize: 11,
+          color: colors.textPrimary,
+          textAlign: 'right',
+          wordBreak: 'break-all',
+          fontFamily: mono ? fontMono : undefined,
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function DetailSep(): ReactElement {
+  return <div style={{height: 1, background: colors.border, margin: '4px 0'}} />;
+}
+
+function StopIcon(): ReactElement {
+  return (
+    <svg fill='none' height={14} viewBox='0 0 14 14' width={14}>
+      <rect fill={colors.statusPrimary} height={9} rx={1.5} width={9} x={2.5} y={2.5} />
+    </svg>
+  );
+}
+
+function PlayIcon(): ReactElement {
+  return (
+    <svg fill='none' height={14} viewBox='0 0 14 14' width={14}>
+      <circle cx={7} cy={7} r={5.5} stroke={colors.statusDisconnected} strokeWidth={1.5} />
+      <path d='M5.5 4.5l4 2.5-4 2.5V4.5z' fill={colors.statusDisconnected} />
+    </svg>
+  );
+}
+
+function WarningIcon(): ReactElement {
+  return (
+    <svg fill='none' height={14} viewBox='0 0 14 14' width={14}>
+      <path d='M7 1.5L12.5 11H1.5L7 1.5z' fill={colors.statusWarning} />
+      <text fill='#1a1a1c' fontSize={5} fontWeight={700} textAnchor='middle' x={7} y={9.5}>
+        !
+      </text>
+    </svg>
+  );
+}
+
+function Chevron({open}: {open?: boolean}): ReactElement {
+  return (
+    <svg
+      fill='none'
+      height={16}
+      viewBox='0 0 16 16'
+      width={16}
       style={{
-        fontSize: 11,
-        color: colors.textPrimary,
-        textAlign: 'right',
-        wordBreak: 'break-all',
-        fontFamily: mono ? fontMono : undefined,
+        flexShrink: 0,
+        color: colors.textTertiary,
+        transform: open ? 'rotate(180deg)' : undefined,
+        transition: 'transform 0.2s',
       }}
     >
-      {value}
-    </span>
-  </div>
-);
+      <path d='M4 6l4 4 4-4' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} />
+    </svg>
+  );
+}
 
-const DetailSep = () => <div style={{height: 1, background: colors.border, margin: '4px 0'}} />;
+function StatusButton({children}: {children: ReactNode}): ReactElement {
+  return (
+    <button
+      type='button'
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: '50%',
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
 
-const StopIcon = () => (
-  <svg fill='none' height={14} viewBox='0 0 14 14' width={14}>
-    <rect fill={colors.statusPrimary} height={9} rx={1.5} width={9} x={2.5} y={2.5} />
-  </svg>
-);
-
-const PlayIcon = () => (
-  <svg fill='none' height={14} viewBox='0 0 14 14' width={14}>
-    <circle cx={7} cy={7} r={5.5} stroke={colors.statusDisconnected} strokeWidth={1.5} />
-    <path d='M5.5 4.5l4 2.5-4 2.5V4.5z' fill={colors.statusDisconnected} />
-  </svg>
-);
-
-const WarningIcon = () => (
-  <svg fill='none' height={14} viewBox='0 0 14 14' width={14}>
-    <path d='M7 1.5L12.5 11H1.5L7 1.5z' fill={colors.statusWarning} />
-    <text fill='#1a1a1c' fontSize={5} fontWeight={700} textAnchor='middle' x={7} y={9.5}>
-      !
-    </text>
-  </svg>
-);
-
-const Chevron = ({open}: {open?: boolean}) => (
-  <svg
-    fill='none'
-    height={16}
-    viewBox='0 0 16 16'
-    width={16}
-    style={{
-      flexShrink: 0,
-      color: colors.textTertiary,
-      transform: open ? 'rotate(180deg)' : undefined,
-      transition: 'transform 0.2s',
-    }}
-  >
-    <path d='M4 6l4 4 4-4' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} />
-  </svg>
-);
-
-const StatusButton = ({children}: {children: ReactNode}) => (
-  <button
-    type='button'
-    style={{
-      width: 28,
-      height: 28,
-      borderRadius: '50%',
-      border: 'none',
-      background: 'transparent',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    }}
-  >
-    {children}
-  </button>
-);
-
-const CardCollapsed = ({
+function CardCollapsed({
   icon,
   name,
   role,
@@ -179,63 +197,69 @@ const CardCollapsed = ({
   tag: string;
   open?: boolean;
   onClick?: () => void;
-}) => (
-  <div
-    onClick={onClick}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      padding: '8px 10px',
-      cursor: 'pointer',
-      background: colors.surfaceCard,
-      borderRadius: open ? '10px 10px 0 0' : 10,
-      userSelect: 'none',
-    }}
-  >
-    <StatusButton>{icon}</StatusButton>
-    <div style={{flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
-      <span
-        style={{
-          fontSize: 13,
-          fontWeight: 500,
-          color: colors.textPrimary,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
-        {name}
-      </span>
-      <RoleBadge role={role} />
-      <Tag>{tag}</Tag>
+}): ReactElement {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '8px 10px',
+        cursor: 'pointer',
+        background: colors.surfaceCard,
+        borderRadius: open ? '10px 10px 0 0' : 10,
+        userSelect: 'none',
+      }}
+    >
+      <StatusButton>{icon}</StatusButton>
+      <div style={{flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: colors.textPrimary,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {name}
+        </span>
+        <RoleBadge role={role} />
+        <Tag>{tag}</Tag>
+      </div>
+      <Chevron open={open} />
     </div>
-    <Chevron open={open} />
-  </div>
-);
+  );
+}
 
-const CardBody = ({children}: {children: ReactNode}) => (
-  <div style={{background: colors.surfaceExpanded, borderTop: `1px solid ${colors.border}`}}>
-    <div style={{padding: '8px 12px 10px', display: 'flex', flexDirection: 'column', gap: 1}}>{children}</div>
-  </div>
-);
+function CardBody({children}: {children: ReactNode}): ReactElement {
+  return (
+    <div style={{background: colors.surfaceExpanded, borderTop: `1px solid ${colors.border}`}}>
+      <div style={{padding: '8px 12px 10px', display: 'flex', flexDirection: 'column', gap: 1}}>{children}</div>
+    </div>
+  );
+}
 
 // Animates height from 0 to auto using the CSS grid-template-rows trick.
 // Spreads resize over multiple frames so ResizeObserver fires gradually,
 // keeping the per-frame window size delta small enough to be imperceptible.
-const AnimatedPanel = ({open, children}: {open: boolean; children: ReactNode}) => (
-  <div
-    style={{
-      display: 'grid',
-      gridTemplateRows: open ? '1fr' : '0fr',
-      transition: 'grid-template-rows 0.2s ease-out',
-    }}
-  >
-    <div style={{overflow: 'hidden', minHeight: 0}}>{children}</div>
-  </div>
-);
+function AnimatedPanel({open, children}: {open: boolean; children: ReactNode}): ReactElement {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateRows: open ? '1fr' : '0fr',
+        transition: 'grid-template-rows 0.2s ease-out',
+      }}
+    >
+      <div style={{overflow: 'hidden', minHeight: 0}}>{children}</div>
+    </div>
+  );
+}
 
-const ConnectionDetails = ({
+function ConnectionDetails({
   project,
   region,
   instance,
@@ -255,43 +279,47 @@ const ConnectionDetails = ({
   iam: string;
   address: string;
   port: string;
-}) => (
-  <>
-    <DetailRow label='プロジェクト' mono value={project} />
-    <DetailRow label='リージョン' value={region} />
-    <DetailRow label='インスタンス' mono value={instance} />
-    <DetailRow label='データベース' mono value={database} />
-    <DetailRow label='IP タイプ' value={ipType} />
-    <DetailRow label='認証' value={auth} />
-    <DetailRow label='IAM 認証' value={iam} />
-    <DetailSep />
-    <DetailRow label='アドレス' mono value={address} />
-    <DetailRow label='ローカルポート' mono value={port} />
-  </>
-);
+}): ReactElement {
+  return (
+    <>
+      <DetailRow label='プロジェクト' mono value={project} />
+      <DetailRow label='リージョン' value={region} />
+      <DetailRow label='インスタンス' mono value={instance} />
+      <DetailRow label='データベース' mono value={database} />
+      <DetailRow label='IP タイプ' value={ipType} />
+      <DetailRow label='認証' value={auth} />
+      <DetailRow label='IAM 認証' value={iam} />
+      <DetailSep />
+      <DetailRow label='アドレス' mono value={address} />
+      <DetailRow label='ローカルポート' mono value={port} />
+    </>
+  );
+}
 
 // =============================================================================
 // Exported stub components — will be replaced with real components in M2
 // =============================================================================
 
-export const StubHeader = () => (
-  <div
-    style={{marginLeft: 14, display: 'flex', alignItems: 'center', gap: 6, pointerEvents: 'none', userSelect: 'none'}}
-  >
+export function StubHeader(): ReactElement {
+  return (
     <div
-      style={{
-        width: 8,
-        height: 8,
-        borderRadius: '50%',
-        background: colors.statusPrimary,
-        boxShadow: `0 0 6px ${colors.statusPrimary}`,
-      }}
-    />
-    <span style={{fontSize: 13, fontWeight: 500, color: colors.textPrimary}}>2接続中 / 4プロファイル</span>
-  </div>
-);
+      style={{marginLeft: 14, display: 'flex', alignItems: 'center', gap: 6, pointerEvents: 'none', userSelect: 'none'}}
+    >
+      <div
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          background: colors.statusPrimary,
+          boxShadow: `0 0 6px ${colors.statusPrimary}`,
+        }}
+      />
+      <span style={{fontSize: 13, fontWeight: 500, color: colors.textPrimary}}>2接続中 / 4プロファイル</span>
+    </div>
+  );
+}
 
-export const StubCardList = () => {
+export function StubCardList(): ReactElement {
   const {isOpen, toggle} = useCardToggle(['card1', 'card2']);
   return (
     <>
@@ -472,4 +500,4 @@ export const StubCardList = () => {
       </div>
     </>
   );
-};
+}
