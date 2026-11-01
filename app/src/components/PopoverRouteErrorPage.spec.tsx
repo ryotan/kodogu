@@ -7,6 +7,11 @@ import type {AnyRoute} from '@tanstack/react-router';
 import {createMemoryHistory, createRootRoute, createRouter, RouterProvider} from '@tanstack/react-router';
 
 import {PopoverRouteErrorPage} from '#components/PopoverRouteErrorPage';
+import {reportError} from '#reportError';
+
+vi.mock('#reportError', () => ({reportError: vi.fn()}));
+
+const mockReportError = vi.mocked(reportError);
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn().mockResolvedValue(undefined),
@@ -28,10 +33,8 @@ const renderRouter = async (routeTree: AnyRoute) => {
 };
 
 describe('PopoverRouteErrorPage', () => {
-  // React and the router log the errors these tests throw on purpose.
   beforeEach(() => {
-    vi.spyOn(console, 'error').mockImplementation(vi.fn());
-    vi.spyOn(console, 'warn').mockImplementation(vi.fn());
+    mockReportError.mockClear();
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -74,7 +77,8 @@ describe('PopoverRouteErrorPage', () => {
     await page.getByRole('button', {name: 'Try Again'}).click();
 
     await vi.waitFor(() => {
-      expect(console.error).toHaveBeenCalledWith('Failed to reload the routes', reloadError);
+      expect(mockReportError).toHaveBeenCalledTimes(1);
+      expect(mockReportError).toHaveBeenCalledWith('Failed to reload the routes', reloadError);
     });
   });
 });

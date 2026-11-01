@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import {playwright} from '@vitest/browser-playwright';
 import {defineConfig} from 'vite';
 import paths from 'vite-tsconfig-paths';
+import type {TestCase, TestModule, TestSuite} from 'vitest/node';
 
 import router from '@tanstack/router-plugin/vite';
 
@@ -53,6 +54,29 @@ export default defineConfig(() => ({
     },
   },
   test: {
+    onConsoleLog(log: string, type: 'stdout' | 'stderr', entity: TestCase | TestModule | TestSuite | undefined) {
+      if (entity?.type !== 'test' || type !== 'stderr') {
+        return;
+      }
+      if (entity.module.moduleId.endsWith('/reportError.spec.ts') && log.startsWith('reportError ')) {
+        return false;
+      }
+      if (entity.module.moduleId.endsWith('/PopoverRouteErrorPage.spec.tsx')) {
+        const expectedFailures: Readonly<Record<string, string | undefined>> = {
+          'reruns a failed loader on Try Again': 'loader failed',
+          'refetches a suspense query that failed while rendering on Try Again': 'query failed',
+          'logs the error when reloading the routes fails on Try Again': 'loader failed',
+        };
+        const expectedFailure = expectedFailures[entity.name];
+        if (
+          expectedFailure &&
+          ((log.includes(`[Error: ${expectedFailure}]`) && log.includes('React will try to recreate')) ||
+            log.trim() === 'Warning: Error in route match: __root__/')
+        ) {
+          return false;
+        }
+      }
+    },
     coverage: {
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
@@ -78,6 +102,8 @@ export default defineConfig(() => ({
       },
       {
         extends: 'vite.config.ts',
+        // Vitest reports test console output; disable Vite's duplicate development-server forwarding.
+        server: {forwardConsole: false},
         test: {
           name: 'browser',
           include: ['src/**/*.spec.{ts,tsx}'],
