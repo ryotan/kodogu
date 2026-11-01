@@ -7,6 +7,7 @@ import {create} from 'mutative';
 
 import {setConfig} from '#commands/appConfig';
 import type {AppConfig} from '#config';
+import {reportError} from '#reportError';
 
 import {appConfigQuery} from './useAppConfig';
 
@@ -35,7 +36,7 @@ export function useAppConfigCommands() {
       return {previous};
     },
     onError: (err, _next, context) => {
-      console.error('Failed to persist AppConfig', err);
+      reportError('Failed to persist AppConfig', err);
       if (context?.previous !== undefined) {
         queryClient.setQueryData(appConfigQuery.queryKey, context.previous);
       }

@@ -4,14 +4,19 @@ import {render} from 'vitest-browser-react';
 import type {ReactElement} from 'react';
 
 import {useAutoResize} from '#hooks/useAutoResize';
+import {reportError} from '#reportError';
 
 const {mockInvoke} = vi.hoisted(() => ({mockInvoke: vi.fn().mockResolvedValue(undefined)}));
 
 beforeEach(() => {
   mockInvoke.mockClear();
+  mockReportError.mockClear();
 });
 
 vi.mock('@tauri-apps/api/core', () => ({invoke: mockInvoke}));
+vi.mock('#reportError', () => ({reportError: vi.fn()}));
+
+const mockReportError = vi.mocked(reportError);
 
 // Simulates the popover layout: outer (viewport) > scroll area > content (ref).
 function TestComponent({contentHeight}: {contentHeight: number}): ReactElement {
@@ -126,19 +131,16 @@ describe('useAutoResize', () => {
   });
 
   it('logs error when resize_popover IPC fails', async () => {
-    const errorSpy = vi.spyOn(console, 'error');
-    mockInvoke.mockRejectedValueOnce(new Error('IPC timeout'));
+    const ipcError = new Error('IPC timeout');
+    mockInvoke.mockRejectedValueOnce(ipcError);
 
-    try {
-      await render(<TestComponent contentHeight={200} />);
+    await render(<TestComponent contentHeight={200} />);
 
-      await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledWith('resize_popover', expect.anything()));
-      await vi.waitFor(() => {
-        expect(errorSpy).toHaveBeenCalledWith('Failed to resize popover window', expect.any(Error));
-      });
-    } finally {
-      errorSpy.mockRestore();
-    }
+    await vi.waitFor(() => expect(mockInvoke).toHaveBeenCalledWith('resize_popover', expect.anything()));
+    await vi.waitFor(() => {
+      expect(mockReportError).toHaveBeenCalledTimes(1);
+      expect(mockReportError).toHaveBeenCalledWith('Failed to resize popover window', ipcError);
+    });
   });
 });
 
@@ -174,7 +176,6 @@ describe('useAutoResize — no scroll area', () => {
   });
 
   it('logs error and skips resize when parentElement is null', async () => {
-    const errorSpy = vi.spyOn(console, 'error');
     mockInvoke.mockClear();
 
     // A component that attaches the ref to a top-level div (no intermediate scroll area).
@@ -185,21 +186,18 @@ describe('useAutoResize — no scroll area', () => {
       return <div data-testid='probe' ref={resizeCallbackRef} />;
     }
 
-    try {
-      await render(<NoScrollAreaComponent />);
+    await render(<NoScrollAreaComponent />);
 
-      // Trigger the captured callback with a detached element (parentElement === null)
-      const detached = document.createElement('div');
-      const entry = {
-        target: detached,
-        borderBoxSize: [{blockSize: 200, inlineSize: 400}],
-      } as unknown as ResizeObserverEntry;
-      capturedCallback([entry], {} as ResizeObserver);
+    // Trigger the captured callback with a detached element (parentElement === null)
+    const detached = document.createElement('div');
+    const entry = {
+      target: detached,
+      borderBoxSize: [{blockSize: 200, inlineSize: 400}],
+    } as unknown as ResizeObserverEntry;
+    capturedCallback([entry], {} as ResizeObserver);
 
-      expect(errorSpy).toHaveBeenCalledWith('No scroll area was found');
-      expect(mockInvoke).not.toHaveBeenCalledWith('resize_popover', expect.anything());
-    } finally {
-      errorSpy.mockRestore();
-    }
+    expect(mockReportError).toHaveBeenCalledTimes(1);
+    expect(mockReportError).toHaveBeenCalledWith('No scroll area was found');
+    expect(mockInvoke).not.toHaveBeenCalledWith('resize_popover', expect.anything());
   });
 });

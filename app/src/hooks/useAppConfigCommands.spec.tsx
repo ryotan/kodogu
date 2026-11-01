@@ -14,14 +14,19 @@ import type {AppConfig} from '#config';
 import {Milliseconds} from '#config';
 import {appConfigQuery} from '#hooks/useAppConfig';
 import {useAppConfigCommands} from '#hooks/useAppConfigCommands';
+import {reportError} from '#reportError';
 
 const {mockInvoke} = vi.hoisted(() => ({mockInvoke: vi.fn().mockResolvedValue(undefined)}));
 
 beforeEach(() => {
   mockInvoke.mockClear();
+  mockReportError.mockClear();
 });
 
 vi.mock('@tauri-apps/api/core', () => ({invoke: mockInvoke}));
+vi.mock('#reportError', () => ({reportError: vi.fn()}));
+
+const mockReportError = vi.mocked(reportError);
 
 function createQueryClient() {
   const qc = new QueryClient({
@@ -87,6 +92,7 @@ describe('useAppConfigCommands', () => {
   });
 
   it('rolls back cache on mutation error', async () => {
+    const mutationError = new Error('DB write failed');
     const setConfigCall: {reject?: (reason: Error) => void} = {};
     mockInvoke.mockImplementationOnce(
       () =>
@@ -111,12 +117,14 @@ describe('useAppConfigCommands', () => {
       expect(setConfigCall.reject).toBeDefined();
     });
     expect(qc.getQueryData(appConfigQuery.queryKey)?.popover.behavior.toggleDebounceMs).toBe(999);
-    setConfigCall.reject?.(new Error('DB write failed'));
+    setConfigCall.reject?.(mutationError);
 
     await vi.waitFor(() => {
       const cached = qc.getQueryData(appConfigQuery.queryKey);
       expect(cached?.popover.behavior.toggleDebounceMs).toBe(appConfigFixture.popover.behavior.toggleDebounceMs);
     });
+    expect(mockReportError).toHaveBeenCalledTimes(1);
+    expect(mockReportError).toHaveBeenCalledWith('Failed to persist AppConfig', mutationError);
   });
 
   it('throws when cache is not populated', async () => {

@@ -1,6 +1,7 @@
 import {useCallback} from 'react';
 
 import {resizePopover} from '#commands/popover';
+import {reportError} from '#reportError';
 
 type WindowSizeMeasurement = {
   windowInnerWidth: number;
@@ -15,7 +16,7 @@ function measureDesiredWindowSize(entry: ResizeObserverEntry): WindowSizeMeasure
   // Ensure scroll area exists
   const scrollArea = entry.target.parentElement;
   if (!scrollArea) {
-    console.error('No scroll area was found');
+    reportError('No scroll area was found');
     return null;
   }
 
@@ -34,7 +35,7 @@ function measureDesiredWindowSize(entry: ResizeObserverEntry): WindowSizeMeasure
 
 function invokeResizePopoverCommand(measurement: WindowSizeMeasurement) {
   resizePopover(measurement.windowInnerWidth, measurement.desiredHeight).catch((e: unknown) => {
-    console.error('Failed to resize popover window', e);
+    reportError('Failed to resize popover window', e);
   });
 }
 
