@@ -3,20 +3,18 @@ import {render} from 'vitest-browser-react';
 
 import type {ReactElement} from 'react';
 
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+
 import {create} from 'mutative';
 
 import {appConfigFixture} from '#commands/appConfig.fixture';
+import {useConfiguredDesignTokens} from '#components/useConfiguredDesignTokens';
 import {CssColor} from '#config';
+import {appConfigQuery} from '#hooks/useAppConfig';
 
-const mockInvoke = vi.fn().mockResolvedValue(undefined);
+const {mockInvoke} = vi.hoisted(() => ({mockInvoke: vi.fn().mockResolvedValue(undefined)}));
 
-vi.mock('@tauri-apps/api/core', () => ({
-  invoke: (...args: unknown[]) => mockInvoke(...args) as unknown,
-}));
-
-const {QueryClient, QueryClientProvider} = await import('@tanstack/react-query');
-const {appConfigQuery} = await import('#hooks/useAppConfig');
-const {useConfiguredDesignTokens} = await import('#components/useConfiguredDesignTokens');
+vi.mock('@tauri-apps/api/core', () => ({invoke: mockInvoke}));
 
 function DesignTokenConsumer(): ReactElement {
   useConfiguredDesignTokens();
