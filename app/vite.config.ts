@@ -78,6 +78,8 @@ export default defineConfig(() => ({
       },
       {
         extends: 'vite.config.ts',
+        // Vitest reports test console output; disable Vite's duplicate development-server forwarding.
+        server: {forwardConsole: false},
         test: {
           name: 'browser',
           include: ['src/**/*.spec.{ts,tsx}'],

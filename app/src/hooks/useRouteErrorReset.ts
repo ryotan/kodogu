@@ -3,6 +3,8 @@ import {useCallback, useEffect} from 'react';
 import {useQueryErrorResetBoundary} from '@tanstack/react-query';
 import {useRouter} from '@tanstack/react-router';
 
+import {reportError} from '#reportError';
+
 // Resets with `router.invalidate()`: the router's own `reset` only clears the error boundary, and a match whose
 // loader failed throws the same error again.
 export function useRouteErrorReset(): () => void {
@@ -16,7 +18,7 @@ export function useRouteErrorReset(): () => void {
 
   return useCallback(() => {
     router.invalidate().catch((e: unknown) => {
-      console.error('Failed to reload the routes', e);
+      reportError('Failed to reload the routes', e);
     });
   }, [router]);
 }
