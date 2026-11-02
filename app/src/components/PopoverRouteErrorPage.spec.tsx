@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {page} from 'vitest/browser';
 import {render} from 'vitest-browser-react';
 
@@ -7,15 +7,18 @@ import type {AnyRoute} from '@tanstack/react-router';
 import {createMemoryHistory, createRootRoute, createRouter, RouterProvider} from '@tanstack/react-router';
 
 import {PopoverRouteErrorPage} from '#components/PopoverRouteErrorPage';
+import {reportError} from '#reportError';
 
-vi.mock('@tauri-apps/api/core', () => ({
-  invoke: vi.fn().mockResolvedValue(undefined),
-}));
+vi.mock('#reportError', () => ({reportError: vi.fn()}));
 
-const renderRouter = async (routeTree: AnyRoute) => {
+const mockReportError = vi.mocked(reportError);
+
+vi.mock('#commands/popover', () => ({resizePopover: vi.fn().mockResolvedValue(undefined)}));
+
+const renderRouter = async (routeTree: AnyRoute, history = createMemoryHistory({initialEntries: ['/']})) => {
   const router = createRouter({
     routeTree,
-    history: createMemoryHistory({initialEntries: ['/']}),
+    history,
     defaultErrorComponent: PopoverRouteErrorPage,
   });
   const queryClient = new QueryClient({defaultOptions: {queries: {retry: false}}});
@@ -28,13 +31,8 @@ const renderRouter = async (routeTree: AnyRoute) => {
 };
 
 describe('PopoverRouteErrorPage', () => {
-  // React and the router log the errors these tests throw on purpose.
   beforeEach(() => {
-    vi.spyOn(console, 'error').mockImplementation(vi.fn());
-    vi.spyOn(console, 'warn').mockImplementation(vi.fn());
-  });
-  afterEach(() => {
-    vi.restoreAllMocks();
+    mockReportError.mockClear();
   });
 
   it('reruns a failed loader on Try Again', async () => {
@@ -67,14 +65,28 @@ describe('PopoverRouteErrorPage', () => {
   });
 
   it('logs the error when reloading the routes fails on Try Again', async () => {
-    const router = await renderRouter(createRootRoute({loader: () => Promise.reject(new Error('loader failed'))}));
-    const reloadError = new Error('reload failed');
-    vi.spyOn(router, 'invalidate').mockRejectedValue(reloadError);
-
-    await page.getByRole('button', {name: 'Try Again'}).click();
-
-    await vi.waitFor(() => {
-      expect(console.error).toHaveBeenCalledWith('Failed to reload the routes', reloadError);
-    });
+    const memoryHistory = createMemoryHistory({initialEntries: ['/']});
+    let historyFailure: Error | undefined;
+    const history = {
+      ...memoryHistory,
+      get location() {
+        if (historyFailure) {
+          throw historyFailure;
+        }
+        return memoryHistory.location;
+      },
+    };
+    await renderRouter(createRootRoute({loader: () => Promise.reject(new Error('loader failed'))}), history);
+    const reloadError = new Error('History unavailable during reload');
+    historyFailure = reloadError;
+    try {
+      await page.getByRole('button', {name: 'Try Again'}).click();
+      await vi.waitFor(() => {
+        expect(mockReportError.mock.calls).toEqual([['Failed to reload the routes', reloadError]]);
+        expect(mockReportError.mock.calls[0][1]).toBe(reloadError);
+      });
+    } finally {
+      historyFailure = undefined;
+    }
   });
 });
