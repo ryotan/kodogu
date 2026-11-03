@@ -25,6 +25,9 @@ dist-ssr
 
 *storybook.log
 
+# Test artifacts
+.vitest-attachments/
+
 # Test coverage
 coverage/
 test-results/
