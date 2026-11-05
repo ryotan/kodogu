@@ -86,7 +86,7 @@ export default defineConfig(() => ({
           browser: {
             enabled: true,
             headless: true,
-            screenshotFailures: false,
+            screenshotFailures: true,
             provider: playwright(),
             instances: [{browser: 'chromium' as const}],
           },
@@ -104,6 +104,7 @@ export default defineConfig(() => ({
           browser: {
             enabled: true,
             headless: true,
+            screenshotFailures: true,
             provider: playwright(),
             instances: [{browser: 'chromium' as const}],
           },
