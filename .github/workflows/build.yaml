@@ -26,27 +26,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
-          #   args: '--target aarch64-apple-darwin'
-          - platform: 'ubuntu-22.04' # for Tauri v1 you could replace this with ubuntu-20.04.
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+          - platform: 'ubuntu-22.04'
             args: ''
-          # - platform: 'windows-latest'
-          #   args: ''
+          - platform: 'windows-latest'
+            args: ''
 
     runs-on: ${{ matrix.platform }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Harden Runner
-        # Block unexpected egress and process activity on the runner. Endpoints below were baselined from
-        # the audit-mode log observed across recent successful runs — on Linux only, since that is the sole
-        # platform currently enabled in the matrix above.
-        # SRV names are left out: the agent stops if an entry does not resolve.
-        #
-        # Since v2.20.0 the block policy is enforced on macOS and Windows too, and it is applied by the
-        # action's `pre` step, which has no `pre-if` and therefore cannot be skipped with a step-level `if:`.
-        # Re-enabling the macOS/Windows matrix entries would otherwise fail them against this Linux-only
-        # allowlist; keeping those platforms on audit lets their first runs produce their own baseline.
-        # `disable-telemetry` follows the same split: harden-runner allows it only with the block policy, and
-        # the audit runs need telemetry to produce that baseline.
+        # Linux endpoints were verified in audit mode; keep its existing block policy.
+        # macOS and Windows use audit mode, supported by the community tier, to record their endpoints.
+        # disable-telemetry is only supported with the block policy.
         uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: ${{ runner.os == 'Linux' && 'block' || 'audit' }}
@@ -91,12 +86,16 @@ jobs:
       - name: Install additional problem matchers
         run: echo "::add-matcher::.github/problem-matchers.json"
 
+      - name: Set cache paths
+        run: |
+          echo "MISE_CACHE_DIR=$RUNNER_TEMP/mise-cache" >> "$GITHUB_ENV"
+
       # Cache the files mise downloads, not the installed tools:
       # https://mise.jdx.dev/continuous-integration.html#trusted-cache
       - name: Cache mise download store
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.cache/mise/downloads-cas
+          path: ${{ env.MISE_CACHE_DIR }}/downloads-cas
           key: >-
             mise-downloads-${{ runner.os }}-${{ runner.arch }}-${{ env.MISE_ENV }}-${{
             hashFiles('.config/mise/config*.toml', '.config/mise/mise*.lock') }}
@@ -112,15 +111,6 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.bun/install/cache
-          key: 0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-
-
-      - name: Cache node_modules
-        if: github.event_name == 'pull_request'
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: node_modules
           key: 0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
             0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-

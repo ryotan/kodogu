@@ -136,15 +136,15 @@ mod tests {
         let config_file = temp_dir.path().join("test-config.toml");
         let output_file = temp_dir.path().join("test-output.md");
 
-        // Create a config file
-        let config_content = format!(
-            r#"
-file = "{}"
-template = "Config test: {{message}}"
-"#,
-            output_file.to_str().unwrap()
-        );
-        fs::write(&config_file, config_content).unwrap();
+        confy::store_path(
+            &config_file,
+            config::Config {
+                file: Some(output_file.to_str().unwrap().to_owned()),
+                template: Some("Config test: {message}".to_owned()),
+                ..Default::default()
+            },
+        )
+        .unwrap();
 
         // Simulate CLI args with config file
         let cli = Cli {
@@ -204,19 +204,19 @@ template = "Config test: {{message}}"
         let config_file = temp_dir.path().join("exec-config.toml");
         let output_file = temp_dir.path().join("exec-test.md");
 
-        // Create config with execution settings
-        let config_content = format!(
-            r#"
-file = "{}"
-
-[execution]
-match_mode = "last"
-insert_position = "before"
-backup_enabled = true
-"#,
-            output_file.to_str().unwrap()
-        );
-        fs::write(&config_file, config_content).unwrap();
+        confy::store_path(
+            &config_file,
+            config::Config {
+                file: Some(output_file.to_str().unwrap().to_owned()),
+                execution: Some(config::ExecutionSettings {
+                    match_mode: Some("last".to_owned()),
+                    insert_position: Some("before".to_owned()),
+                    backup_enabled: Some(true),
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap();
 
         // Create initial file content
         fs::write(&output_file, "Line 1\nLine 2\nLine 3\n").unwrap();
