@@ -22,7 +22,7 @@ function PopoverLayout(): ReactElement {
         {/* Header (drag region) */}
         <Flex align='center' className='popover-header' data-tauri-drag-region='' justify='between'>
           <StubHeader />
-          <IconButton mr='3' size='1' variant='ghost'>
+          <IconButton aria-label='プロファイルを追加' mr='3' size='1' variant='ghost'>
             <PlusIcon />
           </IconButton>
         </Flex>
