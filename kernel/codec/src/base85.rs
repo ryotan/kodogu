@@ -213,19 +213,19 @@ const DECODE_TABLE_RFC1924: [u8; 256] = build_decode_table(ALPHABET_RFC1924);
 
 /// Encode a 4-byte chunk to 5 Base85 characters
 #[inline]
-fn encode_chunk(chunk: u32, alphabet: &[u8; 85], out: &mut Vec<u8>) {
+fn encode_chunk(chunk: u32, alphabet: &[u8; 85], out: &mut String) {
     let mut value = chunk;
     let mut buf = [0u8; 5];
     for i in (0..5).rev() {
         buf[i] = alphabet[(value % 85) as usize];
         value /= 85;
     }
-    out.extend_from_slice(&buf);
+    out.extend(buf.into_iter().map(char::from));
 }
 
 /// Encode a partial chunk (1-3 bytes) to Base85
 #[inline]
-fn encode_partial(bytes: &[u8], alphabet: &[u8; 85], out: &mut Vec<u8>) {
+fn encode_partial(bytes: &[u8], alphabet: &[u8; 85], out: &mut String) {
     if bytes.is_empty() {
         return;
     }
@@ -241,7 +241,7 @@ fn encode_partial(bytes: &[u8], alphabet: &[u8; 85], out: &mut Vec<u8>) {
         buf[i] = alphabet[(v % 85) as usize];
         v /= 85;
     }
-    out.extend_from_slice(&buf[..bytes.len() + 1]);
+    out.extend(buf[..bytes.len() + 1].iter().copied().map(char::from));
 }
 
 /// A character of the encoded text with its position in that text, counted in characters.
@@ -314,11 +314,11 @@ fn decode_partial(symbols: &[Symbol], table: &[u8; 256]) -> Result<Vec<u8>, Bina
 
 /// Encode ASCII85-style chunks (handles 'z' compression for all-zero blocks)
 #[inline]
-fn encode_chunks_ascii85(out: &mut Vec<u8>, chunks: &[[u8; 4]]) {
+fn encode_chunks_ascii85(out: &mut String, chunks: &[[u8; 4]]) {
     for &chunk in chunks {
         let value = u32::from_be_bytes(chunk);
         if value == 0 {
-            out.push(b'z');
+            out.push('z');
         } else {
             encode_chunk(value, ALPHABET_ASCII85, out);
         }
@@ -352,8 +352,8 @@ fn decode_groups_ascii85(symbols: &[Symbol]) -> Result<(Vec<u8>, &[Symbol]), Bin
 impl Base85Codec for Base85Ascii85 {}
 impl BinaryCodec for Base85Ascii85 {
     fn encode(&self, bytes: &[u8]) -> String {
-        let mut out = Vec::with_capacity(bytes.len() * 5 / 4 + 4);
-        out.extend_from_slice(b"<~");
+        let mut out = String::with_capacity(bytes.len() * 5 / 4 + 4);
+        out.push_str("<~");
 
         let (chunks, remainder) = bytes.as_chunks::<4>();
 
@@ -361,9 +361,8 @@ impl BinaryCodec for Base85Ascii85 {
 
         encode_partial(remainder, ALPHABET_ASCII85, &mut out);
 
-        out.extend_from_slice(b"~>");
-        // SAFETY: ASCII85 alphabet consists only of ASCII characters
-        String::from_utf8(out).unwrap()
+        out.push_str("~>");
+        out
     }
 
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
@@ -421,15 +420,14 @@ impl BinaryCodec for Base85Z85 {
 impl Base85Z85 {
     /// Encode exact (input length must be multiple of 4)
     fn encode_exact(&self, input: &[u8]) -> String {
-        let mut out = Vec::with_capacity(input.len() * 5 / 4);
+        let mut out = String::with_capacity(input.len() * 5 / 4);
 
         for &chunk in input.as_chunks::<4>().0 {
             let value = u32::from_be_bytes(chunk);
             encode_chunk(value, ALPHABET_Z85, &mut out);
         }
 
-        // SAFETY: Z85 alphabet consists only of ASCII characters
-        String::from_utf8(out).unwrap()
+        out
     }
 
     /// Encode with padding info returned
@@ -463,7 +461,7 @@ impl Base85Z85 {
 impl Base85Codec for Base85Rfc1924 {}
 impl BinaryCodec for Base85Rfc1924 {
     fn encode(&self, bytes: &[u8]) -> String {
-        let mut out = Vec::with_capacity(bytes.len() * 5 / 4 + 2);
+        let mut out = String::with_capacity(bytes.len() * 5 / 4 + 2);
 
         let (chunks, remainder) = bytes.as_chunks::<4>();
 
@@ -474,8 +472,7 @@ impl BinaryCodec for Base85Rfc1924 {
 
         encode_partial(remainder, ALPHABET_RFC1924, &mut out);
 
-        // SAFETY: RFC 1924 alphabet consists only of ASCII characters
-        String::from_utf8(out).unwrap()
+        out
     }
 
     fn decode(&self, text: &str) -> Result<Vec<u8>, BinaryCodecError> {
@@ -517,8 +514,7 @@ impl Base85Rfc1924 {
             value /= 85;
         }
 
-        // SAFETY: RFC 1924 alphabet consists only of ASCII characters
-        String::from_utf8(buf.to_vec()).unwrap()
+        buf.into_iter().map(char::from).collect()
     }
 
     /// Decode exactly 20 characters to a 128-bit value
@@ -573,11 +569,11 @@ impl BinaryCodec for Base85Btoa {
             })
             .collect();
 
-        let mut data = Vec::with_capacity(groups.len() * 5);
+        let mut data = String::with_capacity(groups.len() * 5);
         encode_chunks_ascii85(&mut data, &groups);
 
         let mut out = String::from("xbtoa Begin\n");
-        for line in data.chunks(BTOA_LINE_LENGTH) {
+        for line in data.as_bytes().chunks(BTOA_LINE_LENGTH) {
             out.extend(line.iter().map(|&b| char::from(b)));
             out.push('\n');
         }
