@@ -19,18 +19,25 @@ env:
   MISE_PARANOID: 'true'
 
 jobs:
-  lint:
-    name: 'Lint'
-    runs-on: ubuntu-26.04
+  checks:
+    name: 'Lint - ${{ matrix.platform }}'
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-26.04, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Harden Runner
-        # Block unexpected egress and process activity on the runner. Endpoints below were baselined from
-        # the audit-mode log observed across recent successful runs.
-        # SRV names are left out: the agent stops if an entry does not resolve.
+        # Linux endpoints were verified in audit mode; keep its existing block policy.
+        # macOS and Windows use audit mode, supported by the community tier, to record their endpoints.
+        # disable-telemetry is only supported with the block policy.
         uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
-          egress-policy: block
-          disable-telemetry: true
+          egress-policy: ${{ runner.os == 'Linux' && 'block' || 'audit' }}
+          disable-telemetry: ${{ runner.os == 'Linux' }}
           allowed-endpoints: >
             aka.ms:443
             azure.archive.ubuntu.com:80
@@ -62,6 +69,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install dependencies (ubuntu only)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -74,12 +82,17 @@ jobs:
       - name: Install additional problem matchers
         run: echo "::add-matcher::.github/problem-matchers.json"
 
+      - name: Set cache paths
+        run: |
+          echo "MISE_CACHE_DIR=$RUNNER_TEMP/mise-cache" >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/playwright-browsers" >> "$GITHUB_ENV"
+
       # Cache the files mise downloads, not the installed tools:
       # https://mise.jdx.dev/continuous-integration.html#trusted-cache
       - name: Cache mise download store
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.cache/mise/downloads-cas
+          path: ${{ env.MISE_CACHE_DIR }}/downloads-cas
           key: >-
             mise-downloads-${{ runner.os }}-${{ runner.arch }}-${{ env.MISE_ENV }}-${{
             hashFiles('.config/mise/config*.toml', '.config/mise/mise*.lock') }}
@@ -99,15 +112,6 @@ jobs:
           restore-keys: |
             0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-
 
-      - name: Cache node_modules
-        if: github.event_name == 'pull_request'
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: node_modules
-          key: 0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            0-${{ runner.os }}-bun-${{ hashFiles('**/*.patch') }}-
-
       - name: Install frontend dependencies
         run: mise exec -- bun install --frozen-lockfile
 
@@ -121,13 +125,13 @@ jobs:
             echo "::warning::Multiple playwright versions found in bun.lock: $VERSIONS. Playwright browsers will not be cached."
           else
             echo "Playwright version: $VERSIONS"
-            echo "version=$VERSIONS" >> $GITHUB_OUTPUT
+            echo "version=$VERSIONS" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Cache Playwright Browsers
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.cache/ms-playwright
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
           key: 0-${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
 
       - name: Install Playwright Browsers
@@ -168,16 +172,18 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         continue-on-error: true  # Keep running the remaining checks if upload fails
         with:
-          name: browser-test-failures
+          name: browser-test-failures-${{ runner.os }}
           path: app/.vitest-attachments/
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 5
 
       - id: backend-test
-        name: Backend Tests & Coverage
+        name: Backend Tests & Coverage${{ runner.os == 'Windows' && ' (excluding Tauri app)' || '' }}
+        # tauri-build 2.7.4 omits the Common Controls v6 manifest from the Windows app test executable.
+        # Keep kernel and CLI coverage until a released tauri-build supports resources in test executables.
         # WORKAROUND: wayland-client 0.31.8 uses not stable feature (`coverage_attribute`) of Rust 1.85.1 for coverage
-        run: mise run cargo:coverage -- --no-cfg-coverage
+        run: mise run cargo:coverage -- --no-cfg-coverage ${{ runner.os == 'Windows' && '--exclude kodogu' || '' }}
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
@@ -186,7 +192,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: app/coverage/clover.xml,lcov.info
           flags: unittests
-          name: codecov-umbrella
+          name: codecov-${{ runner.os }}
           fail_ci_if_error: false  # Don't fail on Codecov service issues
           # Note: Coverage requirements are configured in codecov.yml
 
@@ -216,3 +222,15 @@ jobs:
           else
             echo "✅ All checks succeeded."
           fi
+
+  lint:
+    name: 'Lint'
+    needs: checks
+    if: ${{ always() }}
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check all platform results
+        shell: bash
+        env:
+          RESULT: ${{ needs.checks.result }}
+        run: test "$RESULT" = success

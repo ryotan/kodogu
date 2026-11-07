@@ -7,8 +7,8 @@ fn test_cli_basic_functionality() {
     let output_file = temp_dir.path().join("test-output.md");
 
     // Test basic message append
-    let exit_code = std::process::Command::new("cargo")
-        .args(["run", "--", "-f", output_file.to_str().unwrap(), "Hello, integration test!"])
+    let exit_code = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["-f", output_file.to_str().unwrap(), "Hello, integration test!"])
         .status()
         .unwrap();
 
@@ -24,16 +24,8 @@ fn test_cli_template_processing() {
     let temp_dir = TempDir::new().unwrap();
     let output_file = temp_dir.path().join("template-test.md");
 
-    let exit_code = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "--",
-            "-f",
-            output_file.to_str().unwrap(),
-            "-t",
-            "Message: {message}",
-            "test content",
-        ])
+    let exit_code = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["-f", output_file.to_str().unwrap(), "-t", "Message: {message}", "test content"])
         .status()
         .unwrap();
 
@@ -51,16 +43,8 @@ fn test_cli_pattern_matching() {
     // Create initial file
     fs::write(&test_file, "# Header\n## Section\nExisting content\n").unwrap();
 
-    let exit_code = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "--",
-            "-f",
-            test_file.to_str().unwrap(),
-            "-p",
-            "## Section",
-            "New content",
-        ])
+    let exit_code = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["-f", test_file.to_str().unwrap(), "-p", "## Section", "New content"])
         .status()
         .unwrap();
 
@@ -83,15 +67,8 @@ fn test_cli_input_file() {
     // Create input file
     fs::write(&input_file, "Content from file").unwrap();
 
-    let exit_code = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "--",
-            "-i",
-            input_file.to_str().unwrap(),
-            "-f",
-            output_file.to_str().unwrap(),
-        ])
+    let exit_code = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["-i", input_file.to_str().unwrap(), "-f", output_file.to_str().unwrap()])
         .status()
         .unwrap();
 
@@ -110,8 +87,8 @@ fn test_cli_backup_functionality() {
     // Create initial file
     fs::write(&test_file, "Original content").unwrap();
 
-    let exit_code = std::process::Command::new("cargo")
-        .args(["run", "--", "-f", test_file.to_str().unwrap(), "--backup", "New content"])
+    let exit_code = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["-f", test_file.to_str().unwrap(), "--backup", "New content"])
         .status()
         .unwrap();
 
@@ -134,8 +111,8 @@ fn test_cli_dry_run() {
     // Create initial file
     fs::write(&test_file, "Original content").unwrap();
 
-    let output = std::process::Command::new("cargo")
-        .args(["run", "--", "-f", test_file.to_str().unwrap(), "--dry-run", "New content"])
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["-f", test_file.to_str().unwrap(), "--dry-run", "New content"])
         .output()
         .unwrap();
 
@@ -155,7 +132,7 @@ fn test_cli_dry_run() {
 #[test]
 fn test_cli_validation_errors() {
     // Test no message and no input file
-    let output = std::process::Command::new("cargo").args(["run", "--"]).output().unwrap();
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_anflug")).output().unwrap();
 
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -166,8 +143,8 @@ fn test_cli_validation_errors() {
     let input_file = temp_dir.path().join("input.txt");
     fs::write(&input_file, "content").unwrap();
 
-    let output = std::process::Command::new("cargo")
-        .args(["run", "--", "-i", input_file.to_str().unwrap(), "message"])
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["-i", input_file.to_str().unwrap(), "message"])
         .output()
         .unwrap();
 
@@ -182,22 +159,23 @@ fn test_cli_config_file() {
     let config_file = temp_dir.path().join("test-config.toml");
     let output_file = temp_dir.path().join("config-test.md");
 
-    // Create config file
-    let config_content = format!(
-        r#"
-file = "{}"
-template = "Config: {{message}}"
+    confy::store_path(
+        &config_file,
+        anflug::config::Config {
+            file: Some(output_file.to_str().unwrap().to_owned()),
+            template: Some("Config: {message}".to_owned()),
+            execution: Some(anflug::config::ExecutionSettings {
+                backup_enabled: Some(false),
+                match_mode: Some("first".to_owned()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        },
+    )
+    .unwrap();
 
-[execution]
-backup_enabled = false
-match_mode = "first"
-"#,
-        output_file.to_str().unwrap()
-    );
-    fs::write(&config_file, config_content).unwrap();
-
-    let exit_code = std::process::Command::new("cargo")
-        .args(["run", "--", "-c", config_file.to_str().unwrap(), "test message"])
+    let exit_code = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["-c", config_file.to_str().unwrap(), "test message"])
         .status()
         .unwrap();
 
@@ -212,10 +190,8 @@ fn test_cli_multiline_template() {
     let temp_dir = TempDir::new().unwrap();
     let output_file = temp_dir.path().join("multiline-test.md");
 
-    let exit_code = std::process::Command::new("cargo")
+    let exit_code = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
         .args([
-            "run",
-            "--",
             "-f",
             output_file.to_str().unwrap(),
             "-t",
@@ -238,8 +214,8 @@ fn test_cli_environment_variables() {
     let temp_dir = TempDir::new().unwrap();
     let output_file = temp_dir.path().join("env-test.md");
 
-    let exit_code = std::process::Command::new("cargo")
-        .args(["run", "--", "Environment test"])
+    let exit_code = std::process::Command::new(env!("CARGO_BIN_EXE_anflug"))
+        .args(["Environment test"])
         .env("ANFLUG_FILE", output_file.to_str().unwrap())
         .env("ANFLUG_TEMPLATE", "Env: {message}")
         .status()
