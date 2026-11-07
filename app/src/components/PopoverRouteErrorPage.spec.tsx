@@ -35,6 +35,19 @@ describe('PopoverRouteErrorPage', () => {
     mockReportError.mockClear();
   });
 
+  it.each([
+    {kind: 'string', reason: 'route failed', message: 'route failed'},
+    {kind: 'number', reason: 42, message: '42'},
+    {kind: 'object', reason: {message: 'route failed'}, message: '[object Object]'},
+  ])('displays a $kind route failure without losing the error page', async ({reason, message}) => {
+    const loader = vi.fn<() => Promise<never>>().mockRejectedValue(reason);
+    await renderRouter(createRootRoute({loader}));
+
+    await expect.element(page.getByText('Error', {exact: true})).toBeVisible();
+    await expect.element(page.getByText(message, {exact: true})).toBeVisible();
+    await expect.element(page.getByRole('button', {name: 'Try Again'})).toBeVisible();
+  });
+
   it('reruns a failed loader on Try Again', async () => {
     const loader = vi
       .fn<() => Promise<void>>()
