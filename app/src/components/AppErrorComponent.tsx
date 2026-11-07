@@ -24,14 +24,15 @@ function StackFrameRow({frame}: {frame: StackFrame}): ReactElement {
 // Component
 // ---------------------------------------------------------------------------
 
-export function AppErrorComponent({error, reset}: ErrorComponentProps): ReactElement {
+export function AppErrorComponent({error: caughtError, reset}: ErrorComponentProps): ReactElement {
   const [stackExpanded, setStackExpanded] = useState(false);
 
-  const {frames, originFrame} = useMemo(() => {
+  const {error, frames, originFrame} = useMemo(() => {
+    const error = caughtError instanceof Error ? caughtError : new Error(String(caughtError));
     // Strip the first line (error name + message) to avoid duplication
     const parsed = (error.stack?.split('\n').slice(1) ?? []).map(parseFrame).filter((f): f is StackFrame => f !== null);
-    return {frames: parsed, originFrame: parsed.find(f => !f.isExternal)};
-  }, [error]);
+    return {error, frames: parsed, originFrame: parsed.find(f => !f.isExternal)};
+  }, [caughtError]);
 
   return (
     <Theme appearance='dark' hasBackground={false}>
