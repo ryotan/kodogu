@@ -29,8 +29,18 @@ export function AppErrorComponent({error: caughtError, reset}: ErrorComponentPro
 
   const {error, frames, originFrame} = useMemo(() => {
     const error = caughtError instanceof Error ? caughtError : new Error(String(caughtError));
+    const occurrences = new Map<string, number>();
     // Strip the first line (error name + message) to avoid duplication
-    const parsed = (error.stack?.split('\n').slice(1) ?? []).map(parseFrame).filter((f): f is StackFrame => f !== null);
+    const parsed = (error.stack?.split('\n').slice(1) ?? []).flatMap(line => {
+      const frame = parseFrame(line);
+      if (!frame) {
+        return [];
+      }
+      const nameAndLocation = JSON.stringify([frame.name, frame.location]);
+      const occurrence = occurrences.get(nameAndLocation) ?? 0;
+      occurrences.set(nameAndLocation, occurrence + 1);
+      return [{...frame, key: JSON.stringify([frame.name, frame.location, occurrence])}];
+    });
     return {error, frames: parsed, originFrame: parsed.find(f => !f.isExternal)};
   }, [caughtError]);
 
@@ -65,7 +75,7 @@ export function AppErrorComponent({error: caughtError, reset}: ErrorComponentPro
               <div className={styles.stackCollapse}>
                 <div className={styles.stackScroll}>
                   {frames.map(frame => (
-                    <StackFrameRow frame={frame} key={`${frame.name}@${frame.location}`} />
+                    <StackFrameRow frame={frame} key={frame.key} />
                   ))}
                 </div>
               </div>
