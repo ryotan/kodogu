@@ -2,7 +2,7 @@ use super::errors::{InvalidNonceLengthError, MacAlgorithms, MacError, Verificati
 use super::traits::{Mac, MacGenerator, MacVerifier};
 use super::types::MacTag;
 use crate::{Aes256GcmKey, Nonce};
-use aes_gcm::aead::Aead;
+use aes_gcm::aead::{Aead, AeadInPlace};
 use aes_gcm::{Aes256Gcm, KeyInit};
 use suzunari_error::ResultExt;
 
@@ -79,18 +79,18 @@ impl Gmac {
         nonce: &Nonce,
     ) -> Result<(), MacError> {
         let nonce_array = validate_nonce_length(nonce)?;
-        let cipher = Aes256Gcm::new(key.as_bytes().into());
-
-        // Verify by decrypting an empty ciphertext followed by the tag
-        cipher
-            .decrypt(
-                nonce_array.as_slice().into(),
-                aes_gcm::aead::Payload { msg: tag.as_bytes(), aad: message },
-            )
+        let tag: &[u8; GMAC_TAG_SIZE] = tag
+            .as_bytes()
+            .try_into()
             .map_err(|_| hmac::digest::MacError)
             .context(VerificationFailedError { algorithm: MacAlgorithms::Gmac })?;
+        let cipher = Aes256Gcm::new(key.as_bytes().into());
 
-        Ok(())
+        // GMAC authenticates the message as AAD with no ciphertext.
+        cipher
+            .decrypt_in_place_detached(nonce_array.as_slice().into(), message, &mut [], tag.into())
+            .map_err(|_| hmac::digest::MacError)
+            .context(VerificationFailedError { algorithm: MacAlgorithms::Gmac })
     }
 
     /// Returns the required nonce size in bytes.
