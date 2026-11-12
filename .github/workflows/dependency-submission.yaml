@@ -1,0 +1,40 @@
+name: 'Dependency Submission'
+
+# Register locked Bun dependencies so Dependabot can monitor indirect dependencies and catalog versions.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - bun.lock
+      - .github/workflows/dependency-submission.yaml
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    name: 'Submit Bun Dependencies'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write # Required by GitHub's dependency submission API.
+    timeout-minutes: 10
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Submit Bun Dependencies
+        uses: charpeni/bun-lock-submission@a03085a531255ea928590ac0d76d53383a026bdf # v1.0.0
+        with:
+          lockfiles: bun.lock
