@@ -24,6 +24,32 @@ use zeroize::Zeroizing;
 //   ConcatKDF: Hash(counter || Z || OtherInfo)
 //   X963KDF:   Hash(Z || counter || SharedInfo)
 
+trait X963Hash: Digest + FixedOutputReset {
+    const MAX_INPUT_LEN: u128;
+}
+
+impl X963Hash for Sha256 {
+    const MAX_INPUT_LEN: u128 = (1u128 << 61) - 1;
+}
+
+impl X963Hash for Sha384 {
+    const MAX_INPUT_LEN: u128 = (1u128 << 125) - 1;
+}
+
+fn validate_lengths<D: X963Hash>(
+    secret_len: u128,
+    shared_info_len: u128,
+    output_len: u128,
+) -> Result<(), X963KdfError> {
+    ensure!(secret_len > 0, NoSecretError);
+    ensure!(output_len > 0, NoOutputError);
+    let max_output_len = <D as OutputSizeUser>::output_size() as u128 * u128::from(u32::MAX);
+    let input_len = secret_len.checked_add(shared_info_len).and_then(|len| len.checked_add(4));
+    ensure!(input_len.is_some_and(|len| len < D::MAX_INPUT_LEN), InputOverflowError);
+    ensure!(output_len < max_output_len, CounterOverflowError);
+    Ok(())
+}
+
 /// Inline implementation of X9.63 KDF.
 ///
 /// The `ansi-x963-kdf` crate (v0.1) depends on `digest 0.11.0-rc.0`,
@@ -35,23 +61,13 @@ fn x963_kdf_inner<D>(
     output: &mut [u8],
 ) -> Result<(), X963KdfError>
 where
-    D: Digest + FixedOutputReset,
+    D: X963Hash,
 {
-    ensure!(!secret.is_empty(), NoSecretError);
-    ensure!(!output.is_empty(), NoOutputError);
-
-    let hash_len = <D as OutputSizeUser>::output_size() as u64;
-    let max_len = hash_len * (u32::MAX as u64);
-
-    // Approximate check: secret + shared_info + 4 (counter) < hashmaxlen
-    ensure!(max_len > secret.len() as u64 + shared_info.len() as u64 + 4, InputOverflowError);
-
-    // keydatalen < hashlen × (2^32 - 1)
-    ensure!(max_len > output.len() as u64, CounterOverflowError);
+    validate_lengths::<D>(secret.len() as u128, shared_info.len() as u128, output.len() as u128)?;
+    let hash_usize = <D as OutputSizeUser>::output_size();
 
     let mut hasher = D::new();
     let mut counter: u32 = 1;
-    let hash_usize = hash_len as usize;
 
     let chunks: Vec<_> = output.chunks_mut(hash_usize).collect();
     let num_chunks = chunks.len();
@@ -296,5 +312,56 @@ mod tests {
         let key_enum = X963KdfAlgorithm::Sha384.derive(&secret, b"info", LEN48).unwrap();
         let key_zst = X963KdfSha384.derive(&secret, b"info", LEN48).unwrap();
         assert_eq!(key_enum, key_zst, "enum and ZST must produce the same key");
+    }
+
+    macro_rules! length_cases {
+        ($($name:ident: ($hash:ty, $secret:expr, $info:expr, $output:expr, $error:expr)),+ $(,)?) => {
+            $(#[test]
+            fn $name() {
+                let expected: Option<&str> = $error;
+                assert_eq!(
+                    validate_lengths::<$hash>($secret, $info, $output).err().map(|error| error.to_string()),
+                    expected.map(str::to_owned),
+                );
+            })+
+        };
+    }
+
+    length_cases! {
+        sha256_accepts_old_input_boundary: (Sha256, 32 * u32::MAX as u128, 0, 32, None),
+        sha384_accepts_old_input_boundary: (Sha384, 48 * u32::MAX as u128, 0, 48, None),
+        sha256_accepts_below_hash_limit: (Sha256, (1u128 << 61) - 6, 0, 32, None),
+        sha256_rejects_at_hash_limit: (Sha256, (1u128 << 61) - 5, 0, 32, Some("input is too big")),
+        sha256_rejects_above_hash_limit: (Sha256, (1u128 << 61) - 4, 0, 32, Some("input is too big")),
+        sha384_accepts_below_hash_limit: (Sha384, 1, (1u128 << 125) - 7, 48, None),
+        sha384_rejects_at_hash_limit: (Sha384, 1, (1u128 << 125) - 6, 48, Some("input is too big")),
+        sha384_rejects_above_hash_limit: (Sha384, 1, (1u128 << 125) - 5, 48, Some("input is too big")),
+        sha256_accepts_below_output_limit: (Sha256, 1, 0, 32 * u32::MAX as u128 - 1, None),
+        sha256_rejects_at_output_limit: (Sha256, 1, 0, 32 * u32::MAX as u128, Some("requested key length is too big")),
+        sha384_accepts_below_output_limit: (Sha384, 1, 0, 48 * u32::MAX as u128 - 1, None),
+        sha384_rejects_at_output_limit: (Sha384, 1, 0, 48 * u32::MAX as u128, Some("requested key length is too big")),
+        rejects_empty_secret_first: (Sha256, 0, u128::MAX, 0, Some("secret has zero length")),
+        rejects_empty_output_before_input_limit: (Sha384, u128::MAX, 1, 0, Some("output has zero length")),
+        rejects_combined_length_overflow: (Sha384, u128::MAX, 1, 48, Some("input is too big")),
+        rejects_counter_length_overflow: (Sha384, u128::MAX - 3, 0, 48, Some("input is too big")),
+    }
+
+    proptest::proptest! {
+        #[test]
+        fn input_validation_is_independent_of_secret_info_partition(
+            total in 1u128..u128::MAX - 4,
+            partition in proptest::prelude::any::<u128>(),
+        ) {
+            let secret = 1 + partition % total;
+            let info = total - secret;
+            proptest::prop_assert_eq!(
+                validate_lengths::<Sha256>(secret, info, 1).map_err(|error| error.to_string()),
+                validate_lengths::<Sha256>(total, 0, 1).map_err(|error| error.to_string()),
+            );
+            proptest::prop_assert_eq!(
+                validate_lengths::<Sha384>(secret, info, 1).map_err(|error| error.to_string()),
+                validate_lengths::<Sha384>(total, 0, 1).map_err(|error| error.to_string()),
+            );
+        }
     }
 }
