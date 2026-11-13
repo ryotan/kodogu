@@ -186,6 +186,14 @@ jobs:
         run: mise run cargo:coverage -- --no-cfg-coverage ${{ runner.os == 'Windows' && '--exclude kodogu' || '' }}
         continue-on-error: true  # Run all checks, then fail at the end
 
+      - id: foundation-registration
+        name: Optimized registration retention
+        env:
+          CARGO_PROFILE_RELEASE_LTO: "true"
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1"
+        run: mise run cargo:test -- --locked --release --test registration_proof
+        continue-on-error: true
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
@@ -208,6 +216,7 @@ jobs:
           echo "Clippy: ${{ steps.clippy.outcome }}"
           echo "Frontend Tests: ${{ steps.frontend-test.outcome }}"
           echo "Backend Tests: ${{ steps.backend-test.outcome }}"
+          echo "Foundation Registration: ${{ steps.foundation-registration.outcome }}"
           echo "===================="
 
           if [[ "${{ steps.tsc.outcome }}" == "failure" || \
@@ -216,7 +225,8 @@ jobs:
                 "${{ steps.rustfmt.outcome }}" == "failure" || \
                 "${{ steps.clippy.outcome }}" == "failure" || \
                 "${{ steps.frontend-test.outcome }}" == "failure" || \
-                "${{ steps.backend-test.outcome }}" == "failure" ]]; then
+                "${{ steps.backend-test.outcome }}" == "failure" || \
+                "${{ steps.foundation-registration.outcome }}" == "failure" ]]; then
             echo "❌ One or more checks failed."
             exit 1
           else

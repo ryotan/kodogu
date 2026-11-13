@@ -10,6 +10,7 @@ resolver = "3"
 members = [
   'kernel/codec',
   'kernel/crypto',
+  'kernel/runtime',
   'cli-app/anflug',
   'app/src-tauri',
 ]
@@ -21,6 +22,7 @@ unsafe_code = "forbid"
 # Workspace members
 codec = { path = './kernel/codec' }
 crypto = { path = './kernel/crypto' }
+kodogu-runtime = { path = './kernel/runtime' }
 
 # External crates
 aes = { version = "=0.8.4", features = ["zeroize"] }
@@ -43,9 +45,15 @@ data-encoding = "=2.11.1"
 data-encoding-macro = "=0.1.21"
 ed25519-dalek = "=2.2.0"
 futures = "=0.3.34"
+fluent-bundle = "=0.16.0"
+fluent-langneg = "=0.13.1"
+icu_locale_core = { version = "=2.2.0", features = ["alloc"] }
+inventory = "=0.3.25"
 hex-literal = "=1.1.0"
 hkdf = "=0.12.4"
 hmac = "=0.12.1"
+opentelemetry = { version = "=0.33.1", default-features = false, features = ["trace"] }
+opentelemetry_sdk = { version = "=0.33.1", default-features = false, features = ["trace"] }
 p256 = "=0.13.2"
 p384 = "=0.13.1"
 pbkdf2 = "=0.12.2"
@@ -79,6 +87,7 @@ tempfile = "=3.27.0"
 tokio = "=1.54.1"
 tracing = "=0.1.44"
 tracing-subscriber = "=0.3.23"
+unic-langid = { version = "=0.9.6", features = ["macros"] }
 validator = "=0.21.0"
 zeroize = { version = "=1.8.2", features = ["derive"] }
 
