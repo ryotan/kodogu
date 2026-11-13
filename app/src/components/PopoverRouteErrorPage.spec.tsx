@@ -2,13 +2,26 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {page} from 'vitest/browser';
 import {render} from 'vitest-browser-react';
 
-import {QueryClient, QueryClientProvider, useSuspenseQuery} from '@tanstack/react-query';
+import type {ReactElement} from 'react';
+import {useEffect} from 'react';
+
+import {QueryClient, QueryClientProvider, QueryErrorResetBoundary, useSuspenseQuery} from '@tanstack/react-query';
 import type {AnyRoute} from '@tanstack/react-router';
-import {createMemoryHistory, createRootRoute, createRouter, RouterProvider} from '@tanstack/react-router';
+import {createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider} from '@tanstack/react-router';
 
+import {getConfig, setConfig} from '#commands/appConfig';
+import {appConfigFixture} from '#commands/appConfig.fixture';
+import {ConfigurationCommandError} from '#commands/ConfigurationCommandError';
 import {PopoverRouteErrorPage} from '#components/PopoverRouteErrorPage';
+import type {AppConfig} from '#config';
+import {Milliseconds} from '#config';
+import {AppConfigCommandsProvider} from '#hooks/AppConfigCommandsProvider';
+import {useAppConfig} from '#hooks/useAppConfig';
+import {useAppConfigCommands} from '#hooks/useAppConfigCommands';
 import {reportError} from '#reportError';
+import {Route} from '#routes/__root';
 
+vi.mock('#commands/appConfig', () => ({getConfig: vi.fn(), setConfig: vi.fn()}));
 vi.mock('#reportError', () => ({reportError: vi.fn()}));
 
 const mockReportError = vi.mocked(reportError);
@@ -102,4 +115,149 @@ describe('PopoverRouteErrorPage', () => {
       historyFailure = undefined;
     }
   });
+});
+
+function configurationWithDebounce(value: number): AppConfig {
+  return {
+    ...appConfigFixture,
+    popover: {...appConfigFixture.popover, behavior: {toggleDebounceMs: Milliseconds(value)}},
+  };
+}
+
+function renderSettingsRouter(component: () => ReactElement) {
+  const queryClient = new QueryClient({defaultOptions: {queries: {retry: false}, mutations: {retry: false}}});
+  const child = createRoute({getParentRoute: () => Route, path: '/', component});
+  const router = createRouter({
+    routeTree: Route.addChildren([child]),
+    context: {queryClient},
+    history: createMemoryHistory({initialEntries: ['/']}),
+    defaultErrorComponent: PopoverRouteErrorPage,
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <AppConfigCommandsProvider>
+        <QueryErrorResetBoundary>
+          <RouterProvider router={router} />
+        </QueryErrorResetBoundary>
+      </AppConfigCommandsProvider>
+    </QueryClientProvider>,
+  );
+}
+
+it('stops displaying unavailable settings and retries their native read without resending input', async () => {
+  const read = vi.mocked(getConfig);
+  const write = vi.mocked(setConfig);
+  const failure = new ConfigurationCommandError('configuration_unavailable');
+  let unavailable = false;
+  read.mockImplementation(() => (unavailable ? Promise.reject(failure) : Promise.resolve(appConfigFixture)));
+  write.mockImplementation(() => {
+    unavailable = true;
+    return Promise.reject(failure);
+  });
+  function Settings() {
+    const config = useAppConfig();
+    const {update} = useAppConfigCommands();
+    return (
+      <>
+        <p>Confirmed: {config.popover.behavior.toggleDebounceMs}</p>
+        <button
+          onClick={() =>
+            update(draft => {
+              draft.popover.behavior.toggleDebounceMs = Milliseconds(999);
+            })
+          }
+          type='button'
+        >
+          Save settings
+        </button>
+      </>
+    );
+  }
+  const view = await renderSettingsRouter(Settings);
+  try {
+    await expect.element(page.getByText('Confirmed: 300')).toBeVisible();
+    await page.getByRole('button', {name: 'Save settings'}).click();
+    await expect
+      .element(page.getByText('Configuration is unavailable. Restart KoDoGu before trying again.'))
+      .toBeVisible();
+    await expect.element(page.getByText('Confirmed: 300')).not.toBeInTheDocument();
+    const readsBefore = read.mock.calls.length;
+    await page.getByRole('button', {name: 'Try Again'}).click();
+    await vi.waitFor(() => expect(read.mock.calls.length).toBeGreaterThan(readsBefore));
+    expect(write.mock.calls).toEqual([[configurationWithDebounce(999)]]);
+    await expect
+      .element(page.getByText('Configuration is unavailable. Restart KoDoGu before trying again.'))
+      .toBeVisible();
+  } finally {
+    await view.unmount();
+    read.mockReset();
+    write.mockReset();
+  }
+});
+
+it.each([
+  {valueRead: 'the previous value', debounce: 300},
+  {valueRead: 'the submitted value', debounce: 999},
+])('retains input and the lost write result after a fresh read returns $valueRead', async ({debounce}) => {
+  const read = vi.mocked(getConfig);
+  const write = vi.mocked(setConfig);
+  const failure = new ConfigurationCommandError('result_unavailable');
+  const observeMount = vi.fn<(phase: 'mount' | 'unmount') => void>();
+  let replyLost = false;
+  read.mockImplementation(() => Promise.resolve(replyLost ? configurationWithDebounce(debounce) : appConfigFixture));
+  write.mockImplementation(() => {
+    replyLost = true;
+    return Promise.reject(failure);
+  });
+
+  function Settings(): ReactElement {
+    const config = useAppConfig();
+    const {submission, update} = useAppConfigCommands();
+    useEffect(() => {
+      observeMount('mount');
+      return () => observeMount('unmount');
+    }, []);
+
+    return (
+      <>
+        <p>Confirmed: {config.popover.behavior.toggleDebounceMs}</p>
+        {submission.status !== 'idle' && <p>Submitted: {submission.configuration.popover.behavior.toggleDebounceMs}</p>}
+        {submission.status === 'failed' && submission.error instanceof ConfigurationCommandError && (
+          <p>Submission error: {submission.error.code}</p>
+        )}
+        <button
+          onClick={() =>
+            update(draft => {
+              draft.popover.behavior.toggleDebounceMs = Milliseconds(999);
+            })
+          }
+          type='button'
+        >
+          Save settings
+        </button>
+      </>
+    );
+  }
+
+  const view = await renderSettingsRouter(Settings);
+  try {
+    await expect.element(page.getByText('Confirmed: 300', {exact: true})).toBeVisible();
+    await page.getByRole('button', {name: 'Save settings'}).click();
+    await expect.element(page.getByText(failure.message, {exact: true})).toBeVisible();
+    await expect.element(page.getByRole('button', {name: 'Save settings'})).not.toBeInTheDocument();
+    await vi.waitFor(() => expect(observeMount.mock.calls).toEqual([['mount'], ['unmount']]));
+
+    const readsBefore = read.mock.calls.length;
+    await page.getByRole('button', {name: 'Try Again'}).click();
+    await expect.element(page.getByText(`Confirmed: ${debounce}`, {exact: true})).toBeVisible();
+    await expect.element(page.getByText('Submitted: 999', {exact: true})).toBeVisible();
+    await expect.element(page.getByText('Submission error: result_unavailable', {exact: true})).toBeVisible();
+    expect(read.mock.calls.length).toBeGreaterThan(readsBefore);
+    expect(write.mock.calls).toEqual([[configurationWithDebounce(999)]]);
+    await vi.waitFor(() => expect(observeMount.mock.calls).toEqual([['mount'], ['unmount'], ['mount']]));
+  } finally {
+    await view.unmount();
+    read.mockReset();
+    write.mockReset();
+  }
 });

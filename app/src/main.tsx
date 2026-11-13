@@ -12,6 +12,7 @@ import {ErrorBoundary} from 'react-error-boundary';
 import {AppErrorPage} from '#components/AppErrorPage';
 import {PopoverRouteErrorPage} from '#components/PopoverRouteErrorPage';
 import {createQueryClient} from '#createQueryClient';
+import {AppConfigCommandsProvider} from '#hooks/AppConfigCommandsProvider';
 
 // Import the generated route tree
 import {routeTree} from '!#router/routes';
@@ -40,21 +41,23 @@ if (!root) {
 createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <QueryErrorResetBoundary>
-        {({reset}) => (
-          <ErrorBoundary
-            fallbackRender={({error, resetErrorBoundary}) => (
-              <AppErrorPage
-                error={error instanceof Error ? error : new Error(String(error))}
-                reset={resetErrorBoundary}
-              />
-            )}
-            onReset={reset}
-          >
-            <RouterProvider router={router} />
-          </ErrorBoundary>
-        )}
-      </QueryErrorResetBoundary>
+      <AppConfigCommandsProvider>
+        <QueryErrorResetBoundary>
+          {({reset}) => (
+            <ErrorBoundary
+              fallbackRender={({error, resetErrorBoundary}) => (
+                <AppErrorPage
+                  error={error instanceof Error ? error : new Error(String(error))}
+                  reset={resetErrorBoundary}
+                />
+              )}
+              onReset={reset}
+            >
+              <RouterProvider router={router} />
+            </ErrorBoundary>
+          )}
+        </QueryErrorResetBoundary>
+      </AppConfigCommandsProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

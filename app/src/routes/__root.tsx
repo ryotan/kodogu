@@ -23,9 +23,12 @@ export function RootLayout(): ReactElement {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  // `staleTime: 'static'` is load-bearing: it is the only staleTime `isStaleByTime()` short-circuits on, so the
-  // loader fetches solely while the cache is empty. A numeric one, `Infinity` included, yields to `isInvalidated`.
-  loader: ({context: {queryClient}}) => queryClient.query({...appConfigQuery, staleTime: 'static'}),
+  // Keep confirmed settings through route invalidation. A failed query needs a fresh native read.
+  loader: ({context: {queryClient}}) =>
+    queryClient.query({
+      ...appConfigQuery,
+      staleTime: queryClient.getQueryState(appConfigQuery.queryKey)?.error ? 0 : 'static',
+    }),
   pendingComponent: PopoverPendingLayout,
   component: RootLayout,
 });

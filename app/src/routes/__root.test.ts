@@ -3,19 +3,19 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {QueryClient} from '@tanstack/react-query';
 import {createMemoryHistory, createRouter} from '@tanstack/react-router';
 
-import {invoke} from '@tauri-apps/api/core';
+import {create} from 'mutative';
 
+import {getConfig} from '#commands/appConfig';
+import {appConfigFixture} from '#commands/appConfig.fixture';
+import {Milliseconds} from '#config';
 import {appConfigQuery} from '#hooks/useAppConfig';
 
 import {Route} from './__root';
 
-vi.mock('@tauri-apps/api/core', () => ({invoke: vi.fn()}));
+vi.mock('#commands/appConfig', () => ({getConfig: vi.fn()}));
+const mockGetConfig = vi.mocked(getConfig);
 
-const mockInvoke = vi.mocked(invoke);
-
-// The loader hands whatever `get_config` returned straight to the cache, so an opaque payload states
-// what is under test more clearly than a full AppConfig fixture would.
-const configFromIpc = {marker: 'app-config'};
+const configFromIpc = appConfigFixture;
 
 // The root route is mounted on its own — its loader is the only one that has to run here.
 const loadRootRoute = (queryClient: QueryClient) =>
@@ -27,8 +27,8 @@ const loadRootRoute = (queryClient: QueryClient) =>
 
 describe('root route loader', () => {
   beforeEach(() => {
-    mockInvoke.mockReset();
-    mockInvoke.mockResolvedValue(configFromIpc);
+    mockGetConfig.mockReset();
+    mockGetConfig.mockResolvedValue(configFromIpc);
   });
 
   it('loads the app config into the cache', async () => {
@@ -36,7 +36,7 @@ describe('root route loader', () => {
 
     await loadRootRoute(queryClient);
 
-    expect(mockInvoke).toHaveBeenCalledWith('get_config');
+    expect(mockGetConfig).toHaveBeenCalledOnce();
     expect(queryClient.getQueryData(appConfigQuery.queryKey)).toEqual(configFromIpc);
   });
 
@@ -50,6 +50,25 @@ describe('root route loader', () => {
     await loadRootRoute(queryClient);
 
     expect(queryClient.getQueryData(appConfigQuery.queryKey)).toEqual(configFromIpc);
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockGetConfig).toHaveBeenCalledTimes(1);
   });
+});
+
+it('requests a fresh settings read when retrying unavailable cached settings', async () => {
+  mockGetConfig.mockReset();
+  mockGetConfig.mockResolvedValue(configFromIpc);
+  const queryClient = new QueryClient();
+  await loadRootRoute(queryClient);
+  queryClient
+    .getQueryCache()
+    .find({queryKey: appConfigQuery.queryKey})
+    ?.setState({status: 'error', error: new Error('Configuration unavailable'), isInvalidated: true});
+  const recovered = create(appConfigFixture, draft => {
+    draft.popover.behavior.toggleDebounceMs = Milliseconds(999);
+  });
+  mockGetConfig.mockResolvedValueOnce(recovered);
+  await loadRootRoute(queryClient);
+  expect(mockGetConfig).toHaveBeenCalledTimes(2);
+  expect(queryClient.getQueryData(appConfigQuery.queryKey)).toEqual(recovered);
+  expect(queryClient.getQueryState(appConfigQuery.queryKey)?.status).toBe('success');
 });
