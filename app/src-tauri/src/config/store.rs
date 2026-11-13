@@ -1,15 +1,53 @@
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
-use redb::{Database, ReadableDatabase, TableDefinition};
+use redb::{Database, ReadableDatabase, TableDefinition, TypeName, Value};
 use serde::{Deserialize, Serialize};
 use suzunari_error::*;
 
-use super::domain::AppConfig;
-use crate::store::MessagePack;
+use super::domain::{AppConfig, ConfigUpdate, ConfigValidationError};
+use crate::store::codec::{self, CodecError};
 
-const CONFIG_TABLE: TableDefinition<&str, MessagePack<StoredAppConfig>> =
-    TableDefinition::new("config");
+const CONFIG_TABLE: TableDefinition<&str, ConfigRecord<'static>> = TableDefinition::new("config");
 const CONFIG_KEY: &str = "app_config";
+
+// redb persists this type name; changing it makes existing configuration tables unreadable.
+const CONFIG_VALUE_TYPE: &str = "MessagePack<kodogu_lib::config::store::StoredAppConfig>";
+
+#[derive(Debug)]
+struct ConfigRecord<'a>(&'a [u8]);
+
+impl Value for ConfigRecord<'_> {
+    type SelfType<'a>
+        = ConfigRecord<'a>
+    where
+        Self: 'a;
+    type AsBytes<'a>
+        = &'a [u8]
+    where
+        Self: 'a;
+
+    fn fixed_width() -> Option<usize> {
+        None
+    }
+
+    fn from_bytes<'a>(data: &'a [u8]) -> Self::SelfType<'a>
+    where
+        Self: 'a,
+    {
+        ConfigRecord(data)
+    }
+
+    fn as_bytes<'a, 'b: 'a>(value: &'a Self::SelfType<'b>) -> Self::AsBytes<'a>
+    where
+        Self: 'b,
+    {
+        value.0
+    }
+
+    fn type_name() -> TypeName {
+        TypeName::new(CONFIG_VALUE_TYPE)
+    }
+}
 
 // =============================================================================
 // Versioned storage envelope
@@ -27,8 +65,21 @@ const CONFIG_KEY: &str = "app_config";
 ///   4. Implement migration in `AppConfigStore::load_from_db`
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "version", content = "data", rename_all = "camelCase")]
-enum StoredAppConfig {
-    V1(AppConfig),
+enum StoredAppConfig<T = AppConfig> {
+    V1(T),
+}
+
+#[derive(Deserialize)]
+struct VersionHeader {
+    version: String,
+}
+
+fn decode_config(bytes: &[u8]) -> Result<AppConfig, ConfigError> {
+    let header: VersionHeader = codec::decode(bytes).context(CodecFailureError)?;
+    ensure!(header.version == "v1", UnsupportedVersionError { version: header.version });
+    match codec::decode::<StoredAppConfig>(bytes).context(CodecFailureError)? {
+        StoredAppConfig::V1(config) => Ok(config),
+    }
 }
 
 // =============================================================================
@@ -38,14 +89,44 @@ enum StoredAppConfig {
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
 pub enum ConfigError {
+    #[suzu(display("Configuration storage is unavailable"))]
+    Unavailable { source: Arc<ConfigError> },
+    #[suzu(display("Configuration cache is poisoned"))]
+    CachePoisoned,
+    #[suzu(display("Default configuration is invalid"))]
+    InvalidDefault { source: ConfigValidationError },
+    #[suzu(display("Failed to translate stored configuration"))]
+    CodecFailure { source: CodecError },
+    #[suzu(display("Unsupported stored configuration version {version}"))]
+    UnsupportedVersion { version: String },
     #[suzu(display("Failed to begin database transaction"))]
     Transaction { source: redb::TransactionError },
     #[suzu(display("Failed to access config table"))]
     Table { source: redb::TableError },
-    #[suzu(display("Failed to read from config storage"))]
+    #[suzu(display("Failed to access configuration storage"))]
     Storage { source: redb::StorageError },
-    #[suzu(display("Failed to commit config changes"))]
+    #[suzu(display("Configuration commit did not complete cleanly"))]
     Commit { source: redb::CommitError },
+}
+
+impl ConfigError {
+    pub(super) fn is_known_rejection(&self) -> bool {
+        matches!(self, Self::Storage { source: redb::StorageError::ValueTooLarge(_), .. })
+    }
+}
+
+enum CacheState {
+    Available(AppConfig),
+    Unavailable(Arc<ConfigError>),
+}
+
+impl CacheState {
+    fn current(&self) -> Result<&AppConfig, ConfigError> {
+        match self {
+            Self::Available(config) => Ok(config),
+            Self::Unavailable(cause) => Err(Arc::clone(cause)).context(UnavailableError),
+        }
+    }
 }
 
 // =============================================================================
@@ -55,74 +136,78 @@ pub enum ConfigError {
 /// Manages a shared redb database handle and a cached in-memory copy of `AppConfig`.
 pub(crate) struct AppConfigStore {
     db: Database,
-    /// Holds a whole `AppConfig` even after a panic: `set()` can only panic before it replaces the value.
-    cached: RwLock<AppConfig>,
+    cached: RwLock<CacheState>,
 }
+
+#[cfg(test)]
+mod persistence_tests;
 
 impl AppConfigStore {
     /// Creates a new store from a database handle and loads the stored config.
     /// On first launch when no config exists, writes and caches `AppConfig::default()`.
     pub(crate) fn new(db: Database) -> Result<Self, ConfigError> {
-        let mut store = Self { db, cached: RwLock::new(AppConfig::default()) };
-        let config = store.load_from_db()?;
-        store.cached = RwLock::new(config);
-        Ok(store)
-    }
-
-    fn load_from_db(&self) -> Result<AppConfig, ConfigError> {
-        let read_txn = self.db.begin_read().context(TransactionError {})?;
-
-        let table = match read_txn.open_table(CONFIG_TABLE) {
-            Ok(t) => t,
-            // First launch: table does not exist yet.
-            // Release the read transaction before starting a write — holding both is
-            // wasteful and prevents freed-page reclamation until the reader drops.
-            Err(redb::TableError::TableDoesNotExist(_)) => {
-                drop(read_txn);
-                let default = AppConfig::default();
-                self.write_to_db(&default)?;
-                return Ok(default);
+        let config = match Self::read_from_db(&db)? {
+            Some(config) => config,
+            None => {
+                let default =
+                    ConfigUpdate::try_from(AppConfig::default()).context(InvalidDefaultError)?;
+                let encoded = codec::encode(&StoredAppConfig::V1(default.as_ref()))
+                    .context(CodecFailureError)?;
+                Self::write_encoded(&db, &encoded)?;
+                default.into_inner()
             }
-            Err(e) => Err(e).context(TableError {})?,
         };
-
-        let Some(guard) = table.get(CONFIG_KEY).context(StorageError {})? else {
-            // Same rationale as above — release read resources before writing.
-            drop(table);
-            drop(read_txn);
-            let default = AppConfig::default();
-            self.write_to_db(&default)?;
-            return Ok(default);
-        };
-
-        Ok(match guard.value() {
-            StoredAppConfig::V1(config) => config,
-        })
+        Ok(Self { db, cached: RwLock::new(CacheState::Available(config)) })
     }
 
-    fn write_to_db(&self, config: &AppConfig) -> Result<(), ConfigError> {
-        let write_txn = self.db.begin_write().context(TransactionError {})?;
+    fn read_from_db(db: &Database) -> Result<Option<AppConfig>, ConfigError> {
+        // Returning releases every read guard before absence can trigger the first-launch write.
+        let transaction = db.begin_read().context(TransactionError {})?;
+        let table = match transaction.open_table(CONFIG_TABLE) {
+            Ok(table) => table,
+            Err(redb::TableError::TableDoesNotExist(_)) => return Ok(None),
+            Err(error) => return Err(error).context(TableError {}),
+        };
+        table
+            .get(CONFIG_KEY)
+            .context(StorageError {})?
+            .map(|guard| decode_config(guard.value().0))
+            .transpose()
+    }
+
+    fn write_encoded(db: &Database, encoded: &[u8]) -> Result<(), ConfigError> {
+        let write_txn = db.begin_write().context(TransactionError {})?;
         {
             let mut table = write_txn.open_table(CONFIG_TABLE).context(TableError {})?;
-            table
-                .insert(CONFIG_KEY, &StoredAppConfig::V1(config.clone()))
-                .context(StorageError {})?;
+            table.insert(CONFIG_KEY, ConfigRecord(encoded)).context(StorageError {})?;
         }
         write_txn.commit().context(CommitError {})
     }
 
-    pub(crate) fn get(&self) -> AppConfig {
-        // Safe to recover from poisoning; see `cached`.
-        self.cached.read().unwrap_or_else(|e| e.into_inner()).clone()
+    pub(crate) fn get(&self) -> Result<AppConfig, ConfigError> {
+        self.cached.read().ok().context(CachePoisonedError)?.current().cloned()
     }
 
-    pub(crate) fn set(&self, config: AppConfig) -> Result<(), ConfigError> {
-        // Hold the write lock across DB write + cache update so readers never see a stale cache
-        // after a successful DB commit.
-        // Safe to recover from poisoning; see `cached`.
-        let mut cache = self.cached.write().unwrap_or_else(|e| e.into_inner());
-        self.write_to_db(&config)?;
-        *cache = config;
+    pub(crate) fn ensure_available(&self) -> Result<(), ConfigError> {
+        self.cached.read().ok().context(CachePoisonedError)?.current().map(|_| ())
+    }
+
+    pub(crate) fn set(&self, update: ConfigUpdate) -> Result<(), ConfigError> {
+        self.ensure_available()?;
+        let config = update.into_inner();
+        let encoded = codec::encode(&StoredAppConfig::V1(&config)).context(CodecFailureError)?;
+        // Publication and durable commit share one lock; another writer can invalidate during encoding.
+        let mut cache = self.cached.write().ok().context(CachePoisonedError)?;
+        cache.current()?;
+        if let Err(error) = Self::write_encoded(&self.db, &encoded) {
+            if error.is_known_rejection() {
+                return Err(error);
+            }
+            let cause = Arc::new(error);
+            *cache = CacheState::Unavailable(cause.clone());
+            return Err(cause).context(UnavailableError);
+        }
+        *cache = CacheState::Available(config);
         Ok(())
     }
 }
@@ -172,7 +257,7 @@ mod tests {
     #[test]
     fn new_store_returns_default_config_on_empty_db() {
         let store = AppConfigStore::new(in_memory_db()).expect("create store");
-        let config = store.get();
+        let config = store.get().unwrap();
         assert_eq!(config.popover.behavior.toggle_debounce_ms, Milliseconds(300));
     }
 
@@ -180,11 +265,11 @@ mod tests {
     fn set_then_get_returns_updated_config() {
         let store = AppConfigStore::new(in_memory_db()).expect("create store");
 
-        let mut config = store.get();
+        let mut config = store.get().unwrap();
         config.popover.behavior.toggle_debounce_ms = Milliseconds(500);
-        store.set(config).expect("persist config");
+        store.set(config.try_into().unwrap()).expect("persist config");
 
-        let loaded = store.get();
+        let loaded = store.get().unwrap();
         assert_eq!(loaded.popover.behavior.toggle_debounce_ms, Milliseconds(500));
     }
 
@@ -202,14 +287,19 @@ mod tests {
             {
                 let mut table = write_txn.open_table(CONFIG_TABLE).expect("open table");
                 table
-                    .insert("other_key", &StoredAppConfig::V1(AppConfig::default()))
+                    .insert(
+                        "other_key",
+                        ConfigRecord(
+                            &codec::encode(&StoredAppConfig::V1(AppConfig::default())).unwrap(),
+                        ),
+                    )
                     .expect("insert");
             }
             write_txn.commit().expect("commit");
         }
 
         let store = AppConfigStore::new(db).expect("create store");
-        let config = store.get();
+        let config = store.get().unwrap();
         assert_eq!(config.popover.behavior.toggle_debounce_ms, Milliseconds(300));
     }
 
@@ -226,14 +316,14 @@ mod tests {
         {
             let db = Database::create(&db_path).expect("create db");
             let store = AppConfigStore::new(db).expect("create store");
-            let mut config = store.get();
+            let mut config = store.get().unwrap();
             config.popover.behavior.toggle_debounce_ms = Milliseconds(999);
-            store.set(config).expect("persist config");
+            store.set(config.try_into().unwrap()).expect("persist config");
         }
 
         // Read with a new store to verify DB persistence.
         let db2 = Database::create(&db_path).expect("reopen db");
         let store2 = AppConfigStore::new(db2).expect("create store 2");
-        assert_eq!(store2.get().popover.behavior.toggle_debounce_ms, Milliseconds(999));
+        assert_eq!(store2.get().unwrap().popover.behavior.toggle_debounce_ms, Milliseconds(999));
     }
 }

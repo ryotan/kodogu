@@ -39,10 +39,25 @@ describe('getConfig', () => {
     expect(result.popover.behavior.toggleDebounceMs).toBe(750);
   });
 
-  it('propagates rejection from invoke', async () => {
+  it('reports an unclassified read failure without displaying its cause', async () => {
     mockInvoke.mockRejectedValueOnce(new Error('IPC error'));
 
-    await expect(getConfig()).rejects.toThrow('IPC error');
+    await expect(getConfig()).rejects.toMatchObject({
+      name: 'ConfigurationCommandError',
+      code: 'result_unavailable',
+      message: 'Could not confirm the settings result. Read the current settings again.',
+    });
+  });
+
+  it('reports saved values that cannot be represented by the GUI', async () => {
+    mockInvoke.mockRejectedValueOnce({code: 'configuration_unrepresentable', message: 'Native diagnostic'});
+
+    await expect(getConfig()).rejects.toMatchObject({
+      name: 'ConfigurationCommandError',
+      code: 'configuration_unrepresentable',
+      unavailable: true,
+      message: 'Saved configuration cannot be displayed safely by this interface. Your data has been kept.',
+    });
   });
 });
 
@@ -72,9 +87,42 @@ describe('setConfig', () => {
     expect(mockInvoke).toHaveBeenCalledWith('set_config', {config});
   });
 
-  it('propagates rejection from invoke', async () => {
-    mockInvoke.mockRejectedValueOnce(new Error('DB write failed'));
+  it.each([
+    {
+      code: 'configuration_rejected',
+      unavailable: false,
+      message: 'Configuration was not saved. Your input has been kept.',
+    },
+    {
+      code: 'configuration_unavailable',
+      unavailable: true,
+      message: 'Configuration is unavailable. Restart KoDoGu before trying again.',
+    },
+  ])(
+    'preserves the native $code classification without displaying its message',
+    async ({code, unavailable, message}) => {
+      mockInvoke.mockRejectedValueOnce({code, message: 'Native diagnostic'});
+      await expect(setConfig(appConfigFixture)).rejects.toMatchObject({
+        name: 'ConfigurationCommandError',
+        code,
+        unavailable,
+        message,
+      });
+    },
+  );
 
-    await expect(setConfig(appConfigFixture)).rejects.toThrow('DB write failed');
+  it.each([
+    {kind: 'unstructured', response: 'private input'},
+    {kind: 'unknown-code', response: {code: 'unknown', message: 'private input'}},
+    {kind: 'malformed', response: {code: 'configuration_rejected', message: {value: 'private input'}}},
+  ])('keeps a write with a $kind rejection unconfirmed', async ({response}) => {
+    mockInvoke.mockRejectedValueOnce(response);
+    await expect(setConfig(appConfigFixture)).rejects.toMatchObject({
+      name: 'ConfigurationCommandError',
+      code: 'result_unavailable',
+      unavailable: true,
+      message: 'Could not confirm the settings result. Read the current settings again.',
+    });
+    expect(mockInvoke).toHaveBeenCalledExactlyOnceWith('set_config', {config: appConfigFixture});
   });
 });

@@ -24,6 +24,10 @@ export function buildAppConfigQuery<T = AppConfig>(opts?: AppConfigQueryOptions<
 export const appConfigQuery = buildAppConfigQuery();
 
 export function useAppConfig<T = AppConfig>(select?: (config: AppConfig) => T): T {
-  const {data} = useSuspenseQuery(buildAppConfigQuery({select}));
+  const {data, error} = useSuspenseQuery(buildAppConfigQuery({select}));
+  // Suspense queries otherwise keep rendering old data after a failed refresh.
+  if (error) {
+    throw error;
+  }
   return data;
 }

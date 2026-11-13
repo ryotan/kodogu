@@ -1,61 +1,31 @@
-import {useCallback} from 'react';
-
-import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {createContext, useContext} from 'react';
 
 import type {Draft} from 'mutative';
-import {create} from 'mutative';
 
-import {setConfig} from '#commands/appConfig';
+import type {ConfigurationCommandError} from '#commands/ConfigurationCommandError';
 import type {AppConfig} from '#config';
-import {reportError} from '#reportError';
 
-import {appConfigQuery} from './useAppConfig';
+export type UpdateBlock = {readonly status: 'not_loaded'} | {readonly status: 'unavailable'; readonly error: Error};
 
-type ConfigRecipe = (draft: Draft<AppConfig>) => void;
+export type ConfigurationSubmission =
+  | {readonly status: 'idle'}
+  | {readonly status: 'pending'; readonly configuration: AppConfig}
+  | {readonly status: 'failed'; readonly configuration: AppConfig; readonly error: ConfigurationCommandError}
+  | {readonly status: 'not_sent'; readonly configuration: AppConfig; readonly blockedBy: UpdateBlock};
 
-/**
- * Returns mutation helpers for updating and persisting AppConfig.
- *
- * Usage:
- *   const {update} = useAppConfigCommands();
- *   update(draft => { draft.popover.appearance.surfaceColor = CssColor('#fff'); });
- */
-export function useAppConfigCommands() {
-  const queryClient = useQueryClient();
+export type UpdateAdmission = {readonly status: 'submitted'} | UpdateBlock;
 
-  const {mutate, isPending} = useMutation({
-    mutationFn: setConfig,
-    scope: {id: 'app-config'},
-    onMutate: async next => {
-      // Cancel any in-flight queries so they don't overwrite our optimistic data.
-      // With staleTime: Infinity no background refetch is normally in progress,
-      // but this guards against manual invalidation or future staleTime changes.
-      await queryClient.cancelQueries({queryKey: appConfigQuery.queryKey});
-      const previous = queryClient.getQueryData(appConfigQuery.queryKey);
-      queryClient.setQueryData(appConfigQuery.queryKey, next);
-      return {previous};
-    },
-    onError: (err, _next, context) => {
-      reportError('Failed to persist AppConfig', err);
-      if (context?.previous !== undefined) {
-        queryClient.setQueryData(appConfigQuery.queryKey, context.previous);
-      }
-    },
-  });
+export type ConfigurationCommands = {
+  readonly update: (recipe: (draft: Draft<AppConfig>) => void) => UpdateAdmission;
+  readonly submission: ConfigurationSubmission;
+};
 
-  // Read from the cache at call time (not render time) so rapid consecutive updates chain correctly.
-  const update = useCallback(
-    (recipe: ConfigRecipe) => {
-      // Root route's loader guarantees AppConfig is cached before any route renders,
-      // so the cache is always populated at this point.
-      const current = queryClient.getQueryData(appConfigQuery.queryKey);
-      if (!current) {
-        throw new Error('update() called before AppConfig was loaded — this should be unreachable');
-      }
-      mutate(create(current, recipe));
-    },
-    [queryClient, mutate],
-  );
+export const AppConfigCommandsContext = createContext<ConfigurationCommands | undefined>(undefined);
 
-  return {update, isPending};
+export function useAppConfigCommands(): ConfigurationCommands {
+  const commands = useContext(AppConfigCommandsContext);
+  if (commands === undefined) {
+    throw new Error('AppConfigCommandsProvider is missing');
+  }
+  return commands;
 }

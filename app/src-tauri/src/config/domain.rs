@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
+use suzunari_error::*;
 
 // =============================================================================
 // Value types
@@ -160,19 +162,121 @@ pub(crate) struct PopoverConfig {
     pub(crate) appearance: PopoverAppearanceConfig,
 }
 
-/// Application configuration persisted in redb and exposed to JavaScript via Tauri commands.
+/// Application configuration persisted in redb.
 ///
-/// All values are serialized with camelCase field names (for both storage and JS interop).
+/// Values use camelCase field names; JavaScript requests and responses have separate Translators.
 /// Add new fields at any time — missing fields in stored data are filled from `Default::default()`.
 ///
 /// ## Schema evolution
-/// `#[serde(default)]` on each struct enables forward-compatible field additions.
+/// `#[serde(default)]` on each struct lets new code read older records with missing fields.
 /// Renaming or changing field types requires bumping `StoredAppConfig` to a new variant.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub(crate) struct AppConfig {
     pub(crate) popover: PopoverConfig,
 }
+
+/// A complete replacement whose new values satisfy the configuration invariants.
+#[derive(Debug)]
+pub(crate) struct ConfigUpdate(AppConfig);
+
+impl TryFrom<AppConfig> for ConfigUpdate {
+    type Error = ConfigValidationError;
+
+    fn try_from(config: AppConfig) -> Result<Self, Self::Error> {
+        for (field, value) in config.popover.layout.geometry() {
+            field.validate(value)?;
+        }
+        Ok(Self(config))
+    }
+}
+
+impl AsRef<AppConfig> for ConfigUpdate {
+    fn as_ref(&self) -> &AppConfig {
+        &self.0
+    }
+}
+
+impl ConfigUpdate {
+    pub(crate) fn into_inner(self) -> AppConfig {
+        self.0
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum GeometryField {
+    InitialWidth,
+    BottomMargin,
+    TrayGap,
+    FallbackMaxHeight,
+    MinMaxHeight,
+}
+
+impl fmt::Display for GeometryField {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(match self {
+            Self::InitialWidth => "popover.layout.initialWidth",
+            Self::BottomMargin => "popover.layout.bottomMargin",
+            Self::TrayGap => "popover.layout.trayGap",
+            Self::FallbackMaxHeight => "popover.layout.fallbackMaxHeight",
+            Self::MinMaxHeight => "popover.layout.minMaxHeight",
+        })
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum GeometryRule {
+    Finite,
+    Positive,
+}
+
+impl fmt::Display for GeometryRule {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(match self {
+            Self::Finite => "a finite value is required",
+            Self::Positive => "a positive value is required",
+        })
+    }
+}
+
+#[suzunari_error]
+#[suzu(display("Invalid {field}: {rule}"))]
+pub struct ConfigValidationError {
+    pub(crate) field: GeometryField,
+    pub(crate) rule: GeometryRule,
+}
+
+impl GeometryField {
+    pub(crate) fn validate(self, value: LogicalPixel) -> Result<(), ConfigValidationError> {
+        ensure!(
+            value.0.is_finite(),
+            ConfigValidationSnafu { field: self, rule: GeometryRule::Finite }
+        );
+        if matches!(self, Self::InitialWidth | Self::FallbackMaxHeight | Self::MinMaxHeight) {
+            ensure!(
+                value.0 > 0.0,
+                ConfigValidationSnafu { field: self, rule: GeometryRule::Positive }
+            );
+        }
+        Ok(())
+    }
+}
+
+impl PopoverLayoutConfig {
+    pub(crate) fn geometry(&self) -> [(GeometryField, LogicalPixel); 5] {
+        [
+            (GeometryField::InitialWidth, self.initial_width),
+            (GeometryField::BottomMargin, self.bottom_margin),
+            (GeometryField::TrayGap, self.tray_gap),
+            (GeometryField::FallbackMaxHeight, self.fallback_max_height),
+            (GeometryField::MinMaxHeight, self.min_max_height),
+        ]
+    }
+}
+
+#[cfg(test)]
+#[path = "domain/validation_tests.rs"]
+mod validation_tests;
 
 #[cfg(test)]
 mod tests {
