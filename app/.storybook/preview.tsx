@@ -9,6 +9,7 @@ import {QueryClientProvider} from '@tanstack/react-query';
 import {Theme} from '@radix-ui/themes';
 
 import type {Preview} from '@storybook/react-vite';
+import {sb} from 'storybook/test';
 
 import {createQueryClient} from '#createQueryClient';
 import {useStable} from '#hooks/useStable';
@@ -18,6 +19,9 @@ function StoryQueryClientProvider({children}: {children: ReactNode}) {
   const queryClient = useStable(createQueryClient);
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
+
+sb.mock(import('../src/reportError.ts'), {spy: true});
+sb.mock(import('../src/commands/popover.ts'), {spy: true});
 
 const preview: Preview = {
   parameters: {
