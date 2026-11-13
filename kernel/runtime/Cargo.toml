@@ -1,0 +1,30 @@
+[package]
+name = "kodogu-runtime"
+description = "Shared application and tool contracts"
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+futures = { workspace = true }
+fluent-bundle = { workspace = true }
+fluent-langneg = { workspace = true, features = ["cldr"] }
+icu_locale_core = { workspace = true }
+inventory = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+suzunari-error = { workspace = true }
+unic-langid = { workspace = true }
+
+[dev-dependencies]
+proc-macro2 = "=1.0.106"
+proptest = { workspace = true }
+serde_json = { workspace = true }
+syn = { version = "=2.0.117", features = ["full"] }
+tokio = { workspace = true, features = ["macros", "rt"] }
