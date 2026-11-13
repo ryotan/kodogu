@@ -39,6 +39,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["time", "env-filter"] }
 
 [dev-dependencies]
+proptest = { workspace = true }
 tauri = { workspace = true, features = ["test"] }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
