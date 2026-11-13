@@ -1,7 +1,7 @@
 # KoDoGu
 
 KoDoGu (小道具, "props" in Japanese) is a toolbox of small tools I want to use. The desktop app is built with Tauri
-(React + TypeScript, Rust), and the command-line tools are written in Rust.
+(React + TypeScript, Rust).
 
 ## Tools
 
@@ -14,12 +14,10 @@ KoDoGu (小道具, "props" in Japanese) is a toolbox of small tools I want to us
 
 - `app/`: the desktop app ([README](./app/README.md))
 - `kernel/`: Rust libraries shared by the tools
-- `cli-app/`: command-line tools
 
 ## Development
 
 - Desktop app: see [app/README.md](./app/README.md)
-- Command-line tools: see each tool's README under [cli-app/](./cli-app/)
 
 ## License
 
