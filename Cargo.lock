@@ -2763,6 +2763,7 @@ name = "kodogu"
 version = "0.1.0"
 dependencies = [
  "dirs",
+ "proptest",
  "redb",
  "rmp-serde",
  "serde",

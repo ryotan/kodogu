@@ -1,14 +1,15 @@
 use std::sync::RwLock;
 
-use redb::{Database, ReadableDatabase, TableDefinition};
-use serde::{Deserialize, Serialize};
+use redb::{Database, ReadableDatabase, TableDefinition, Value};
+use serde::{Deserialize, Deserializer, Serialize, de::IgnoredAny};
 use suzunari_error::*;
 
 use super::domain::AppConfig;
-use crate::store::MessagePack;
+use crate::store::codec::{self, CodecError, MessagePack, Record};
 
-const CONFIG_TABLE: TableDefinition<&str, MessagePack<StoredAppConfig>> =
-    TableDefinition::new("config");
+type ConfigRecord<'a> = MessagePack<'a, StoredAppConfig>;
+
+const CONFIG_TABLE: TableDefinition<&str, ConfigRecord<'static>> = TableDefinition::new("config");
 const CONFIG_KEY: &str = "app_config";
 
 // =============================================================================
@@ -17,18 +18,41 @@ const CONFIG_KEY: &str = "app_config";
 
 /// Versioned storage envelope for `AppConfig`.
 ///
-/// Wrapping `AppConfig` in an enum from the first version ensures a version discriminant
-/// is always present in stored bytes, enabling future-breaking schema changes.
-///
-/// When a breaking change is needed:
-///   1. Rename `AppConfig` to `AppConfigV1`
-///   2. Define the new `AppConfig`
-///   3. Add the `V2(AppConfig)` variant (serialized as `"v2"` due to `rename_all = "camelCase"`)
-///   4. Implement migration in `AppConfigStore::load_from_db`
+/// For a breaking change, retain the v1 payload type and add a variant for the new schema.
+/// Convert older variants in `decode_config` and persist the migration in a write transaction.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "version", content = "data", rename_all = "camelCase")]
-enum StoredAppConfig {
-    V1(AppConfig),
+enum StoredAppConfig<T = AppConfig> {
+    V1(T),
+    #[serde(other, skip_serializing, deserialize_with = "ignore_stored_data")]
+    Unsupported,
+}
+
+impl Record for StoredAppConfig {
+    // redb persists this type name; changing it makes existing configuration tables unreadable.
+    const TYPE_NAME: &'static str = "MessagePack<kodogu_lib::config::store::StoredAppConfig>";
+    type Encode<'a> = StoredAppConfig<&'a AppConfig>;
+}
+
+fn ignore_stored_data<'de, D: Deserializer<'de>>(deserializer: D) -> Result<(), D::Error> {
+    IgnoredAny::deserialize(deserializer).map(|_| ())
+}
+
+#[derive(Deserialize)]
+struct VersionHeader {
+    version: String,
+}
+
+fn decode_config(record: &ConfigRecord<'_>) -> Result<AppConfig, ConfigError> {
+    // Read the version as text before Serde can interpret a numeric enum index.
+    let header: VersionHeader =
+        codec::decode(ConfigRecord::as_bytes(record)).context(CodecFailureError)?;
+    match record.decode().context(CodecFailureError)? {
+        StoredAppConfig::V1(config) => Ok(config),
+        StoredAppConfig::Unsupported => {
+            None.context(UnsupportedVersionError { version: header.version })
+        }
+    }
 }
 
 // =============================================================================
@@ -38,13 +62,17 @@ enum StoredAppConfig {
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
 pub enum ConfigError {
+    #[suzu(display("Failed to translate stored configuration"))]
+    CodecFailure { source: CodecError },
+    #[suzu(display("Unsupported stored configuration version {version}"))]
+    UnsupportedVersion { version: String },
     #[suzu(display("Failed to begin database transaction"))]
     Transaction { source: redb::TransactionError },
     #[suzu(display("Failed to access config table"))]
     Table { source: redb::TableError },
-    #[suzu(display("Failed to read from config storage"))]
+    #[suzu(display("Failed to access configuration storage"))]
     Storage { source: redb::StorageError },
-    #[suzu(display("Failed to commit config changes"))]
+    #[suzu(display("Configuration commit did not complete cleanly"))]
     Commit { source: redb::CommitError },
 }
 
@@ -55,73 +83,63 @@ pub enum ConfigError {
 /// Manages a shared redb database handle and a cached in-memory copy of `AppConfig`.
 pub(crate) struct AppConfigStore {
     db: Database,
-    /// Holds a whole `AppConfig` even after a panic: `set()` can only panic before it replaces the value.
     cached: RwLock<AppConfig>,
 }
+
+#[cfg(test)]
+mod persistence_tests;
 
 impl AppConfigStore {
     /// Creates a new store from a database handle and loads the stored config.
     /// On first launch when no config exists, writes and caches `AppConfig::default()`.
     pub(crate) fn new(db: Database) -> Result<Self, ConfigError> {
-        let mut store = Self { db, cached: RwLock::new(AppConfig::default()) };
-        let config = store.load_from_db()?;
-        store.cached = RwLock::new(config);
-        Ok(store)
-    }
-
-    fn load_from_db(&self) -> Result<AppConfig, ConfigError> {
-        let read_txn = self.db.begin_read().context(TransactionError {})?;
-
-        let table = match read_txn.open_table(CONFIG_TABLE) {
-            Ok(t) => t,
-            // First launch: table does not exist yet.
-            // Release the read transaction before starting a write — holding both is
-            // wasteful and prevents freed-page reclamation until the reader drops.
-            Err(redb::TableError::TableDoesNotExist(_)) => {
-                drop(read_txn);
+        let config = match Self::read_from_db(&db)? {
+            Some(config) => config,
+            None => {
                 let default = AppConfig::default();
-                self.write_to_db(&default)?;
-                return Ok(default);
+                Self::write_to_db(&db, &default)?;
+                default
             }
-            Err(e) => Err(e).context(TableError {})?,
         };
-
-        let Some(guard) = table.get(CONFIG_KEY).context(StorageError {})? else {
-            // Same rationale as above — release read resources before writing.
-            drop(table);
-            drop(read_txn);
-            let default = AppConfig::default();
-            self.write_to_db(&default)?;
-            return Ok(default);
-        };
-
-        Ok(match guard.value() {
-            StoredAppConfig::V1(config) => config,
-        })
+        Ok(Self { db, cached: RwLock::new(config) })
     }
 
-    fn write_to_db(&self, config: &AppConfig) -> Result<(), ConfigError> {
-        let write_txn = self.db.begin_write().context(TransactionError {})?;
+    fn read_from_db(db: &Database) -> Result<Option<AppConfig>, ConfigError> {
+        // Returning releases every read guard before absence can trigger the first-launch write.
+        let transaction = db.begin_read().context(TransactionError {})?;
+        let table = match transaction.open_table(CONFIG_TABLE) {
+            Ok(table) => table,
+            Err(redb::TableError::TableDoesNotExist(_)) => return Ok(None),
+            Err(error) => return Err(error).context(TableError {}),
+        };
+        table
+            .get(CONFIG_KEY)
+            .context(StorageError {})?
+            .map(|guard| decode_config(&guard.value()))
+            .transpose()
+    }
+
+    fn write_to_db(db: &Database, config: &AppConfig) -> Result<(), ConfigError> {
+        // Encode first so a value the codec rejects never starts a write transaction.
+        let encoded =
+            ConfigRecord::encode(&StoredAppConfig::V1(config)).context(CodecFailureError)?;
+        let write_txn = db.begin_write().context(TransactionError {})?;
         {
             let mut table = write_txn.open_table(CONFIG_TABLE).context(TableError {})?;
-            table
-                .insert(CONFIG_KEY, &StoredAppConfig::V1(config.clone()))
-                .context(StorageError {})?;
+            table.insert(CONFIG_KEY, encoded).context(StorageError {})?;
         }
         write_txn.commit().context(CommitError {})
     }
 
     pub(crate) fn get(&self) -> AppConfig {
-        // Safe to recover from poisoning; see `cached`.
         self.cached.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     pub(crate) fn set(&self, config: AppConfig) -> Result<(), ConfigError> {
         // Hold the write lock across DB write + cache update so readers never see a stale cache
         // after a successful DB commit.
-        // Safe to recover from poisoning; see `cached`.
         let mut cache = self.cached.write().unwrap_or_else(|e| e.into_inner());
-        self.write_to_db(&config)?;
+        Self::write_to_db(&self.db, &config)?;
         *cache = config;
         Ok(())
     }
@@ -150,8 +168,9 @@ mod tests {
         let original = StoredAppConfig::V1(AppConfig::default());
         let bytes = rmp_serde::to_vec_named(&original).expect("serialize");
         let decoded: StoredAppConfig = rmp_serde::from_slice(&bytes).expect("deserialize");
-        let StoredAppConfig::V1(config) = decoded;
-        assert_eq!(config.popover.behavior.toggle_debounce_ms.0, 300);
+        assert!(
+            matches!(decoded, StoredAppConfig::V1(config) if config.popover.behavior.toggle_debounce_ms.0 == 300)
+        );
     }
 
     #[test]
@@ -202,7 +221,10 @@ mod tests {
             {
                 let mut table = write_txn.open_table(CONFIG_TABLE).expect("open table");
                 table
-                    .insert("other_key", &StoredAppConfig::V1(AppConfig::default()))
+                    .insert(
+                        "other_key",
+                        ConfigRecord::encode(&StoredAppConfig::V1(&AppConfig::default())).unwrap(),
+                    )
                     .expect("insert");
             }
             write_txn.commit().expect("commit");
@@ -235,5 +257,50 @@ mod tests {
         let db2 = Database::create(&db_path).expect("reopen db");
         let store2 = AppConfigStore::new(db2).expect("create store 2");
         assert_eq!(store2.get().popover.behavior.toggle_debounce_ms, Milliseconds(999));
+    }
+
+    // -------------------------------------------------------------------------
+    // Shared MessagePack adapter — a second record type
+    // -------------------------------------------------------------------------
+
+    #[derive(Debug, PartialEq, Serialize, Deserialize)]
+    struct Note {
+        text: String,
+    }
+
+    impl Record for Note {
+        const TYPE_NAME: &'static str = "MessagePack<kodogu_lib::config::store::tests::Note>";
+        type Encode<'a> = Note;
+    }
+
+    const NOTE_TABLE: TableDefinition<&str, MessagePack<'static, Note>> =
+        TableDefinition::new("notes");
+    const NOTE_AS_CONFIG_TABLE: TableDefinition<&str, MessagePack<'static, Note>> =
+        TableDefinition::new("config");
+
+    #[test]
+    fn a_second_record_type_reuses_the_adapter_but_not_the_settings_table() {
+        let store = AppConfigStore::new(in_memory_db()).expect("create store");
+        let note = Note { text: "second record".to_string() };
+
+        let write_txn = store.db.begin_write().expect("begin write");
+        {
+            let mut table = write_txn.open_table(NOTE_TABLE).expect("open table");
+            let encoded = MessagePack::<Note>::encode(&note).expect("encode");
+            table.insert("note", encoded).expect("insert");
+        }
+        write_txn.commit().expect("commit");
+
+        let read_txn = store.db.begin_read().expect("begin read");
+        let table = read_txn.open_table(NOTE_TABLE).expect("open table");
+        let stored = table.get("note").expect("read").expect("note exists");
+        assert_eq!(stored.value().decode().expect("decode"), note);
+
+        // Naming the settings table does not help: redb rejects the other record's identity.
+        let write_txn = store.db.begin_write().expect("begin write");
+        assert!(matches!(
+            write_txn.open_table(NOTE_AS_CONFIG_TABLE),
+            Err(redb::TableError::TableTypeMismatch { .. })
+        ));
     }
 }
