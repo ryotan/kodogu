@@ -16,12 +16,11 @@ members = [
 [workspace.lints.rust]
 unsafe_code = "forbid"
 
-[workspace.dependencies]
-# Workspace members
-codec = { path = './kernel/codec' }
-crypto = { path = './kernel/crypto' }
+[workspace.lints.cargo]
+# kernel/crypto does not use ed25519-dalek, p256, p384, rand and rsa yet; revisit after kodogu#153.
+unused_dependencies = "allow"
 
-# External crates
+[workspace.dependencies]
 aes = { version = "=0.8.4", features = ["zeroize"] }
 aes-gcm = { version = "=0.10.3", features = ["zeroize"] }
 aes-gcm-siv = "=0.11.1"
@@ -37,7 +36,6 @@ ctr = { version = "=0.9.2", features = ["zeroize"] }
 data-encoding = "=2.11.1"
 data-encoding-macro = "=0.1.21"
 ed25519-dalek = "=2.2.0"
-futures = "=0.3.34"
 hex-literal = "=1.1.0"
 hkdf = "=0.12.4"
 hmac = "=0.12.1"
