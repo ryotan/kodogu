@@ -1,0 +1,13 @@
+[package]
+name = "tools-t-cli"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+tools-t-types = { path = "../types" }
+kernel-a = { path = "../../../kernel/a" }
+apps-cli-foundation = { path = "../../../apps/cli/foundation" }
+apps-resident-foundation = { path = "../../../apps/resident/foundation" }

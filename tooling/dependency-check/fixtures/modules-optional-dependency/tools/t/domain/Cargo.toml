@@ -1,0 +1,10 @@
+[package]
+name = "tools-t-domain"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+kernel-helper = { path = "../../../kernel/helper", optional = true }

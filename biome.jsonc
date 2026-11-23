@@ -151,6 +151,8 @@
       "!**/patches",
       "!**/src-tauri",
       "!apps/desktop/routing/gen",
+      // Its imports break the rules on purpose; `lint:deps:fixtures` checks them.
+      "!apps/desktop/dependency-fixtures",
       "!kernel",
       "!**/*.svg"
     ],
@@ -169,6 +171,563 @@
         "**/eslint.config.mjs"
       ],
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
+    },
+    // The directions of imports inside a package of the desktop app. Each file matches one of these overrides at most,
+    // because where two match, the later one replaces the patterns of the earlier; so each holds every pattern for its
+    // files. Tests, stories, fixtures and the shared preview of Storybook match none: they may import what the package
+    // may.
+    // Every other file of a package of the desktop app
+    {
+      "includes": [
+        "apps/desktop/*/src/**",
+        "tools/*/desktop/src/**",
+        "apps/desktop/routing/src/**",
+        "apps/desktop/dependency-fixtures/routing/src/**",
+        "!apps/desktop/*/src/hooks/**",
+        "!tools/*/desktop/src/hooks/**",
+        "!apps/desktop/*/src/loaders/**",
+        "!tools/*/desktop/src/loaders/**",
+        "!apps/desktop/*/src/commands/**",
+        "!tools/*/desktop/src/commands/**",
+        "!apps/desktop/*/src/components/**",
+        "!tools/*/desktop/src/components/**",
+        "!apps/desktop/*/src/screens/**",
+        "!tools/*/desktop/src/screens/**",
+        "!apps/desktop/*/src/(dev)/**",
+        "!tools/*/desktop/src/(dev)/**",
+        "!apps/desktop/*/src/(prototype)/**",
+        "!tools/*/desktop/src/(prototype)/**",
+        "!apps/desktop/routing/src/**",
+        "!apps/desktop/dependency-fixtures/routing/src/**",
+        "apps/desktop/routing/src/router.ts",
+        "apps/desktop/dependency-fixtures/routing/src/router.ts",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.story.*",
+        "!**/*.fixture.*",
+        "!apps/desktop/foundation/src/storybook/**",
+        "!apps/desktop/dependency-fixtures/src/storybook/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["#(dev)/**", "#(dev)", "./**/(dev)/**", "./**/(dev)", "../**/(dev)/**", "../**/(dev)"],
+                    "message": "Only screens import (dev)/."
+                  },
+                  {
+                    "group": [
+                      "#(prototype)/**",
+                      "#(prototype)",
+                      "./**/(prototype)/**",
+                      "./**/(prototype)",
+                      "../**/(prototype)/**",
+                      "../**/(prototype)"
+                    ],
+                    "message": "Only screens import (prototype)/."
+                  },
+                  {
+                    "group": [
+                      "**/*.test",
+                      "**/*.test.*",
+                      "**/*.spec",
+                      "**/*.spec.*",
+                      "**/*.story",
+                      "**/*.story.*",
+                      "**/*.fixture",
+                      "**/*.fixture.*",
+                      "#storybook/**",
+                      "#storybook",
+                      "./**/storybook/**",
+                      "./**/storybook",
+                      "../**/storybook/**",
+                      "../**/storybook",
+                      "@kodogu/desktop-foundation/storybook/**",
+                      "@kodogu/desktop-foundation/storybook"
+                    ],
+                    "message": "Production code may not import tests, stories, fixtures or the shared preview of Storybook."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    // Hooks and loaders
+    {
+      "includes": [
+        "apps/desktop/*/src/hooks/**",
+        "tools/*/desktop/src/hooks/**",
+        "apps/desktop/*/src/loaders/**",
+        "tools/*/desktop/src/loaders/**",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.story.*",
+        "!**/*.fixture.*",
+        "!apps/desktop/foundation/src/storybook/**",
+        "!apps/desktop/dependency-fixtures/src/storybook/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "#screens/**",
+                      "#screens",
+                      "./**/screens/**",
+                      "./**/screens",
+                      "../**/screens/**",
+                      "../**/screens"
+                    ],
+                    "message": "Only the map of screens imports a screen."
+                  },
+                  {
+                    "group": [
+                      "#components/**",
+                      "#components",
+                      "./**/components/**",
+                      "./**/components",
+                      "../**/components/**",
+                      "../**/components"
+                    ],
+                    "message": "A hook, loader or command may not import a component."
+                  },
+                  {
+                    "group": ["#(dev)/**", "#(dev)", "./**/(dev)/**", "./**/(dev)", "../**/(dev)/**", "../**/(dev)"],
+                    "message": "Only screens import (dev)/."
+                  },
+                  {
+                    "group": [
+                      "#(prototype)/**",
+                      "#(prototype)",
+                      "./**/(prototype)/**",
+                      "./**/(prototype)",
+                      "../**/(prototype)/**",
+                      "../**/(prototype)"
+                    ],
+                    "message": "Only screens import (prototype)/."
+                  },
+                  {
+                    "group": [
+                      "**/*.test",
+                      "**/*.test.*",
+                      "**/*.spec",
+                      "**/*.spec.*",
+                      "**/*.story",
+                      "**/*.story.*",
+                      "**/*.fixture",
+                      "**/*.fixture.*",
+                      "#storybook/**",
+                      "#storybook",
+                      "./**/storybook/**",
+                      "./**/storybook",
+                      "../**/storybook/**",
+                      "../**/storybook",
+                      "@kodogu/desktop-foundation/storybook/**",
+                      "@kodogu/desktop-foundation/storybook"
+                    ],
+                    "message": "Production code may not import tests, stories, fixtures or the shared preview of Storybook."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    // Commands
+    {
+      "includes": [
+        "apps/desktop/*/src/commands/**",
+        "tools/*/desktop/src/commands/**",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.story.*",
+        "!**/*.fixture.*",
+        "!apps/desktop/foundation/src/storybook/**",
+        "!apps/desktop/dependency-fixtures/src/storybook/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "#screens/**",
+                      "#screens",
+                      "./**/screens/**",
+                      "./**/screens",
+                      "../**/screens/**",
+                      "../**/screens"
+                    ],
+                    "message": "Only the map of screens imports a screen."
+                  },
+                  {
+                    "group": [
+                      "#components/**",
+                      "#components",
+                      "./**/components/**",
+                      "./**/components",
+                      "../**/components/**",
+                      "../**/components"
+                    ],
+                    "message": "A hook, loader or command may not import a component."
+                  },
+                  {
+                    "group": ["#hooks/**", "#hooks", "./**/hooks/**", "./**/hooks", "../**/hooks/**", "../**/hooks"],
+                    "message": "A command may not import a hook."
+                  },
+                  {
+                    "group": ["#(dev)/**", "#(dev)", "./**/(dev)/**", "./**/(dev)", "../**/(dev)/**", "../**/(dev)"],
+                    "message": "Only screens import (dev)/."
+                  },
+                  {
+                    "group": [
+                      "#(prototype)/**",
+                      "#(prototype)",
+                      "./**/(prototype)/**",
+                      "./**/(prototype)",
+                      "../**/(prototype)/**",
+                      "../**/(prototype)"
+                    ],
+                    "message": "Only screens import (prototype)/."
+                  },
+                  {
+                    "group": [
+                      "**/*.test",
+                      "**/*.test.*",
+                      "**/*.spec",
+                      "**/*.spec.*",
+                      "**/*.story",
+                      "**/*.story.*",
+                      "**/*.fixture",
+                      "**/*.fixture.*",
+                      "#storybook/**",
+                      "#storybook",
+                      "./**/storybook/**",
+                      "./**/storybook",
+                      "../**/storybook/**",
+                      "../**/storybook",
+                      "@kodogu/desktop-foundation/storybook/**",
+                      "@kodogu/desktop-foundation/storybook"
+                    ],
+                    "message": "Production code may not import tests, stories, fixtures or the shared preview of Storybook."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    // Components
+    {
+      "includes": [
+        "apps/desktop/*/src/components/**",
+        "tools/*/desktop/src/components/**",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.story.*",
+        "!**/*.fixture.*",
+        "!apps/desktop/foundation/src/storybook/**",
+        "!apps/desktop/dependency-fixtures/src/storybook/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "#screens/**",
+                      "#screens",
+                      "./**/screens/**",
+                      "./**/screens",
+                      "../**/screens/**",
+                      "../**/screens"
+                    ],
+                    "message": "Only the map of screens imports a screen."
+                  },
+                  {
+                    "group": ["#(dev)/**", "#(dev)", "./**/(dev)/**", "./**/(dev)", "../**/(dev)/**", "../**/(dev)"],
+                    "message": "Only screens import (dev)/."
+                  },
+                  {
+                    "group": [
+                      "#(prototype)/**",
+                      "#(prototype)",
+                      "./**/(prototype)/**",
+                      "./**/(prototype)",
+                      "../**/(prototype)/**",
+                      "../**/(prototype)"
+                    ],
+                    "message": "Only screens import (prototype)/."
+                  },
+                  {
+                    "group": [
+                      "**/*.test",
+                      "**/*.test.*",
+                      "**/*.spec",
+                      "**/*.spec.*",
+                      "**/*.story",
+                      "**/*.story.*",
+                      "**/*.fixture",
+                      "**/*.fixture.*",
+                      "#storybook/**",
+                      "#storybook",
+                      "./**/storybook/**",
+                      "./**/storybook",
+                      "../**/storybook/**",
+                      "../**/storybook",
+                      "@kodogu/desktop-foundation/storybook/**",
+                      "@kodogu/desktop-foundation/storybook"
+                    ],
+                    "message": "Production code may not import tests, stories, fixtures or the shared preview of Storybook."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    // Screens
+    {
+      "includes": [
+        "apps/desktop/*/src/screens/**",
+        "tools/*/desktop/src/screens/**",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.story.*",
+        "!**/*.fixture.*",
+        "!apps/desktop/foundation/src/storybook/**",
+        "!apps/desktop/dependency-fixtures/src/storybook/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "**/*.test",
+                      "**/*.test.*",
+                      "**/*.spec",
+                      "**/*.spec.*",
+                      "**/*.story",
+                      "**/*.story.*",
+                      "**/*.fixture",
+                      "**/*.fixture.*",
+                      "#storybook/**",
+                      "#storybook",
+                      "./**/storybook/**",
+                      "./**/storybook",
+                      "../**/storybook/**",
+                      "../**/storybook",
+                      "@kodogu/desktop-foundation/storybook/**",
+                      "@kodogu/desktop-foundation/storybook"
+                    ],
+                    "message": "Production code may not import tests, stories, fixtures or the shared preview of Storybook."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    // (dev)/
+    {
+      "includes": [
+        "apps/desktop/*/src/(dev)/**",
+        "tools/*/desktop/src/(dev)/**",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.story.*",
+        "!**/*.fixture.*",
+        "!apps/desktop/foundation/src/storybook/**",
+        "!apps/desktop/dependency-fixtures/src/storybook/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "#(prototype)/**",
+                      "#(prototype)",
+                      "./**/(prototype)/**",
+                      "./**/(prototype)",
+                      "../**/(prototype)/**",
+                      "../**/(prototype)"
+                    ],
+                    "message": "Only screens import (prototype)/."
+                  },
+                  {
+                    "group": [
+                      "**/*.test",
+                      "**/*.test.*",
+                      "**/*.spec",
+                      "**/*.spec.*",
+                      "**/*.story",
+                      "**/*.story.*",
+                      "**/*.fixture",
+                      "**/*.fixture.*",
+                      "#storybook/**",
+                      "#storybook",
+                      "./**/storybook/**",
+                      "./**/storybook",
+                      "../**/storybook/**",
+                      "../**/storybook",
+                      "@kodogu/desktop-foundation/storybook/**",
+                      "@kodogu/desktop-foundation/storybook"
+                    ],
+                    "message": "Production code may not import tests, stories, fixtures or the shared preview of Storybook."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    // (prototype)/
+    {
+      "includes": [
+        "apps/desktop/*/src/(prototype)/**",
+        "tools/*/desktop/src/(prototype)/**",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.story.*",
+        "!**/*.fixture.*",
+        "!apps/desktop/foundation/src/storybook/**",
+        "!apps/desktop/dependency-fixtures/src/storybook/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["#(dev)/**", "#(dev)", "./**/(dev)/**", "./**/(dev)", "../**/(dev)/**", "../**/(dev)"],
+                    "message": "Only screens import (dev)/."
+                  },
+                  {
+                    "group": [
+                      "**/*.test",
+                      "**/*.test.*",
+                      "**/*.spec",
+                      "**/*.spec.*",
+                      "**/*.story",
+                      "**/*.story.*",
+                      "**/*.fixture",
+                      "**/*.fixture.*",
+                      "#storybook/**",
+                      "#storybook",
+                      "./**/storybook/**",
+                      "./**/storybook",
+                      "../**/storybook/**",
+                      "../**/storybook",
+                      "@kodogu/desktop-foundation/storybook/**",
+                      "@kodogu/desktop-foundation/storybook"
+                    ],
+                    "message": "Production code may not import tests, stories, fixtures or the shared preview of Storybook."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    // The route definitions, without router.ts
+    {
+      "includes": [
+        "apps/desktop/routing/src/**",
+        "apps/desktop/dependency-fixtures/routing/src/**",
+        "!apps/desktop/routing/src/router.ts",
+        "!apps/desktop/dependency-fixtures/routing/src/router.ts",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*.story.*",
+        "!**/*.fixture.*",
+        "!apps/desktop/foundation/src/storybook/**",
+        "!apps/desktop/dependency-fixtures/src/storybook/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["./**/gen/**", "./**/gen", "../**/gen/**", "../**/gen"],
+                    "message": "Only router.ts imports the generated route tree."
+                  },
+                  {
+                    "group": ["#(dev)/**", "#(dev)", "./**/(dev)/**", "./**/(dev)", "../**/(dev)/**", "../**/(dev)"],
+                    "message": "Only screens import (dev)/."
+                  },
+                  {
+                    "group": [
+                      "#(prototype)/**",
+                      "#(prototype)",
+                      "./**/(prototype)/**",
+                      "./**/(prototype)",
+                      "../**/(prototype)/**",
+                      "../**/(prototype)"
+                    ],
+                    "message": "Only screens import (prototype)/."
+                  },
+                  {
+                    "group": [
+                      "**/*.test",
+                      "**/*.test.*",
+                      "**/*.spec",
+                      "**/*.spec.*",
+                      "**/*.story",
+                      "**/*.story.*",
+                      "**/*.fixture",
+                      "**/*.fixture.*",
+                      "#storybook/**",
+                      "#storybook",
+                      "./**/storybook/**",
+                      "./**/storybook",
+                      "../**/storybook/**",
+                      "../**/storybook",
+                      "@kodogu/desktop-foundation/storybook/**",
+                      "@kodogu/desktop-foundation/storybook"
+                    ],
+                    "message": "Production code may not import tests, stories, fixtures or the shared preview of Storybook."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

@@ -1,0 +1,13 @@
+{
+  "name": "@fixture/apps-desktop-foundation",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./*": "./src/a.test.ts",
+    "./\u0000": null,
+    "./a": null,
+    "./a*": null,
+    "./*.js": null
+  }
+}

@@ -1,0 +1,12 @@
+[package]
+name = "apps-resident-app"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+apps-resident-foundation = { path = "../foundation" }
+tools-t-resident = { path = "../../../tools/t/resident" }
+kernel-a = { path = "../../../kernel/a" }

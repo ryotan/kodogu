@@ -1,0 +1,2 @@
+1
+tools/t/desktop -> apps/desktop/app-root: tool-desktop may not depend on desktop-startup

@@ -60,3 +60,6 @@ test-results.json
 storybook-static
 
 _[sS]cratch*.*
+
+# The configuration of Biome that `lint:deps:fixtures` writes while it runs
+/.dependency-fixtures.biome.json

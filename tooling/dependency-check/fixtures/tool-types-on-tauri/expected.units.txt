@@ -1,0 +1,2 @@
+1
+tools/t/types -> tauri-plugin-opener: only the desktop app and the desktop parts of tools may depend on Tauri

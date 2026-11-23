@@ -1,0 +1,2 @@
+1
+tools/t/domain: the root of a domain crate does not declare use_cases

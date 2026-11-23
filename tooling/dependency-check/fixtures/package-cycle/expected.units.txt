@@ -1,0 +1,2 @@
+1
+apps/desktop/fa -> apps/desktop/fb -> apps/desktop/fa: a cycle between packages

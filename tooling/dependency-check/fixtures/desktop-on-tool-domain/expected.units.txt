@@ -1,0 +1,2 @@
+1
+apps/desktop/app-root/src-tauri -> tools/t/domain: desktop-startup may not depend on tool-domain

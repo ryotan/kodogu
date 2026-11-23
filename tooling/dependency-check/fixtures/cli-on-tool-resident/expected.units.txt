@@ -1,0 +1,2 @@
+1
+apps/cli/app -> tools/t/resident: cli-startup may not depend on tool-resident

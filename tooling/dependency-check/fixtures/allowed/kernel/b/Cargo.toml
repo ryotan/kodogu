@@ -1,0 +1,7 @@
+[package]
+name = "kernel-b"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true

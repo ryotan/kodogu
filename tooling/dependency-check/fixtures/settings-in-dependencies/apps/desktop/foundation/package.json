@@ -1,0 +1,9 @@
+{
+  "name": "@fixture/apps-desktop-foundation",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "optionalDependencies": {
+    "@fixture/tooling-s": "workspace:*"
+  }
+}

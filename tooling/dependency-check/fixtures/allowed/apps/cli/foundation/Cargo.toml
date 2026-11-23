@@ -1,0 +1,11 @@
+[package]
+name = "apps-cli-foundation"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+kernel-a = { path = "../../../kernel/a" }
+apps-resident-foundation = { path = "../../resident/foundation" }

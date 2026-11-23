@@ -1,0 +1,10 @@
+[package]
+name = "apps-cli-app"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+tools-t-resident = { path = "../../../tools/t/resident" }

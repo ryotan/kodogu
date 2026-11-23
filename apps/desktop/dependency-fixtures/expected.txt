@@ -1,0 +1,174 @@
+1
+apps/desktop/dependency-fixtures/routing/src/routes/devByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/routing/src/routes/devByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/routing/src/routes/devDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/routing/src/routes/devDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/routing/src/routes/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/routing/src/routes/genByPath.ts:1:23 lint/style/noRestrictedImports Only router.ts imports the generated route tree.
+apps/desktop/dependency-fixtures/routing/src/routes/genByType.ts:1:28 lint/style/noRestrictedImports Only router.ts imports the generated route tree.
+apps/desktop/dependency-fixtures/routing/src/routes/genDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only router.ts imports the generated route tree.
+apps/desktop/dependency-fixtures/routing/src/routes/prototypeByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/routing/src/routes/prototypeByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/routing/src/routes/prototypeDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/routing/src/routes/prototypeDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/routing/src/routes/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/routing/src/routes/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/routing/src/routes/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/routing/src/routes/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/routing/src/routes/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/routing/src/routes/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/routing/src/routes/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/routing/src/routes/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/prototypeByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/(dev)/prototypeByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/(dev)/prototypeDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/(dev)/prototypeDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/(dev)/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(dev)/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/devByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/(prototype)/devByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/(prototype)/devDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/(prototype)/devDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/(prototype)/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/(prototype)/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/componentByAlias.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/commands/componentByPath.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/commands/componentDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/commands/componentDirectoryByPath.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/commands/devByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/commands/devByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/commands/devDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/commands/devDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/commands/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/hookByAlias.ts:1:23 lint/style/noRestrictedImports A command may not import a hook.
+apps/desktop/dependency-fixtures/src/commands/hookByPath.ts:1:23 lint/style/noRestrictedImports A command may not import a hook.
+apps/desktop/dependency-fixtures/src/commands/hookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports A command may not import a hook.
+apps/desktop/dependency-fixtures/src/commands/hookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports A command may not import a hook.
+apps/desktop/dependency-fixtures/src/commands/prototypeByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/commands/prototypeByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/commands/prototypeDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/commands/prototypeDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/commands/screenByAlias.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/commands/screenByPath.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/commands/screenDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/commands/screenDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/commands/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/commands/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/devByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/components/devByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/components/devDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/components/devDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/components/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/prototypeByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/components/prototypeByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/components/prototypeDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/components/prototypeDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/components/screenByAlias.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/components/screenByPath.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/components/screenDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/components/screenDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/components/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/components/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/devByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/devByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/devDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/devDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/componentByAlias.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/hooks/componentByPath.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/hooks/componentDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/hooks/componentDirectoryByPath.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/hooks/devByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/hooks/devByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/hooks/devDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/hooks/devDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/hooks/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/prototypeByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/hooks/prototypeByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/hooks/prototypeDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/hooks/prototypeDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/hooks/screenByAlias.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/hooks/screenByPath.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/hooks/screenDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/hooks/screenDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/hooks/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/hooks/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/componentByAlias.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/loaders/componentByPath.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/loaders/componentDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/loaders/componentDirectoryByPath.ts:1:23 lint/style/noRestrictedImports A hook, loader or command may not import a component.
+apps/desktop/dependency-fixtures/src/loaders/devByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/loaders/devByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/loaders/devDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/loaders/devDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (dev)/.
+apps/desktop/dependency-fixtures/src/loaders/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/prototypeByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/loaders/prototypeByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/loaders/prototypeDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/loaders/prototypeDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/loaders/screenByAlias.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/loaders/screenByPath.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/loaders/screenDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/loaders/screenDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only the map of screens imports a screen.
+apps/desktop/dependency-fixtures/src/loaders/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/loaders/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/prototypeByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/prototypeByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/prototypeDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/prototypeDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Only screens import (prototype)/.
+apps/desktop/dependency-fixtures/src/screens/fixture.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/screens/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/screens/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/screens/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/screens/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/screens/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/screens/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/screens/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/screens/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/spec.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/story.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/storybookByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/storybookByPackage.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/storybookByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/storybookDirectoryByAlias.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/storybookDirectoryByPath.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+apps/desktop/dependency-fixtures/src/test.ts:1:23 lint/style/noRestrictedImports Production code may not import tests, stories, fixtures or the shared preview of Storybook.
+

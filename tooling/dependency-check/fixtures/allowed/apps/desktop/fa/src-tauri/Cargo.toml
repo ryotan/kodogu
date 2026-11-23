@@ -1,0 +1,12 @@
+[package]
+name = "apps-desktop-fa"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+kernel-a = { path = "../../../../kernel/a" }
+apps-resident-foundation = { path = "../../../resident/foundation" }
+apps-desktop-fb = { path = "../../fb/src-tauri" }

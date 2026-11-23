@@ -1,0 +1,2 @@
+1
+apps/desktop/foundation/src-tauri -> tools/t/desktop/src-tauri: desktop-foundation may not depend on tool-desktop

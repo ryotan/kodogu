@@ -1,0 +1,10 @@
+[package]
+name = "tools-t-macros"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lib]
+proc-macro = true
+
+[lints]
+workspace = true

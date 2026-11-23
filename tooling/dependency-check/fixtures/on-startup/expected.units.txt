@@ -1,0 +1,2 @@
+1
+apps/desktop/foundation/src-tauri -> apps/desktop/app-root/src-tauri: desktop-foundation may not depend on desktop-startup

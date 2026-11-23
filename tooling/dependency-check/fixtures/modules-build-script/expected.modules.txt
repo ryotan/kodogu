@@ -1,0 +1,2 @@
+1
+tools/t/domain: a domain crate may not have a build script, whose cfg values the check cannot reproduce

@@ -1,0 +1,10 @@
+[package]
+name = "tools-t-types"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[target.'cfg(windows)'.dependencies]
+kernel-a = { path = "../../../kernel/a" }

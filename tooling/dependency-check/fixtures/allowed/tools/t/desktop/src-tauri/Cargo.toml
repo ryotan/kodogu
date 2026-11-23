@@ -1,0 +1,15 @@
+[package]
+name = "tools-t-desktop"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+tools-t-types = { path = "../../types" }
+kernel-a = { path = "../../../../kernel/a" }
+apps-desktop-foundation = { path = "../../../../apps/desktop/foundation/src-tauri" }
+apps-desktop-fa = { path = "../../../../apps/desktop/fa/src-tauri" }
+apps-resident-foundation = { path = "../../../../apps/resident/foundation" }
+tauri = "2"

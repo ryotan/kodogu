@@ -1,0 +1,9 @@
+{
+  "name": "@fixture/apps-desktop-routing",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "devDependencies": {
+    "@fixture/tooling-s": "workspace:*"
+  }
+}

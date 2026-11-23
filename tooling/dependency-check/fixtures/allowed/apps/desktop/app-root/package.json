@@ -1,0 +1,12 @@
+{
+  "name": "@fixture/apps-desktop-app-root",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@fixture/apps-desktop-routing": "workspace:*",
+    "@fixture/apps-desktop-fa": "workspace:*",
+    "@fixture/apps-desktop-foundation": "workspace:*",
+    "@fixture/tools-t-desktop": "workspace:*"
+  }
+}
