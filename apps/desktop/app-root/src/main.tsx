@@ -1,37 +1,29 @@
 import '@radix-ui/themes/styles.css';
-import './main.css';
+import '@kodogu/desktop-foundation/main.css';
 
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 
 import {QueryClientProvider, QueryErrorResetBoundary} from '@tanstack/react-query';
-import {createRouter, RouterProvider} from '@tanstack/react-router';
+import {RouterProvider} from '@tanstack/react-router';
 
+import {AppErrorPage} from '@kodogu/desktop-foundation/components/AppErrorPage';
+import {PopoverRouteErrorPage} from '@kodogu/desktop-foundation/components/PopoverRouteErrorPage';
+import {createQueryClient} from '@kodogu/desktop-foundation/createQueryClient';
+import {loadAppConfig} from '@kodogu/desktop-foundation/loaders/loadAppConfig';
+import {foundationScreens} from '@kodogu/desktop-foundation/screens';
+import {createAppRouter} from '@kodogu/desktop-routing/router';
 import {ErrorBoundary} from 'react-error-boundary';
-
-import {AppErrorPage} from '#components/AppErrorPage';
-import {PopoverRouteErrorPage} from '#components/PopoverRouteErrorPage';
-import {createQueryClient} from '#createQueryClient';
-
-// Import the generated route tree
-import {routeTree} from '!#router/routes';
 
 const queryClient = createQueryClient();
 
-// Create a new router instance with queryClient context for route-level data loading.
-const router = createRouter({
-  routeTree,
-  context: {queryClient},
+// This package integrates the application: it hands the route definitions what their loaders need, and attaches the
+// screens of the foundation and of every tool. The argument does not type-check while a route has no screen.
+const router = createAppRouter({
+  context: {queryClient, loadBeforeFirstScreen: () => loadAppConfig(queryClient)},
   defaultErrorComponent: PopoverRouteErrorPage,
+  screens: foundationScreens,
 });
-
-// Register the router instance for type safety
-declare module '@tanstack/react-router' {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- Register requires declaration merging.
-  interface Register {
-    router: typeof router;
-  }
-}
 
 const root = document.getElementById('root');
 if (!root) {

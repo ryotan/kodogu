@@ -1,10 +1,8 @@
 import type {ReactElement} from 'react';
 
-import './index.css';
+import './StarterPage.css';
 
 import {useState} from 'react';
-
-import {createFileRoute} from '@tanstack/react-router';
 
 import {Flex} from '@radix-ui/themes';
 
@@ -19,7 +17,7 @@ const formInput = type({
 });
 const initialValues = {name: ''} satisfies typeof formInput.infer;
 
-function App(): ReactElement {
+export function StarterPage(): ReactElement {
   const [greetMsg, setGreetMsg] = useState('');
 
   const form = useAppForm({
@@ -64,7 +62,3 @@ function App(): ReactElement {
     </main>
   );
 }
-
-export const Route = createFileRoute('/_app/')({
-  component: App,
-});

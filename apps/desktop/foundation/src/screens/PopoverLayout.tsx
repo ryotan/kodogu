@@ -1,7 +1,6 @@
 import type {ReactElement} from 'react';
 
-import {createFileRoute} from '@tanstack/react-router';
-import './popover.css';
+import './PopoverLayout.css';
 
 import {PlusIcon} from '@radix-ui/react-icons';
 import {Flex, IconButton, Theme} from '@radix-ui/themes';
@@ -13,7 +12,7 @@ import {useAutoResize} from '#hooks/useAutoResize';
 // Popover shell — window management and layout skeleton
 // =============================================================================
 
-function PopoverLayout(): ReactElement {
+export function PopoverLayout(): ReactElement {
   const {resizeCallbackRef} = useAutoResize();
 
   return (
@@ -36,7 +35,3 @@ function PopoverLayout(): ReactElement {
     </Theme>
   );
 }
-
-export const Route = createFileRoute('/popover')({
-  component: PopoverLayout,
-});

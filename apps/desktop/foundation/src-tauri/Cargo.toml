@@ -1,0 +1,31 @@
+[package]
+name = "kodogu-desktop-foundation"
+description = { workspace = true }
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+kodogu-resident-foundation = { workspace = true }
+redb = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+suzunari-error = { workspace = true }
+tauri = { workspace = true, features = ["image-png", "tracing", "tray-icon", "macos-private-api"] }
+tauri-plugin-deep-link = { workspace = true }
+time = { workspace = true, features = ["macros", "serde-human-readable", "local-offset"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["time", "env-filter"] }
+
+[dev-dependencies]
+tauri = { workspace = true, features = ["test"] }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-single-instance = { workspace = true, features = ["deep-link"] }

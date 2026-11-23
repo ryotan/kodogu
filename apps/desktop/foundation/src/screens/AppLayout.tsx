@@ -1,14 +1,16 @@
-import {createFileRoute, Outlet} from '@tanstack/react-router';
+import type {ReactElement} from 'react';
+
+import {Outlet} from '@tanstack/react-router';
 
 import {Theme} from '@radix-ui/themes';
 
 import {RadixThemePanel} from '#(dev)/RadixThemePanel';
 
-export const Route = createFileRoute('/_app')({
-  component: () => (
+export function AppLayout(): ReactElement {
+  return (
     <Theme panelBackground='solid'>
       <Outlet />
       <RadixThemePanel />
     </Theme>
-  ),
-});
+  );
+}

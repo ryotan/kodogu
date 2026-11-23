@@ -1,0 +1,33 @@
+{
+  "name": "@kodogu/desktop-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "@kodogu/desktop-foundation": "workspace:*",
+    "@kodogu/desktop-routing": "workspace:*",
+    "@radix-ui/themes": "catalog:default",
+    "@tanstack/react-query": "catalog:default",
+    "@tanstack/react-router": "catalog:default",
+    "react": "catalog:default",
+    "react-dom": "catalog:default",
+    "react-error-boundary": "catalog:default"
+  },
+  "devDependencies": {
+    "@kodogu/eslint-config": "workspace:*",
+    "@kodogu/tsconfig": "workspace:*",
+    "@kodogu/vitest-config": "workspace:*",
+    "@tanstack/router-plugin": "catalog:default",
+    "@tauri-apps/cli": "catalog:default",
+    "@types/node": "catalog:default",
+    "@types/react": "catalog:default",
+    "@types/react-dom": "catalog:default",
+    "@vitejs/plugin-react": "catalog:default",
+    "@vitest/coverage-v8": "catalog:default",
+    "eslint": "catalog:default",
+    "playwright": "catalog:default",
+    "typescript": "catalog:default",
+    "vite": "catalog:default",
+    "vitest": "catalog:default"
+  }
+}

@@ -1,5 +1,5 @@
 import '@radix-ui/themes/styles.css';
-import '../src/main.css';
+import '../main.css';
 import './radix-ui-theme.css';
 
 import type {FC, ReactNode} from 'react';
@@ -9,10 +9,12 @@ import {QueryClientProvider} from '@tanstack/react-query';
 import {Theme} from '@radix-ui/themes';
 
 import type {Preview} from '@storybook/react-vite';
-import {sb} from 'storybook/test';
 
 import {createQueryClient} from '#createQueryClient';
 import {useStable} from '#hooks/useStable';
+
+// The decorators and parameters of the stories of the desktop app. The `.storybook/preview.tsx` of `foundation` and of
+// each tool spreads them and adds its own mocks.
 
 // A client per story keeps one story's cached data and errors out of the others.
 function StoryQueryClientProvider({children}: {children: ReactNode}) {
@@ -20,10 +22,7 @@ function StoryQueryClientProvider({children}: {children: ReactNode}) {
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
-sb.mock(import('../src/reportError.ts'), {spy: true});
-sb.mock(import('../src/commands/popover.ts'), {spy: true});
-
-const preview: Preview = {
+export const preview: Preview = {
   parameters: {
     controls: {
       matchers: {
@@ -44,5 +43,3 @@ const preview: Preview = {
     },
   ],
 };
-
-export default preview;
