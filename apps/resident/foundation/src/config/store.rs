@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use suzunari_error::*;
 
 use super::domain::AppConfig;
-use crate::store::MessagePack;
+use store::MessagePack;
 
 const CONFIG_TABLE: TableDefinition<&str, MessagePack<StoredAppConfig>> =
     TableDefinition::new("config");
@@ -53,7 +53,7 @@ pub enum ConfigError {
 // =============================================================================
 
 /// Manages a shared redb database handle and a cached in-memory copy of `AppConfig`.
-pub(crate) struct AppConfigStore {
+pub struct AppConfigStore {
     db: Database,
     /// Holds a whole `AppConfig` even after a panic: `set()` can only panic before it replaces the value.
     cached: RwLock<AppConfig>,
@@ -62,7 +62,7 @@ pub(crate) struct AppConfigStore {
 impl AppConfigStore {
     /// Creates a new store from a database handle and loads the stored config.
     /// On first launch when no config exists, writes and caches `AppConfig::default()`.
-    pub(crate) fn new(db: Database) -> Result<Self, ConfigError> {
+    pub fn new(db: Database) -> Result<Self, ConfigError> {
         let mut store = Self { db, cached: RwLock::new(AppConfig::default()) };
         let config = store.load_from_db()?;
         store.cached = RwLock::new(config);
@@ -111,12 +111,12 @@ impl AppConfigStore {
         write_txn.commit().context(CommitError {})
     }
 
-    pub(crate) fn get(&self) -> AppConfig {
+    pub fn get(&self) -> AppConfig {
         // Safe to recover from poisoning; see `cached`.
         self.cached.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
-    pub(crate) fn set(&self, config: AppConfig) -> Result<(), ConfigError> {
+    pub fn set(&self, config: AppConfig) -> Result<(), ConfigError> {
         // Hold the write lock across DB write + cache update so readers never see a stale cache
         // after a successful DB commit.
         // Safe to recover from poisoning; see `cached`.

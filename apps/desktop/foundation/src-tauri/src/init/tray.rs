@@ -17,7 +17,7 @@ pub enum TraySetupError {
     BuildIcon { source: tauri::Error },
 }
 
-pub(crate) fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<TrayIcon<R>, TraySetupError> {
+pub fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<TrayIcon<R>, TraySetupError> {
     let icon =
         Image::from_bytes(include_bytes!("../../icons/tray-icon.png")).context(IconLoadError)?;
 

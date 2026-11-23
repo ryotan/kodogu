@@ -7,7 +7,7 @@ pub struct DeepLinkSetupError {
     source: tauri_plugin_deep_link::Error,
 }
 
-pub(crate) fn setup<R: Runtime>(
+pub fn setup<R: Runtime>(
     #[cfg_attr(target_os = "macos", allow(unused_variables))] app: &AppHandle<R>,
 ) -> Result<(), DeepLinkSetupError> {
     #[cfg(any(windows, target_os = "linux"))]

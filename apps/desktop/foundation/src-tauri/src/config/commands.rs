@@ -2,8 +2,7 @@ use serde::Serialize;
 use suzunari_error::StackReport;
 use tauri::State;
 
-use super::domain::AppConfig;
-use super::store::{AppConfigStore, ConfigError};
+use kodogu_resident_foundation::config::{AppConfig, AppConfigStore, ConfigError};
 
 // =============================================================================
 // Command error type
@@ -15,7 +14,7 @@ use super::store::{AppConfigStore, ConfigError};
 /// Using a newtype instead of `String` makes the intent explicit at the call site.
 #[derive(Debug, Serialize)]
 #[serde(transparent)]
-pub(crate) struct CommandError(String);
+pub struct CommandError(String);
 
 impl From<ConfigError> for CommandError {
     fn from(e: ConfigError) -> Self {
@@ -32,9 +31,7 @@ impl From<ConfigError> for CommandError {
 /// Async so Tauri runs this on the tokio thread pool instead of the main thread,
 /// keeping the UI responsive even if `RwLock::read()` briefly contends.
 #[tauri::command]
-pub(crate) async fn get_config(
-    state: State<'_, AppConfigStore>,
-) -> Result<AppConfig, CommandError> {
+pub async fn get_config(state: State<'_, AppConfigStore>) -> Result<AppConfig, CommandError> {
     Ok(state.get())
 }
 
@@ -43,7 +40,7 @@ pub(crate) async fn get_config(
 /// Async so Tauri runs this on the tokio thread pool, keeping the main thread
 /// free even though `begin_write()` may block synchronously.
 #[tauri::command]
-pub(crate) async fn set_config(
+pub async fn set_config(
     state: State<'_, AppConfigStore>,
     config: AppConfig,
 ) -> Result<(), CommandError> {
@@ -53,8 +50,7 @@ pub(crate) async fn set_config(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::AppConfigStore;
-    use crate::config::domain::{LogicalPixel, Milliseconds};
+    use kodogu_resident_foundation::config::domain::{LogicalPixel, Milliseconds};
     use redb::{Database, backends::InMemoryBackend};
     use tauri::Manager;
     use tauri::test::noop_assets;

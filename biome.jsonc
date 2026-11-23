@@ -60,6 +60,8 @@
               "**/_dev/**",
               "**/(dev)/**",
               "**/eslint.config.mjs",
+              "**/vitest.config.mjs",
+              "**/vitest.config.ts",
               "**/vite.config.ts",
               "**/vitest.workspace.ts",
               "**/.storybook/**"
@@ -142,7 +144,16 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/.idea", "!**/.github", "!**/patches", "!**/src-tauri", "!app/gen", "!kernel", "!**/*.svg"],
+    "includes": [
+      "**",
+      "!**/.idea",
+      "!**/.github",
+      "!**/patches",
+      "!**/src-tauri",
+      "!apps/desktop/routing/gen",
+      "!kernel",
+      "!**/*.svg"
+    ],
     "ignoreUnknown": true
   },
   "overrides": [
@@ -153,6 +164,8 @@
         "**/.storybook/main.ts",
         "**/.storybook/preview.tsx",
         "**/vite.config.ts",
+        "**/vitest.config.mjs",
+        "**/vitest.config.ts",
         "**/eslint.config.mjs"
       ],
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }

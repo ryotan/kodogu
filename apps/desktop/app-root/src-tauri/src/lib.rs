@@ -1,11 +1,7 @@
-use crate::init::popover::resize_popover;
+use kodogu_desktop_foundation::{config, init};
 use suzunari_error::*;
 use tauri::Runtime;
 use time::UtcOffset;
-
-mod config;
-mod init;
-mod store;
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
@@ -64,7 +60,7 @@ pub fn run() -> Result<(), RunError> {
     #[cfg(desktop)]
     {
         builder = builder.invoke_handler(tauri::generate_handler![
-            resize_popover,
+            init::popover::resize_popover,
             config::commands::get_config,
             config::commands::set_config,
         ]);

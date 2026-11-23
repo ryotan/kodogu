@@ -10,6 +10,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router';
 
+import type {RouterContext} from '@kodogu/desktop-routing/router';
 import type {Meta, StoryObj} from '@storybook/react-vite';
 import {create} from 'mutative';
 import {expect, waitFor} from 'storybook/test';
@@ -21,8 +22,7 @@ import {createQueryClient} from '#createQueryClient';
 import {appConfigQuery} from '#hooks/useAppConfig';
 import {useStable} from '#hooks/useStable';
 
-import type {RouterContext} from './__root';
-import {RootLayout} from './__root';
+import {RootLayout} from './RootLayout';
 
 const updatedConfig = create(appConfigFixture, draft => {
   draft.popover.appearance.surfaceColor = CssColor('rgba(1, 2, 3, 1)');
@@ -48,7 +48,7 @@ function RootExample(): ReactElement {
     return createRouter({
       routeTree: root.addChildren([child]),
       history: createMemoryHistory({initialEntries: ['/']}),
-      context: {queryClient},
+      context: {queryClient, loadBeforeFirstScreen: () => Promise.resolve()},
     });
   });
   useEffect(() => () => queryClient.clear(), [queryClient]);

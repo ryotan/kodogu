@@ -58,7 +58,7 @@ impl PopoverState {
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
-pub(crate) enum PopoverError {
+pub enum PopoverError {
     #[suzu(display("Popover window config not found in tauri.conf.json (label: {label})"))]
     ConfigNotFound { label: String },
     #[suzu(transparent)]
@@ -68,7 +68,7 @@ pub(crate) enum PopoverError {
 /// Tauri command: JS calls this to resize the popover window.
 /// The actual height is capped at the current `max_height` in `PopoverState`.
 #[tauri::command]
-pub(crate) fn resize_popover<R: Runtime>(app: AppHandle<R>, width: f64, height: f64) {
+pub fn resize_popover<R: Runtime>(app: AppHandle<R>, width: f64, height: f64) {
     if !width.is_finite() || !height.is_finite() || width <= 0.0 || height <= 0.0 {
         tracing::trace!("[resize_popover] skipped: invalid dimensions ({width}, {height})");
         return;
@@ -89,7 +89,7 @@ pub(crate) fn resize_popover<R: Runtime>(app: AppHandle<R>, width: f64, height: 
 
 /// Initial setup for the popover window.
 /// Registers `PopoverState` into Tauri's managed state, then wires up window event listeners.
-pub(crate) fn setup<R: Runtime>(app: &AppHandle<R>) {
+pub fn setup<R: Runtime>(app: &AppHandle<R>) {
     app.manage(PopoverState::new());
     match app.get_webview_window(POPOVER_LABEL) {
         Some(window) => {
@@ -108,7 +108,7 @@ pub(crate) fn setup<R: Runtime>(app: &AppHandle<R>) {
 ///
 /// Debounces rapid successive calls (e.g., macOS double-click on tray icon)
 /// to prevent race conditions with window creation and visibility toggling.
-pub(crate) fn toggle<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
+pub fn toggle<R: Runtime>(app: &AppHandle<R>, tray_rect: Rect) {
     let now = Instant::now();
     {
         let state = app.state::<PopoverState>();

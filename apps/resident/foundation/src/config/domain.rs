@@ -9,7 +9,7 @@ macro_rules! newtype_string {
         $(#[$meta])*
         #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
         #[serde(transparent)]
-        pub(crate) struct $name(pub(crate) String);
+        pub struct $name(pub String);
 
         impl From<&str> for $name {
             fn from(s: &str) -> Self {
@@ -24,7 +24,7 @@ macro_rules! newtype_u64 {
         $(#[$meta])*
         #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
         #[serde(transparent)]
-        pub(crate) struct $name(pub(crate) u64);
+        pub struct $name(pub u64);
     };
 }
 
@@ -33,7 +33,7 @@ macro_rules! newtype_f64 {
         $(#[$meta])*
         #[derive(Debug, Clone, Copy, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
         #[serde(transparent)]
-        pub(crate) struct $name(pub(crate) f64);
+        pub struct $name(pub f64);
     };
 }
 
@@ -79,9 +79,9 @@ newtype_string! {
 /// Timing and interaction settings for the popover.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
-pub(crate) struct PopoverBehaviorConfig {
+pub struct PopoverBehaviorConfig {
     /// Debounce interval for tray icon clicks.
-    pub(crate) toggle_debounce_ms: Milliseconds,
+    pub toggle_debounce_ms: Milliseconds,
 }
 
 impl Default for PopoverBehaviorConfig {
@@ -93,21 +93,21 @@ impl Default for PopoverBehaviorConfig {
 /// Geometry and sizing settings for the popover.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
-pub(crate) struct PopoverLayoutConfig {
+pub struct PopoverLayoutConfig {
     /// Initial popover window width.
-    pub(crate) initial_width: LogicalPixel,
+    pub initial_width: LogicalPixel,
     /// Minimum gap between the popover bottom and the screen bottom edge (macOS only).
-    pub(crate) bottom_margin: LogicalPixel,
+    pub bottom_margin: LogicalPixel,
     /// Gap between the tray icon bottom edge and the popover top edge (macOS only).
-    pub(crate) tray_gap: LogicalPixel,
+    pub tray_gap: LogicalPixel,
     /// Fallback max height used when monitor info is unavailable.
-    pub(crate) fallback_max_height: LogicalPixel,
+    pub fallback_max_height: LogicalPixel,
     /// Lower bound for the computed max height, ensuring a minimum usable height.
-    pub(crate) min_max_height: LogicalPixel,
+    pub min_max_height: LogicalPixel,
     /// Height of the header bar.
-    pub(crate) header_height: CssLength,
+    pub header_height: CssLength,
     /// Padding for the card list container.
-    pub(crate) card_list_padding: CssPadding,
+    pub card_list_padding: CssPadding,
 }
 
 impl Default for PopoverLayoutConfig {
@@ -127,15 +127,15 @@ impl Default for PopoverLayoutConfig {
 /// Visual design tokens for the popover shell.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
-pub(crate) struct PopoverAppearanceConfig {
+pub struct PopoverAppearanceConfig {
     /// Background color of the popover window.
-    pub(crate) surface_color: CssColor,
+    pub surface_color: CssColor,
     /// Border color used for the header bottom separator.
-    pub(crate) border_color: CssColor,
+    pub border_color: CssColor,
     /// Backdrop filter applied to the popover for a frosted glass effect.
-    pub(crate) backdrop_filter: CssFilter,
+    pub backdrop_filter: CssFilter,
     /// Font family for the entire popover.
-    pub(crate) font_family: CssFontFamily,
+    pub font_family: CssFontFamily,
 }
 
 impl Default for PopoverAppearanceConfig {
@@ -154,10 +154,10 @@ impl Default for PopoverAppearanceConfig {
 /// All settings for the popover window.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
-pub(crate) struct PopoverConfig {
-    pub(crate) behavior: PopoverBehaviorConfig,
-    pub(crate) layout: PopoverLayoutConfig,
-    pub(crate) appearance: PopoverAppearanceConfig,
+pub struct PopoverConfig {
+    pub behavior: PopoverBehaviorConfig,
+    pub layout: PopoverLayoutConfig,
+    pub appearance: PopoverAppearanceConfig,
 }
 
 /// Application configuration persisted in redb and exposed to JavaScript via Tauri commands.
@@ -170,8 +170,8 @@ pub(crate) struct PopoverConfig {
 /// Renaming or changing field types requires bumping `StoredAppConfig` to a new variant.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
-pub(crate) struct AppConfig {
-    pub(crate) popover: PopoverConfig,
+pub struct AppConfig {
+    pub popover: PopoverConfig,
 }
 
 #[cfg(test)]

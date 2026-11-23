@@ -3,12 +3,7 @@ import {expect, mocked, waitFor, within} from 'storybook/test';
 
 import {resizePopover} from '#commands/popover';
 
-import {Route} from './popover';
-
-const PopoverLayout = Route.options.component;
-if (!PopoverLayout) {
-  throw new Error('PopoverLayout component is not defined');
-}
+import {PopoverLayout} from './PopoverLayout';
 
 const meta = {
   component: PopoverLayout,

@@ -17,7 +17,7 @@ pub enum LoggerSetupError {
     LogFileCreation { source: std::io::Error },
 }
 
-pub(crate) fn setup<R: Runtime>(
+pub fn setup<R: Runtime>(
     #[cfg_attr(not(all(desktop, not(debug_assertions))), allow(unused_variables))] app: &AppHandle<
         R,
     >,

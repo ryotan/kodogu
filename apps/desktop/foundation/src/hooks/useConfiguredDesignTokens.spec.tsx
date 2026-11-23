@@ -8,9 +8,9 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {create} from 'mutative';
 
 import {appConfigFixture} from '#commands/appConfig.fixture';
-import {useConfiguredDesignTokens} from '#components/useConfiguredDesignTokens';
 import {CssColor} from '#config';
 import {appConfigQuery} from '#hooks/useAppConfig';
+import {useConfiguredDesignTokens} from '#hooks/useConfiguredDesignTokens';
 
 const {mockInvoke} = vi.hoisted(() => ({mockInvoke: vi.fn().mockResolvedValue(undefined)}));
 

@@ -15,7 +15,7 @@ pub enum MenuSetupError {
     SetMenu { source: tauri::Error },
 }
 
-pub(crate) fn setup<R: Runtime>(app: &mut App<R>) -> Result<Option<Menu<R>>, MenuSetupError> {
+pub fn setup<R: Runtime>(app: &mut App<R>) -> Result<Option<Menu<R>>, MenuSetupError> {
     let handle = app.handle();
 
     let edit_menu = Submenu::with_items(

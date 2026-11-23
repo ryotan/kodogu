@@ -5,7 +5,7 @@ use redb::Database;
 use suzunari_error::*;
 use tauri::{Manager, Runtime};
 
-use crate::config::{AppConfigStore, ConfigError};
+use kodogu_resident_foundation::config::{AppConfigStore, ConfigError};
 
 #[suzunari_error]
 #[suzu(context(suffix(Error)))]
@@ -20,7 +20,7 @@ pub enum StoreSetupError {
     Configuration { source: ConfigError },
 }
 
-pub(crate) fn setup<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<(), StoreSetupError> {
+pub fn setup<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<(), StoreSetupError> {
     let data_dir = app.path().app_local_data_dir().context(AppLocalDataDirError {})?;
     create_dir_all(&data_dir).context(CreateDirError { path: data_dir.clone() })?;
 

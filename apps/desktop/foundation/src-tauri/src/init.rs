@@ -1,7 +1,7 @@
-pub(crate) mod deep_link;
-pub(crate) mod logger;
-pub(crate) mod menu;
-pub(crate) mod popover;
-pub(crate) mod single_instance;
-pub(crate) mod store;
-pub(crate) mod tray;
+pub mod deep_link;
+pub mod logger;
+pub mod menu;
+pub mod popover;
+pub mod single_instance;
+pub mod store;
+pub mod tray;
