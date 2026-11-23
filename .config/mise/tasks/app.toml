@@ -41,11 +41,7 @@ run = "mise run --tag frontend '//...:test'"
 
 ["app:test:coverage"]
 description = "Run the tests of every frontend package with coverage, and merge the reports into coverage/"
-run = """
-rm -rf .vitest-reports
-mise run --tag frontend '//...:test:coverage:blob'
-bun x --no-install vitest run --merge-reports=.vitest-reports --coverage
-"""
+run = "bun tooling/vitest-config/coverage-merge.ts"
 
 ["app:storybook:build"]
 description = "Build the Storybook of every package that has one"

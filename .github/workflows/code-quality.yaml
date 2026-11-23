@@ -147,6 +147,16 @@ jobs:
         run: mise run lint:biome -- --reporter=github
         continue-on-error: true  # Run all checks, then fail at the end
 
+      - id: deps
+        name: Dependency Directions
+        run: mise run lint:deps
+        continue-on-error: true  # Run all checks, then fail at the end
+
+      - id: deps-fixtures
+        name: Dependency Directions on Fixtures
+        run: mise run lint:deps:fixtures
+        continue-on-error: true  # Run all checks, then fail at the end
+
       - id: eslint
         name: ESLint
         run: mise run app:lint:es
@@ -173,24 +183,27 @@ jobs:
         continue-on-error: true  # Keep running the remaining checks if upload fails
         with:
           name: browser-test-failures-${{ runner.os }}
-          path: app/.vitest-attachments/
+          path: |
+            apps/desktop/*/.vitest-attachments/
+            tools/*/desktop/.vitest-attachments/
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 5
 
       - id: backend-test
         name: Backend Tests & Coverage${{ runner.os == 'Windows' && ' (excluding Tauri app)' || '' }}
-        # tauri-build 2.7.4 omits the Common Controls v6 manifest from the Windows app test executable.
-        # Keep kernel and CLI coverage until a released tauri-build supports resources in test executables.
+        # tauri-build 2.7.4 omits the Common Controls v6 manifest from the Windows test executables of the crates that
+        # depend on Tauri. Keep the coverage of the other crates until a released tauri-build supports resources in
+        # test executables.
         # WORKAROUND: wayland-client 0.31.8 uses not stable feature (`coverage_attribute`) of Rust 1.85.1 for coverage
-        run: mise run cargo:coverage -- --no-cfg-coverage ${{ runner.os == 'Windows' && '--exclude kodogu' || '' }}
+        run: mise run ${{ runner.os == 'Windows' && 'cargo:coverage:without-tauri' || 'cargo:coverage' }} -- --no-cfg-coverage
         continue-on-error: true  # Run all checks, then fail at the end
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: app/coverage/clover.xml,lcov.info
+          files: coverage/clover.xml,lcov.info
           flags: unittests
           name: codecov-${{ runner.os }}
           fail_ci_if_error: false  # Don't fail on Codecov service issues
@@ -203,6 +216,8 @@ jobs:
           echo "=== Check Results ==="
           echo "TypeScript: ${{ steps.tsc.outcome }}"
           echo "Biome: ${{ steps.biome.outcome }}"
+          echo "Dependency Directions: ${{ steps.deps.outcome }}"
+          echo "Dependency Directions on Fixtures: ${{ steps.deps-fixtures.outcome }}"
           echo "ESLint: ${{ steps.eslint.outcome }}"
           echo "Rust Format: ${{ steps.rustfmt.outcome }}"
           echo "Clippy: ${{ steps.clippy.outcome }}"
@@ -212,6 +227,8 @@ jobs:
 
           if [[ "${{ steps.tsc.outcome }}" == "failure" || \
                 "${{ steps.biome.outcome }}" == "failure" || \
+                "${{ steps.deps.outcome }}" == "failure" || \
+                "${{ steps.deps-fixtures.outcome }}" == "failure" || \
                 "${{ steps.eslint.outcome }}" == "failure" || \
                 "${{ steps.rustfmt.outcome }}" == "failure" || \
                 "${{ steps.clippy.outcome }}" == "failure" || \

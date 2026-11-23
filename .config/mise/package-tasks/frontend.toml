@@ -30,7 +30,4 @@ run = "bun x --no-install eslint --fix ."
 ["test:coverage:blob"]
 description = "Run the package's tests with coverage into a blob report that the root merges"
 tags = ["frontend"]
-run = '''
-name="${MISE_CONFIG_ROOT#"$MISE_MONOREPO_ROOT"/}"
-bun x --no-install vitest run --coverage --reporter=blob --outputFile="$MISE_MONOREPO_ROOT/.vitest-reports/${name//\//_}.json"
-'''
+run = "bun {{vars.repo_root}}/tooling/vitest-config/coverage-blob.ts"

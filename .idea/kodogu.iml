@@ -3,17 +3,23 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/app/src-tauri/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/desktop/app-root/src-tauri/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/desktop/foundation/src-tauri/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/desktop/app-root/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/desktop/routing/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/desktop/foundation/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/resident/foundation/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/kernel/codec/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/kernel/codec/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/kernel/crypto/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/kernel/store/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/kernel/codec/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/kernel/crypto/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
-      <excludeFolder url="file://$MODULE_DIR$/app/coverage" />
-      <excludeFolder url="file://$MODULE_DIR$/app/dist" />
-      <excludeFolder url="file://$MODULE_DIR$/app/storybook-static" />
-      <excludeFolder url="file://$MODULE_DIR$/app/test-results" />
-      <excludeFolder url="file://$MODULE_DIR$/app/coverage" />
+      <excludeFolder url="file://$MODULE_DIR$/coverage" />
+      <excludeFolder url="file://$MODULE_DIR$/.vitest-reports" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/desktop/app-root/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/desktop/foundation/storybook-static" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/desktop/app-root/test-results" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
