@@ -10,7 +10,10 @@ resolver = "3"
 members = [
   'kernel/codec',
   'kernel/crypto',
-  'app/src-tauri',
+  'kernel/store',
+  'apps/resident/foundation',
+  'apps/desktop/foundation/src-tauri',
+  'apps/desktop/app-root/src-tauri',
 ]
 
 [workspace.lints.rust]
@@ -21,6 +24,12 @@ unsafe_code = "forbid"
 unused_dependencies = "allow"
 
 [workspace.dependencies]
+# Workspace members
+kodogu-desktop-foundation = { path = './apps/desktop/foundation/src-tauri' }
+kodogu-resident-foundation = { path = './apps/resident/foundation' }
+store = { path = './kernel/store' }
+
+# External crates
 aes = { version = "=0.8.4", features = ["zeroize"] }
 aes-gcm = { version = "=0.10.3", features = ["zeroize"] }
 aes-gcm-siv = "=0.11.1"

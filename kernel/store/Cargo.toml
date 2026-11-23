@@ -1,0 +1,19 @@
+[package]
+name = "store"
+description = "Storage adapters for KoDoGu - values stored in redb as MessagePack"
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+redb = { workspace = true }
+rmp-serde = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+serde = { workspace = true, features = ["derive"] }

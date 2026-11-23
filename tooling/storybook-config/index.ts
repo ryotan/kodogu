@@ -5,7 +5,10 @@ import {mergeConfig} from 'vite';
 
 import type {StorybookConfig} from '@storybook/react-vite';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+// The Storybook settings that every package with stories shares. Each package's `.storybook/main.ts` exports
+// `main`; the stories are the package's own, relative to its `.storybook/`.
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -14,7 +17,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 function getAbsolutePath(value: string) {
   return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
 }
-const config: StorybookConfig = {
+
+export const main: StorybookConfig = {
   stories: ['../src/**/*.mdx', '../src/**/*.story.@(js|jsx|mjs|ts|tsx)'],
   addons: [
     getAbsolutePath('@storybook/addon-vitest'),
@@ -27,9 +31,8 @@ const config: StorybookConfig = {
       resolve: {
         alias: {
           // Tauri IPC is not available in the browser — stub @tauri-apps/api/core
-          '@tauri-apps/api/core': resolve(__dirname, 'tauri-api-stub.ts'),
+          '@tauri-apps/api/core': resolve(here, 'tauri-api-stub.ts'),
         },
       },
     }),
 };
-export default config;

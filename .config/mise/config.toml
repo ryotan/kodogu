@@ -1,3 +1,14 @@
+# The packages with tasks of their own; `mise run //apps/desktop/foundation:test` runs one,
+# `mise run --tag frontend '//...:test'` runs the same task in every package that reads `package-tasks/frontend.toml`.
+monorepo_root = true
+
+[monorepo]
+config_roots = ["apps/desktop/*", "tools/*/desktop"]
+
+# The repository root, for the `includes` of the packages: `{{vars.repo_root}}/.config/mise/package-tasks/...`.
+[vars]
+repo_root = "{{config_root}}"
+
 [settings]
 auto_install = false
 

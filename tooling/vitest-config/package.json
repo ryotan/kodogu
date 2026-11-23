@@ -1,0 +1,17 @@
+{
+  "name": "@kodogu/vitest-config",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "dependencies": {
+    "@storybook/addon-vitest": "catalog:default",
+    "@vitejs/plugin-react": "catalog:default",
+    "@vitest/browser-playwright": "catalog:default",
+    "playwright": "catalog:default",
+    "vite": "catalog:default",
+    "vitest": "catalog:default"
+  }
+}

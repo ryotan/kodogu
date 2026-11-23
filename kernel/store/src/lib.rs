@@ -1,3 +1,3 @@
-pub(crate) mod codec;
+pub mod codec;
 
-pub(crate) use codec::MessagePack;
+pub use codec::MessagePack;

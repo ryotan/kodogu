@@ -10,7 +10,7 @@ use serde::de::DeserializeOwned;
 /// The map format (`to_vec_named`) is used so that [`serde(default)`] works correctly
 /// when fields are added or removed.
 #[derive(Debug)]
-pub(crate) struct MessagePack<T>(PhantomData<T>);
+pub struct MessagePack<T>(PhantomData<T>);
 
 // `Debug` bound: required because SelfType<'a> = T and redb's Value trait
 // requires both `Value: Debug` (supertrait) and `SelfType<'a>: Debug`.

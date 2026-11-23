@@ -1,0 +1,5 @@
+[task_config]
+includes = [
+  "{{vars.repo_root}}/.config/mise/package-tasks/frontend.toml",
+  "{{vars.repo_root}}/.config/mise/package-tasks/storybook.toml",
+]

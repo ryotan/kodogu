@@ -1,0 +1,13 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+# The tasks of a package with its own `.storybook/`, read by its `mise.toml`.
+
+[storybook]
+description = "Start the package's Storybook"
+tags = ["storybook"]
+run = "bun x --no-install storybook dev -p 6006"
+
+["storybook:build"]
+description = "Build the package's Storybook"
+tags = ["storybook"]
+run = "bun x --no-install storybook build"

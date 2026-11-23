@@ -1,0 +1,9 @@
+{
+  "name": "@kodogu/tsconfig",
+  "private": true,
+  "version": "0.1.0",
+  "exports": {
+    "./react.json": "./react.json",
+    "./node.json": "./node.json"
+  }
+}
