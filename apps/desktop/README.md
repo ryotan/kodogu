@@ -2,6 +2,13 @@
 
 The KoDoGu desktop app. It lives in the macOS menu bar.
 
+## Packages
+
+- `app-root/`: the startup: the entry of each window, Vite, and the Tauri application in `app-root/src-tauri/`
+- `routing/`: the route definitions of TanStack Router without screens, and the router
+- `foundation/`: everything else of the desktop app that tools may import, with its Tauri crate in
+  `foundation/src-tauri/`
+
 ## Tech Stack
 
 - Frontend: React + TypeScript (TanStack Router, TanStack Query)
@@ -16,9 +23,9 @@ With [mise](https://mise.jdx.dev/getting-started.html) and the
 ```bash
 mise install
 mise exec -- bun install --frozen-lockfile
-mise run app:tauri -- dev   # Start the app
-mise run app:storybook      # Start Storybook
-mise run app:tauri:build    # Build for distribution
+mise run app:tauri -- dev                       # Start the app
+mise run //apps/desktop/foundation:storybook    # Start the Storybook of a package
+mise run app:tauri:build                        # Build for distribution
 ```
 
 Run checks and automatic fixes for the entire repository from the repository root.
@@ -32,14 +39,17 @@ mise run --continue-on-error test:coverage
 mise run --continue-on-error fix
 ```
 
-Run only frontend tests, either once or in watch mode:
+Run the frontend tests of every package, or watch the tests of one package:
 
 ```bash
 mise run app:test
-mise run app:test:watch
+mise run //apps/desktop/foundation:test:watch
 ```
 
-Task definitions are grouped by [repository](../.config/mise/tasks/repository.toml),
-[app](../.config/mise/tasks/app.toml), and [Cargo](../.config/mise/tasks/cargo.toml).
+Each package has its own tasks: inside its directory, `mise run test` runs its tests.
+
+Task definitions are grouped by [repository](../../.config/mise/tasks/repository.toml),
+[app](../../.config/mise/tasks/app.toml), and [Cargo](../../.config/mise/tasks/cargo.toml); the tasks of each package
+are in [package-tasks](../../.config/mise/package-tasks/).
 
 The shared `Tauri Frontend dev server` run configuration requires the mise plugin in JetBrains IDEs.
