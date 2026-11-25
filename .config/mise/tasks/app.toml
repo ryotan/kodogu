@@ -37,7 +37,7 @@ run = "bun x --no-install tsc -b ../../.."
 
 ["app:test"]
 description = "Run the tests of every frontend package, each in its package"
-run = "mise run --tag frontend '//...:test'"
+run = 'mise run --tag frontend "//...:test"'
 
 ["app:test:coverage"]
 description = "Run the tests of every frontend package with coverage, and merge the reports into coverage/"
@@ -45,13 +45,13 @@ run = "bun tooling/vitest-config/coverage-merge.ts"
 
 ["app:storybook:build"]
 description = "Build the Storybook of every package that has one"
-run = "mise run --tag storybook '//...:storybook:build'"
+run = 'mise run --tag storybook "//...:storybook:build"'
 
 ["app:lint:es"]
 description = "Check the ESLint rules of every frontend package"
-run = "mise run --tag frontend '//...:lint:es'"
+run = 'mise run --tag frontend "//...:lint:es"'
 
 ["app:fix:es"]
 description = "Apply the ESLint fixes of every frontend package"
 wait_for = ["fix:biome"]
-run = "mise run --tag frontend '//...:fix:es'"
+run = 'mise run --tag frontend "//...:fix:es"'
