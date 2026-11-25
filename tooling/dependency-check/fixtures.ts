@@ -92,7 +92,11 @@ function diagnostics(output: string): string[] {
       if (match === null) {
         return [];
       }
-      const [, rule, file = '', row, column, message] = match;
+      const [, rule, escapedFile = '', row, column, message] = match;
+      // A property of a workflow command escapes `%`, CR, LF, `:` and `,`: `D:` on Windows arrives as `D%3A`.
+      const file = escapedFile.replace(/%(25|0D|0A|3A|2C)/gi, (_, code: string) =>
+        String.fromCharCode(Number.parseInt(code, 16)),
+      );
       const relative = path.relative(repository, path.resolve(repository, file)).split(path.sep).join('/');
       return [`${relative}:${row}:${column} ${rule} ${message}`];
     })
