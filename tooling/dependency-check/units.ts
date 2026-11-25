@@ -209,11 +209,13 @@ function exposedFiles(current: Package): [string, string][] {
           const pattern = new RegExp(
             `^${first}${rest.map((piece, index) => `${index === 0 ? '(?<s>.*)' : '\\k<s>'}${piece}`).join('')}$`,
           );
+          // The subpath that gives this capture: Node reads the first `*` of a key as the pattern, and the rest of
+          // the key as its trailer.
+          const star = key.indexOf('*');
           return files.flatMap((file): [string, string][] => {
             const captured = pattern.exec(file)?.[1];
-            return captured !== undefined && resolvingKey(keys, key.replace('*', captured)) === key
-              ? [[key, file]]
-              : [];
+            const subpath = `${key.slice(0, star)}${captured}${key.slice(star + 1)}`;
+            return captured !== undefined && resolvingKey(keys, subpath) === key ? [[key, file]] : [];
           });
         }),
     ];
