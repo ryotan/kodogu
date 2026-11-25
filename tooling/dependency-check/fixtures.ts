@@ -15,8 +15,13 @@ const biomeFixtures = 'apps/desktop/dependency-fixtures';
 
 type Result = {readonly name: string; readonly expected: string; readonly actual: string};
 
-function run(command: string, args: readonly string[], cwd: string): {status: number; stdout: string} {
-  const result = spawnSync(command, args, {cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+function run(
+  command: string,
+  args: readonly string[],
+  cwd: string,
+  env: NodeJS.ProcessEnv = process.env,
+): {status: number; stdout: string} {
+  const result = spawnSync(command, args, {cwd, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
   if (result.error) {
     throw result.error;
   }
@@ -40,10 +45,12 @@ function checkResults(): Result[] {
       if (!existsSync(expectedFile)) {
         return [];
       }
+      // Warnings denied as in CI, so that a warning that fails the check there fails it here as well.
       const {status, stdout} = run(
         process.execPath,
         [path.join(here, `${check}.ts`), '.'],
         path.join(fixtures, entry.name),
+        {...process.env, CARGO_BUILD_WARNINGS: 'deny'},
       );
       return [
         {

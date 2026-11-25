@@ -123,7 +123,9 @@ function checkLayer(crate: Crate, sourceDirectory: string, work: string, layer: 
     const result = spawnSync('cargo', ['check', '--quiet', '--all-targets', '--message-format', 'short', ...flags], {
       cwd: directory,
       encoding: 'utf8',
-      env: {...process.env, CARGO_TARGET_DIR: path.join(work, 'target')},
+      // A layer compiles with all the dependencies of the crate, and Cargo warns of those it does not use; the check
+      // asks only whether the layer compiles, so a setting that denies warnings, as CI has, does not apply.
+      env: {...process.env, CARGO_TARGET_DIR: path.join(work, 'target'), CARGO_BUILD_WARNINGS: 'allow'},
     });
     if (result.error) {
       throw new ReadError(`cargo check: ${result.error.message}`);
