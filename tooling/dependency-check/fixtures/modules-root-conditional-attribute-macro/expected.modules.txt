@@ -1,0 +1,2 @@
+1
+tools/t/domain: the root of a domain crate has an attribute that is not built into Rust #[cfg_attr(all(), replace)]

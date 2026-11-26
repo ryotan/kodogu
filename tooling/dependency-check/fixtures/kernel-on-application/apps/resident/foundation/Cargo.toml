@@ -1,0 +1,7 @@
+[package]
+name = "apps-resident-foundation"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true

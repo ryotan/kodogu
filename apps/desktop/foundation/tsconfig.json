@@ -1,0 +1,4 @@
+{
+  "extends": "@kodogu/tsconfig/react.json",
+  "include": ["src", ".storybook/main.ts", ".storybook/preview.tsx"]
+}

@@ -1,0 +1,2 @@
+1
+tooling/s -> apps/desktop/foundation: settings may not depend on desktop-foundation

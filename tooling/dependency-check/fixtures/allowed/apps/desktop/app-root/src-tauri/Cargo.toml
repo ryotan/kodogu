@@ -1,0 +1,15 @@
+[package]
+name = "apps-desktop-app-root"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+apps-desktop-foundation = { path = "../../foundation/src-tauri" }
+apps-desktop-fa = { path = "../../fa/src-tauri" }
+tools-t-desktop = { path = "../../../../tools/t/desktop/src-tauri" }
+apps-resident-foundation = { path = "../../../resident/foundation" }
+kernel-a = { path = "../../../../kernel/a" }
+tauri = "2"

@@ -1,0 +1,26 @@
+{
+  "name": "@kodogu/desktop-routing",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./router": "./src/router.ts",
+    "./routes/__root": "./src/routes/__root.ts"
+  },
+  "dependencies": {
+    "@tanstack/history": "catalog:default",
+    "@tanstack/react-query": "catalog:default",
+    "@tanstack/react-router": "catalog:default",
+    "@tanstack/router-core": "catalog:default"
+  },
+  "devDependencies": {
+    "@kodogu/eslint-config": "workspace:*",
+    "@kodogu/tsconfig": "workspace:*",
+    "@kodogu/vitest-config": "workspace:*",
+    "@vitest/coverage-v8": "catalog:default",
+    "eslint": "catalog:default",
+    "typescript": "catalog:default",
+    "vite": "catalog:default",
+    "vitest": "catalog:default"
+  }
+}

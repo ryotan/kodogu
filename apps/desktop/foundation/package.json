@@ -1,0 +1,53 @@
+{
+  "name": "@kodogu/desktop-foundation",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./main.css": "./src/main.css",
+    "./screens": "./src/screens.ts",
+    "./createQueryClient": "./src/createQueryClient.ts",
+    "./components/AppErrorPage": "./src/components/AppErrorPage.tsx",
+    "./components/PopoverRouteErrorPage": "./src/components/PopoverRouteErrorPage.tsx",
+    "./loaders/loadAppConfig": "./src/loaders/loadAppConfig.ts",
+    "./storybook/preview": "./src/storybook/preview.tsx"
+  },
+  "imports": {
+    "#*": [
+      "./src/*",
+      "./src/*.ts",
+      "./src/*.tsx"
+    ]
+  },
+  "dependencies": {
+    "@kodogu/desktop-routing": "workspace:*",
+    "@radix-ui/react-icons": "catalog:default",
+    "@radix-ui/themes": "catalog:default",
+    "@tanstack/react-form": "catalog:default",
+    "@tanstack/react-query": "catalog:default",
+    "@tanstack/react-query-devtools": "catalog:default",
+    "@tanstack/react-router": "catalog:default",
+    "@tanstack/react-router-devtools": "catalog:default",
+    "@tauri-apps/api": "catalog:default",
+    "arktype": "catalog:default",
+    "mutative": "catalog:default",
+    "react": "catalog:default"
+  },
+  "devDependencies": {
+    "@kodogu/eslint-config": "workspace:*",
+    "@kodogu/storybook-config": "workspace:*",
+    "@kodogu/tsconfig": "workspace:*",
+    "@kodogu/vitest-config": "workspace:*",
+    "@storybook/addon-vitest": "catalog:default",
+    "@storybook/react-vite": "catalog:default",
+    "@types/react": "catalog:default",
+    "@vitest/browser-playwright": "catalog:default",
+    "@vitest/coverage-v8": "catalog:default",
+    "eslint": "catalog:default",
+    "storybook": "catalog:default",
+    "typescript": "catalog:default",
+    "vite": "catalog:default",
+    "vitest": "catalog:default",
+    "vitest-browser-react": "catalog:default"
+  }
+}

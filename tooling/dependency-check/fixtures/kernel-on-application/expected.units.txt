@@ -1,0 +1,2 @@
+1
+kernel/a -> apps/resident/foundation: kernel may not depend on resident-foundation

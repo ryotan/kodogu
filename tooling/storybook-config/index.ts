@@ -1,0 +1,38 @@
+import {dirname, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+import {mergeConfig} from 'vite';
+
+import type {StorybookConfig} from '@storybook/react-vite';
+
+// The Storybook settings that every package with stories shares. Each package's `.storybook/main.ts` exports
+// `main`; the stories are the package's own, relative to its `.storybook/`.
+
+const here = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * This function is used to resolve the absolute path of a package.
+ * It is needed in projects that use Yarn PnP or are set up within a monorepo.
+ */
+function getAbsolutePath(value: string) {
+  return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
+}
+
+export const main: StorybookConfig = {
+  stories: ['../src/**/*.mdx', '../src/**/*.story.@(js|jsx|mjs|ts|tsx)'],
+  addons: [
+    getAbsolutePath('@storybook/addon-vitest'),
+    getAbsolutePath('@storybook/addon-a11y'),
+    getAbsolutePath('@storybook/addon-docs'),
+  ],
+  framework: getAbsolutePath('@storybook/react-vite'),
+  viteFinal: config =>
+    mergeConfig(config, {
+      resolve: {
+        alias: {
+          // Tauri IPC is not available in the browser — stub @tauri-apps/api/core
+          '@tauri-apps/api/core': resolve(here, 'tauri-api-stub.ts'),
+        },
+      },
+    }),
+};

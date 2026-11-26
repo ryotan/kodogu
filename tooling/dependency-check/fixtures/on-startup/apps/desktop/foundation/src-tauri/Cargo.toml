@@ -1,0 +1,10 @@
+[package]
+name = "apps-desktop-foundation"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+apps-desktop-app-root = { path = "../../app-root/src-tauri" }

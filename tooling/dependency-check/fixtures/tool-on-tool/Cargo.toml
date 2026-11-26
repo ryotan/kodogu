@@ -1,0 +1,14 @@
+# A workspace of its own, so that Cargo does not take the case for a part of the repository's.
+[workspace]
+resolver = "3"
+members = [
+  "tools/a/domain",
+  "tools/b/types",
+]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"

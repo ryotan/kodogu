@@ -1,0 +1,2 @@
+1
+apps/desktop/foundation -> tooling/s: settings may be a development dependency only

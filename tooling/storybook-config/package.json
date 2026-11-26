@@ -1,0 +1,17 @@
+{
+  "name": "@kodogu/storybook-config",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "dependencies": {
+    "@storybook/addon-a11y": "catalog:default",
+    "@storybook/addon-docs": "catalog:default",
+    "@storybook/addon-vitest": "catalog:default",
+    "@storybook/react-vite": "catalog:default",
+    "storybook": "catalog:default",
+    "vite": "catalog:default"
+  }
+}

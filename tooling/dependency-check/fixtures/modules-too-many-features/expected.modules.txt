@@ -1,0 +1,2 @@
+1
+tools/t/domain: a domain crate may not have more than 4 features, one build for each subset

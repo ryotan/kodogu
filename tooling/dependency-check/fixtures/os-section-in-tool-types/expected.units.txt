@@ -1,0 +1,2 @@
+1
+tools/t/types -> kernel-a: a section for cfg(windows); a tool's domain and types may not hold code for one operating system

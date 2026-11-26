@@ -1,0 +1,23 @@
+[package]
+name = "kodogu-resident-foundation"
+description = { workspace = true }
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+redb = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+store = { workspace = true }
+suzunari-error = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+rmp-serde = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }

@@ -1,0 +1,3 @@
+1
+apps/desktop/foundation: export ./dev exposes ./src/(dev)/Panel.tsx
+apps/desktop/foundation: export ./gen exposes ./gen/router/routes.ts

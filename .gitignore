@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -60,3 +60,9 @@ test-results.json
 storybook-static
 
 _[sS]cratch*.*
+
+# The configuration of Biome that `lint:deps:fixtures` writes while it runs
+/.dependency-fixtures.biome.json
+
+# Blob reports of the frontend packages, which `app:test:coverage` merges into coverage/
+/.vitest-reports/

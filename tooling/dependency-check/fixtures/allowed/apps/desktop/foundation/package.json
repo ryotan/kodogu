@@ -1,0 +1,16 @@
+{
+  "name": "@fixture/apps-desktop-foundation",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./loaders/*": "./src/loaders/*.ts",
+    "./loaders/*.test": null,
+    "./storybook/preview": "./src/storybook/preview.tsx"
+  },
+  "dependencies": {
+    "@fixture/apps-desktop-routing": "workspace:*",
+    "@fixture/apps-desktop-fa": "workspace:*",
+    "@tauri-apps/api": "^2"
+  }
+}

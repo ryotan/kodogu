@@ -9,8 +9,9 @@
   },
   "workspaces": {
     "packages": [
-      "app",
-      "kernel/*"
+      "apps/desktop/*",
+      "tooling/*",
+      "tools/*/desktop"
     ],
     "catalogs": {
       "default": {
@@ -25,12 +26,14 @@
         "@storybook/react-vite": "^10",
         "@tanstack/eslint-plugin-query": "^5.68.0",
         "@tanstack/eslint-plugin-router": "^1.114.12",
+        "@tanstack/history": "^1.162.5",
         "@tanstack/react-form": "^1.1.2",
         "@tanstack/react-query": "^5.102.1",
         "@tanstack/react-query-devtools": "^5.102.1",
         "@tanstack/react-router": "^1.114.25",
         "@tanstack/react-router-devtools": "^1.114.25",
         "@tanstack/react-store": "^0.8.0",
+        "@tanstack/router-core": "^1.171.39",
         "@tanstack/router-plugin": "^1.114.25",
         "@tauri-apps/api": "^2",
         "@tauri-apps/cli": "^2",
@@ -68,7 +71,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:default",
-    "@types/node": "catalog:default"
+    "@kodogu/vitest-config": "workspace:*",
+    "@types/node": "catalog:default",
+    "@vitest/coverage-v8": "catalog:default",
+    "vitest": "catalog:default"
   },
   "trustedDependencies": [
     "@biomejs/biome"

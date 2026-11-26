@@ -1,0 +1,2 @@
+1
+tools/a/domain -> tools/b/types: a tool may not depend on another tool

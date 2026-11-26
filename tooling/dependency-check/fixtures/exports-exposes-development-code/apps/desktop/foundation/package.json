@@ -1,0 +1,12 @@
+{
+  "name": "@fixture/apps-desktop-foundation",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./dev": "./src/(dev)/Panel.tsx",
+    "./gen": {
+      "types": "./gen/router/routes.ts"
+    }
+  }
+}

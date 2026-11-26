@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "apps/desktop/app-root" },
+    { "path": "apps/desktop/foundation" },
+    { "path": "apps/desktop/routing" },
+    { "path": "tooling" },
+    { "path": "tsconfig.node.json" }
+  ]
+}

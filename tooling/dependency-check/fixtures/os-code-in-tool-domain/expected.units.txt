@@ -1,0 +1,2 @@
+1
+tools/t/domain: tools/t/domain/src/lib.rs:1 has a cfg condition on an operating system; a tool's domain and types may not hold code for one operating system

@@ -1,0 +1,10 @@
+{
+  "name": "@fixture/apps-desktop-fa",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "@fixture/apps-desktop-routing": "workspace:*",
+    "@fixture/apps-desktop-fb": "workspace:*"
+  }
+}

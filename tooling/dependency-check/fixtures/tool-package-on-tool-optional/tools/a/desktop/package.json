@@ -1,0 +1,9 @@
+{
+  "name": "@fixture/tools-a-desktop",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "optionalDependencies": {
+    "@fixture/tools-b-desktop": "workspace:*"
+  }
+}

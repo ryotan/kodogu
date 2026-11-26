@@ -1,0 +1,27 @@
+# A workspace of its own, so that Cargo does not take the case for a part of the repository's.
+[workspace]
+resolver = "3"
+members = [
+  "apps/cli/app",
+  "apps/cli/foundation",
+  "apps/desktop/app-root/src-tauri",
+  "apps/desktop/fa/src-tauri",
+  "apps/desktop/fb/src-tauri",
+  "apps/desktop/foundation/src-tauri",
+  "apps/resident/app",
+  "apps/resident/foundation",
+  "kernel/a",
+  "kernel/b",
+  "tools/t/cli",
+  "tools/t/desktop/src-tauri",
+  "tools/t/domain",
+  "tools/t/resident",
+  "tools/t/types",
+]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"

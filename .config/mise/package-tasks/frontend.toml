@@ -1,0 +1,33 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+# The tasks of a frontend package, read by its `mise.toml`. They run in the package's directory.
+
+[test]
+description = "Run the package's tests, its story tests included"
+tags = ["frontend"]
+run = "bun x --no-install vitest run"
+
+["test:watch"]
+description = "Watch the package's tests"
+tags = ["frontend"]
+run = "bun x --no-install vitest --watch"
+
+["test:coverage"]
+description = "Run the package's tests with coverage"
+tags = ["frontend"]
+run = "bun x --no-install vitest run --coverage"
+
+["lint:es"]
+description = "Check the package's ESLint rules"
+tags = ["frontend"]
+run = "bun x --no-install eslint ."
+
+["fix:es"]
+description = "Apply the package's ESLint fixes"
+tags = ["frontend"]
+run = "bun x --no-install eslint --fix ."
+
+["test:coverage:blob"]
+description = "Run the package's tests with coverage into a blob report that the root merges"
+tags = ["frontend"]
+run = "bun {{vars.repo_root}}/tooling/vitest-config/coverage-blob.ts"

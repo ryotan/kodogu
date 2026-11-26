@@ -1,0 +1,10 @@
+[package]
+name = "tools-t-types"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+tauri-plugin-opener = "2"

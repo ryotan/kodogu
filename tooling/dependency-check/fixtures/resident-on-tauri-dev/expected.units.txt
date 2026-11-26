@@ -1,0 +1,2 @@
+1
+apps/resident/foundation -> tauri: only the desktop app and the desktop parts of tools may depend on Tauri

@@ -1,0 +1,10 @@
+[package]
+name = "tools-t-domain"
+version = { workspace = true }
+edition = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+ui = { package = "tauri", version = "2" }

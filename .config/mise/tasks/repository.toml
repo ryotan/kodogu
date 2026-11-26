@@ -2,7 +2,7 @@
 
 [lint]
 description = "Lint the repository"
-depends = ["lint:biome", "app:lint:tsc", "app:lint:es", "cargo:lint"]
+depends = ["lint:biome", "lint:deps", "lint:deps:fixtures", "app:lint:tsc", "app:lint:es", "cargo:lint"]
 
 [test]
 description = "Test the repository"
@@ -19,6 +19,17 @@ depends = ["fix:biome", "app:fix:es", "cargo:fix"]
 ["lint:biome"]
 description = "Check repository formatting and Biome rules"
 run = "bun x --no-install biome ci --error-on-warnings ."
+
+["lint:deps"]
+description = "Check the dependency directions of the build units and of the modules of a tool's domain"
+run = [
+  "bun tooling/dependency-check/units.ts .",
+  "bun tooling/dependency-check/modules.ts .",
+]
+
+["lint:deps:fixtures"]
+description = "Check that the dependency checks and Biome's import rules give the expected results on their fixtures"
+run = "bun tooling/dependency-check/fixtures.ts"
 
 ["fix:biome"]
 description = "Apply Biome fixes across the repository"
