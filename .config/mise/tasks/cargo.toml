@@ -32,6 +32,11 @@ env = { CARGO_BUILD_WARNINGS = "deny" }  # as CI, whose setup of Rust denies war
 description = "Run Cargo workspace tests"
 run = "cargo test --all-features --workspace"
 
+["cargo:test:doc"]
+env = { CARGO_BUILD_WARNINGS = "deny" }  # as CI, whose setup of Rust denies warnings
+description = "Run the documentation tests of the Cargo workspace, which coverage does not run"
+run = "cargo test --locked --all-features --workspace --doc"
+
 ["cargo:coverage"]
 env = { CARGO_BUILD_WARNINGS = "deny" }  # as CI, whose setup of Rust denies warnings
 description = "Collect Cargo workspace test coverage"
