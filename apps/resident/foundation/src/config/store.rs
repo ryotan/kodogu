@@ -1,6 +1,6 @@
 use std::sync::RwLock;
 
-use redb::{Database, ReadableDatabase, TableDefinition};
+use redb::{Database, ReadableDatabase, ReadableTable, TableDefinition};
 use serde::{Deserialize, Serialize};
 use suzunari_error::*;
 
