@@ -10,4 +10,4 @@ workspace = true
 kernel-a = { path = "../../../../kernel/a" }
 apps-resident-foundation = { path = "../../../resident/foundation" }
 apps-desktop-fa = { path = "../../fa/src-tauri" }
-tauri = "2"
+tauri = "=2.12.7"

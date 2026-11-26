@@ -7,4 +7,4 @@ edition = { workspace = true }
 workspace = true
 
 [dependencies]
-ui = { package = "tauri", version = "2" }
+ui = { package = "tauri", version = "=2.12.7" }

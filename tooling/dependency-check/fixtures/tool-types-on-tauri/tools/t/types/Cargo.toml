@@ -7,4 +7,4 @@ edition = { workspace = true }
 workspace = true
 
 [dependencies]
-tauri-plugin-opener = "2"
+tauri-plugin-opener = "=2.7.3"

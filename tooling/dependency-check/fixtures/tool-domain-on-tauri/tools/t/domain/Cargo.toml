@@ -7,4 +7,4 @@ edition = { workspace = true }
 workspace = true
 
 [dependencies]
-tauri = "2"
+tauri = "=2.12.7"
