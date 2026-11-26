@@ -11,6 +11,6 @@
   "dependencies": {
     "@fixture/apps-desktop-routing": "workspace:*",
     "@fixture/apps-desktop-fa": "workspace:*",
-    "@tauri-apps/api": "^2"
+    "@tauri-apps/api": "2.12.5"
   }
 }

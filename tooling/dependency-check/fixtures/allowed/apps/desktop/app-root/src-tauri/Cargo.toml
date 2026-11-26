@@ -12,4 +12,4 @@ apps-desktop-fa = { path = "../../fa/src-tauri" }
 tools-t-desktop = { path = "../../../../tools/t/desktop/src-tauri" }
 apps-resident-foundation = { path = "../../../resident/foundation" }
 kernel-a = { path = "../../../../kernel/a" }
-tauri = "2"
+tauri = "=2.12.7"
