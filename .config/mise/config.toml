@@ -60,6 +60,6 @@ lockfile_platforms = [
 
 [tools]
 node = "26.13.1"
-bun = "1.4.4"
+bun = "1.4.5"
 "github:taiki-e/cargo-llvm-cov" = "v0.9.1"
 prek = "0.5.11"
