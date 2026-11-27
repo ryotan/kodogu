@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: code-quality-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # Force mise to re-verify SLSA / GitHub attestations on every install. `paranoid = true` in the project
 # `.config/mise/config.toml` is a silent no-op (mise 2026.x+ ignores it in non-global configs as a security
 # ratchet), so we enforce it via env in CI.
@@ -21,10 +25,11 @@ env:
 jobs:
   checks:
     name: 'Lint - ${{ matrix.platform }}'
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-26.04, macos-latest, windows-latest]
+        platform: [ubuntu-26.04, macos-26, windows-2025-vs2026]
     runs-on: ${{ matrix.platform }}
     defaults:
       run:
@@ -40,6 +45,7 @@ jobs:
           disable-telemetry: ${{ runner.os == 'Linux' }}
           allowed-endpoints: >
             aka.ms:443
+            archive.ubuntu.com:443
             azure.archive.ubuntu.com:80
             cdn.playwright.dev:443
             cli.codecov.io:443
@@ -57,6 +63,7 @@ jobs:
             packages.microsoft.com:443
             registry.npmjs.org:443
             release-assets.githubusercontent.com:443
+            security.ubuntu.com:443
             static.crates.io:443
             static.rust-lang.org:443
             storage.googleapis.com:443
@@ -65,13 +72,18 @@ jobs:
             *.actions.githubusercontent.com:443
             *.githubapp.com:443
             *.blob.core.windows.net:443
+            *.ec2.archive.ubuntu.com:80
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install dependencies (ubuntu only)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
+          sudo apt-get update --error-on=any
+          # Disable retries while updating APT to prevent CVE-2026-109518 before installing dependencies.
+          sudo apt-get -o Acquire::Retries=0 install -y --only-upgrade '?source-package(^apt$)'
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Setup Rust toolchain
@@ -135,52 +147,73 @@ jobs:
           key: 0-${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
 
       - name: Install Playwright Browsers
+        id: prepare
         run: mise run app:playwright:install
 
       - id: tsc
+        background: true
         name: TypeScript
         run: mise run app:lint:tsc
-        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: biome
+        background: true
         name: Biome
         run: mise run lint:biome -- --reporter=github
-        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: deps
+        background: true
         name: Dependency Directions
         run: mise run lint:deps
-        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: deps-fixtures
+        background: true
         name: Dependency Directions on Fixtures
         run: mise run lint:deps:fixtures
-        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: eslint
+        background: true
         name: ESLint
         run: mise run app:lint:es
-        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: rustfmt
+        background: true
         name: Rust Format
         run: mise run cargo:lint:fmt
-        continue-on-error: true  # Run all checks, then fail at the end
-
-      - id: clippy
-        name: Clippy
-        run: mise run cargo:lint:clippy
-        continue-on-error: true  # Run all checks, then fail at the end
 
       - id: frontend-test
+        background: true
         name: Frontend Tests & Coverage
         run: mise run app:test:coverage
-        continue-on-error: true  # Run all checks, then fail at the end
+
+      - name: Wait for parallel checks
+        wait-all:
+
+      # Tauri build scripts write shared source-tree schemas across the Rust check target directories.
+      - id: clippy
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        name: Clippy
+        run: mise run cargo:lint:clippy
+
+      - id: backend-test
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        name: Backend Tests & Coverage${{ runner.os == 'Windows' && ' (excluding Tauri app)' || '' }}
+        # tauri-build 2.7.4 omits the Common Controls v6 manifest from the Windows test executables of the crates that
+        # depend on Tauri. Keep the coverage of the other crates until a released tauri-build supports resources in
+        # test executables.
+        # WORKAROUND: wayland-client 0.31.8 uses not stable feature (`coverage_attribute`) of Rust 1.85.1 for coverage
+        env:
+          COVERAGE_TASK: ${{ runner.os == 'Windows' && 'cargo:coverage:without-tauri' || 'cargo:coverage' }}
+        run: mise run "$COVERAGE_TASK" -- --no-cfg-coverage
+
+      - id: doc-test
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        name: Documentation Tests
+        run: mise run cargo:test:doc
 
       - name: Upload browser test failure screenshots
         if: ${{ !cancelled() && steps.frontend-test.outcome == 'failure' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        continue-on-error: true  # Keep running the remaining checks if upload fails
+        continue-on-error: true
         with:
           name: browser-test-failures-${{ runner.os }}
           path: |
@@ -190,21 +223,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 5
 
-      - id: backend-test
-        name: Backend Tests & Coverage${{ runner.os == 'Windows' && ' (excluding Tauri app)' || '' }}
-        # tauri-build 2.7.4 omits the Common Controls v6 manifest from the Windows test executables of the crates that
-        # depend on Tauri. Keep the coverage of the other crates until a released tauri-build supports resources in
-        # test executables.
-        # WORKAROUND: wayland-client 0.31.8 uses not stable feature (`coverage_attribute`) of Rust 1.85.1 for coverage
-        run: mise run ${{ runner.os == 'Windows' && 'cargo:coverage:without-tauri' || 'cargo:coverage' }} -- --no-cfg-coverage
-        continue-on-error: true  # Run all checks, then fail at the end
-
-      - id: doc-test
-        name: Documentation Tests
-        run: mise run cargo:test:doc
-        continue-on-error: true  # Run all checks, then fail at the end
-
       - name: Upload coverage reports to Codecov
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -214,41 +234,10 @@ jobs:
           fail_ci_if_error: false  # Don't fail on Codecov service issues
           # Note: Coverage requirements are configured in codecov.yml
 
-      - name: Check for lint and test results
-        run: |
-          # Fail the build if any lint or test step failed
-          # This allows us to see all failures at once, not just the first one
-          echo "=== Check Results ==="
-          echo "TypeScript: ${{ steps.tsc.outcome }}"
-          echo "Biome: ${{ steps.biome.outcome }}"
-          echo "Dependency Directions: ${{ steps.deps.outcome }}"
-          echo "Dependency Directions on Fixtures: ${{ steps.deps-fixtures.outcome }}"
-          echo "ESLint: ${{ steps.eslint.outcome }}"
-          echo "Rust Format: ${{ steps.rustfmt.outcome }}"
-          echo "Clippy: ${{ steps.clippy.outcome }}"
-          echo "Frontend Tests: ${{ steps.frontend-test.outcome }}"
-          echo "Backend Tests: ${{ steps.backend-test.outcome }}"
-          echo "Documentation Tests: ${{ steps.doc-test.outcome }}"
-          echo "===================="
-
-          if [[ "${{ steps.tsc.outcome }}" == "failure" || \
-                "${{ steps.biome.outcome }}" == "failure" || \
-                "${{ steps.deps.outcome }}" == "failure" || \
-                "${{ steps.deps-fixtures.outcome }}" == "failure" || \
-                "${{ steps.eslint.outcome }}" == "failure" || \
-                "${{ steps.rustfmt.outcome }}" == "failure" || \
-                "${{ steps.clippy.outcome }}" == "failure" || \
-                "${{ steps.frontend-test.outcome }}" == "failure" || \
-                "${{ steps.backend-test.outcome }}" == "failure" || \
-                "${{ steps.doc-test.outcome }}" == "failure" ]]; then
-            echo "❌ One or more checks failed."
-            exit 1
-          else
-            echo "✅ All checks succeeded."
-          fi
 
   lint:
     name: 'Lint'
+    timeout-minutes: 5
     needs: checks
     if: ${{ always() }}
     runs-on: ubuntu-26.04

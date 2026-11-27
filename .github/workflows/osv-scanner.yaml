@@ -10,15 +10,20 @@ on:
       - main
   merge_group:
 
+concurrency:
+  group: osv-scanner-caller-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
-  actions: read
   contents: read
-  # Declared so the reusable workflow's permission requirement is met;
-  # the SARIF upload step is skipped via `upload-sarif: false` below.
-  security-events: write
 
 jobs:
   scan-pr:
+    permissions:
+      contents: read
+      actions: read # Required by the reusable scanner's workflow permission contract.
+      # The called workflow declares the SARIF scope independently of its upload-sarif input.
+      security-events: write
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
     with:
       upload-sarif: false
