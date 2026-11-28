@@ -1,89 +1,11 @@
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-  addLabels: [
-    'dependencies',
-  ],
-  commitMessagePrefix: '⬆️(deps): ',
   extends: [
-    // `config:best-practices` bundles config:recommended + helpers:pinGitHubActionDigests + docker:pinDigests
-    // + :configMigration + :pinDevDependencies + security:minimumReleaseAgeNpm + :maintainLockFilesWeekly
-    // + abandonments:recommended. The `:pinAllExceptPeerDependencies` preset escalates pinning from
-    // best-practices' devDeps-only default to "everything except `peerDependencies` and `engines`".
-    'config:best-practices',
+    'github>ryotan/tempura//renovate/default.json5#v0.0.1',
+    'github>ryotan/tempura//renovate/copier.json5#v0.0.1',
     ':pinAllExceptPeerDependencies',
   ],
-  timezone: 'Asia/Tokyo',
-  // Mitigate supply-chain attacks by only considering versions that have been released for at least 1 week.
-  minimumReleaseAge: '7 days',
-  // Suppress branch/PR creation while a version is still inside the minimumReleaseAge window.
-  //   cf. https://docs.renovatebot.com/key-concepts/minimum-release-age/#recommended-settings
-  internalChecksFilter: 'strict',
-  // Always rebase stale branches before merge. The default `auto` only rebases on a git-level conflict,
-  // but lockfile maintenance (e.g. mise.lock) produces purely additive diffs: when such a branch falls
-  // behind main, the same table can be appended a second time with no textual conflict, leaving a
-  // duplicate key that breaks the parser. Forcing a rebase re-runs the artifact update against current
-  // main, which deduplicates the lockfile instead of stacking entries.
-  rebaseWhen: 'behind-base-branch',
-  // Use the OSV database (osv.dev) for vulnerability alerts in addition to the GitHub Advisory Database.
-  osvVulnerabilityAlerts: true,
-  vulnerabilityAlerts: {
-    // Bypass minimumReleaseAge for security alerts (CVEs) so they are applied immediately.
-    minimumReleaseAge: '0 days',
-  },
   packageRules: [
-    {
-      // `security:minimumReleaseAgeNpm` (pulled in via `config:best-practices`) sets the npm cooldown to
-      // 3 days. Override back to 7 days so npm shares the same cooldown invariant as every other datasource.
-      matchDatasources: [
-        'npm',
-      ],
-      minimumReleaseAge: '7 days',
-    },
-    {
-      // Pin / pinDigest / replacement updates do not introduce new code: pin converts an existing
-      // range to an exact version, pinDigest fixes an existing action reference to a SHA, and
-      // replacement swaps to a maintained successor at an already-allowed version. The release-age
-      // check is irrelevant in all three cases — and worse, the pin / pinDigest paths don't wire in
-      // the release timestamp at all, so any non-null `minimumReleaseAge` leaves the check in
-      // pending status forever (with default `minimumReleaseAgeBehaviour: 'timestamp-required'`).
-      // Setting it to `null` disables the check rather than just lowering the threshold.
-      // `security:minimumReleaseAgeNpm` (pulled in via `config:best-practices`) does the equivalent
-      // for npm only; this rule covers the rest.
-      matchUpdateTypes: [
-        'pin',
-        'pinDigest',
-        'replacement',
-      ],
-      minimumReleaseAge: null,
-    },
-    {
-      // `renovate/stability-days` has no per-package release timestamp on lockFileMaintenance PRs (the
-      // entire lockfile is refreshed, not a single tracked version), so the check stays in pending
-      // status forever with the inherited 7-day threshold. Set null to clear it. Cooldown is still
-      // enforced one layer down by each tool's own release-age filter (e.g. bunfig `minimumReleaseAge`,
-      // mise `minimum_release_age`); managers without a native filter have
-      // `lockFileMaintenance: { enabled: false }` set per-rule below.
-      matchUpdateTypes: [
-        'lockFileMaintenance',
-      ],
-      minimumReleaseAge: null,
-    },
-    {
-      // Suppress all digest update PRs. `helpers:pinGitHubActionDigests` and `docker:pinDigests` (both
-      // pulled in via `config:best-practices`) pin references to SHAs and then keep proposing digest bumps,
-      // but every new digest commit is by definition freshly published, so it can never satisfy the 7-day
-      // `minimumReleaseAge` window — and the digest update path doesn't wire in the release timestamp
-      // anyway, so the check would stay in pending status forever regardless of the configured value.
-      // Cooldown is structurally unavailable for digest updates, so we suppress them entirely. The
-      // defenses we still have:
-      //   - The SHA pin itself (deps are immutable between bumps)
-      //   - Real version bumps (major/minor/patch) still flow and are subject to the normal 7-day cooldown
-      //   - CVE-tracked issues bypass cooldown via `vulnerabilityAlerts`
-      matchUpdateTypes: [
-        'digest',
-      ],
-      enabled: false,
-    },
     {
       // Disable scheduled lockFileMaintenance for cargo. The maintenance step delegates to `cargo update`,
       // which has no native release-age filter, so the weekly run would silently pull in transitive versions

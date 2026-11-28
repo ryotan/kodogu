@@ -17,21 +17,26 @@ env:
 permissions:
   contents: read
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   tauri:
     name: 'Tauri - ${{ matrix.platform }}'
+    timeout-minutes: 60
     permissions:
       contents: read
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-26'
+            target: 'aarch64-apple-darwin'
           - platform: 'ubuntu-22.04'
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
+            target: ''
+          - platform: 'windows-2025-vs2026'
+            target: ''
 
     runs-on: ${{ matrix.platform }}
     defaults:
@@ -48,6 +53,7 @@ jobs:
           disable-telemetry: ${{ runner.os == 'Linux' }}
           allowed-endpoints: >
             aka.ms:443
+            archive.ubuntu.com:443
             azure.archive.ubuntu.com:80
             dl.google.com:443
             download.visualstudio.microsoft.com:443
@@ -61,27 +67,32 @@ jobs:
             raw.githubusercontent.com:443
             registry.npmjs.org:443
             release-assets.githubusercontent.com:443
+            security.ubuntu.com:443
             static.crates.io:443
             static.rust-lang.org:443
             tuf-repo-cdn.sigstore.dev:443
             *.actions.githubusercontent.com:443
             *.githubapp.com:443
             *.blob.core.windows.net:443
+            *.ec2.archive.ubuntu.com:80
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
         run: |
-          sudo apt-get update
+          sudo apt-get update --error-on=any
+          # Disable retries while updating APT to prevent CVE-2026-109518 before installing dependencies.
+          sudo apt-get -o Acquire::Retries=0 install -y --only-upgrade '?source-package(^apt$)'
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Setup Rust toolchain
         uses: step-security/setup-rust-toolchain@f547b7511b1e8f8d1cda8ef9f27bc365e7761fee # v2.0.0
         with:
           cache-workspace-crates: true
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          target: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+          target: ${{ matrix.target }}
 
       - name: Install additional problem matchers
         run: echo "::add-matcher::.github/problem-matchers.json"
@@ -119,8 +130,15 @@ jobs:
         run: mise exec -- bun install --frozen-lockfile
 
       - name: Build app
-        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
-        with:
-          projectPath: apps/desktop/app-root
-          tauriScript: mise run //:app:tauri --
-          args: ${{ matrix.args }}
+        env:
+          FORCE_COLOR: '0'
+          TAURI_TARGET: ${{ matrix.target }}
+        run: |
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            export TAURI_BUNDLER_DMG_IGNORE_CI="${TAURI_BUNDLER_DMG_IGNORE_CI-true}"
+          fi
+          args=()
+          if [[ -n "$TAURI_TARGET" ]]; then
+            args+=(--target "$TAURI_TARGET")
+          fi
+          mise run //:app:tauri -- build "${args[@]}"

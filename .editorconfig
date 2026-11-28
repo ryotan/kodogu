@@ -13,7 +13,7 @@ curly_bracket_next_line = false
 spaces_around_operators = true
 spaces_around_brackets = inside
 
-[*.{java,ts,tsx,js,jsx,html,css,scss,properties,gradle,groovy,xml,yaml,yml,json,toml}]
+[*.{java,ts,tsx,js,jsx,html,css,scss,properties,gradle,groovy,xml,yaml,yml,json,toml,tf}]
 continuation_indent_size = 4
 trim_trailing_whitespace = true
 
@@ -23,6 +23,12 @@ trim_trailing_whitespace = false
 [*.{bat,cmd}]
 end_of_line = crlf
 
+[*.py]
+indent_size = 4
+
 [*.rs]
 indent_size = 4
 continuation_indent_size = 8
+
+[.idea/**/*.xml]
+insert_final_newline = false
